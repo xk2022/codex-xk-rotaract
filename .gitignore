@@ -1,0 +1,26 @@
+# Local secrets; sanitized environment examples may be tracked.
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Local caches and generated artifacts.
+node_modules/
+.next/
+.nuxt/
+.vite/
+dist/
+build/
+target/
+coverage/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.log
+
+# Editor and operating-system files.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
