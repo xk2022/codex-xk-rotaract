@@ -4,7 +4,7 @@
 
 - 專案名稱：Xk-rotaract。
 - 採用單一 repo，前後端分別位於 `frontend/` 與 `backend/`。
-- 另建私人 repo `xk2022/Xk-rotaract`，保留既有的 `xk2022/xkRotaract` 專案。
+- 使用新建的私人 repo `xk2022/codex-xk-rotaract`，保留既有的 `xk2022/xkRotaract` 專案。
 - 設計目標：前後端各自建置、測試與部署；具體方式於技術選型後確認。API 契約存放於 `docs/api/`。
 - 使用 AI 多代理協作，由主代理統一派工及整合。
 - 先確認核心使用流程，製作前端雛形並同步定義 API，再完成一條整合流程。

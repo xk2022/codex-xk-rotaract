@@ -5,7 +5,7 @@
 以可驗證的交付品質、清楚的責任與有效的並行工作建立團隊。首個專案為 `Xk-rotaract`。
 
 - 團隊形式：AI 多代理，由主代理統一協調。
-- 專案位置：此 repo 根目錄。GitHub 目標為新建的私人 repo `xk2022/Xk-rotaract`；既有 `xk2022/xkRotaract` 專案保留。
+- 專案位置：此 repo 根目錄。GitHub repo 為私人 repo `xk2022/codex-xk-rotaract`；既有 `xk2022/xkRotaract` 專案保留。
 - 技術、產品需求與驗證命令：取得專案後依實際檔案確認。
 - 本檔是可重用的團隊運作規則；代理需於每次工作時指派，不代表背景服務會持續運行。
 

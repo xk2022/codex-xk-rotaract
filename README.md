@@ -2,6 +2,8 @@
 
 採用 monorepo 管理前端、後端與協作文件的專案。
 
+GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
+
 目前已建立目錄骨架與 AI 團隊規範。產品需求、技術棧與部署環境仍待確認；尚無可啟動的前後端應用程式，尚未啟用自動化測試、CI 或部署。
 
 ## 目錄
