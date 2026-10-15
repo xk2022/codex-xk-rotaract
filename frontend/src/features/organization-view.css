@@ -68,3 +68,14 @@
     flex: 1;
   }
 }
+
+.organization-section-heading { display: flex; align-items: flex-start; gap: .8rem; margin: 1.2rem 0 .9rem; }
+.organization-section-heading > span { display: grid; place-items: center; flex: 0 0 2rem; height: 2rem; border-radius: .65rem; color: #8f244b; background: #f8eaf0; font-size: .75rem; font-weight: 700; }
+.organization-section-heading h3 { margin: 0; font-size: 1rem; }
+.organization-section-heading p { margin: .35rem 0 0; color: #64748b; font-size: .85rem; line-height: 1.6; }
+.organization-empty { padding: 1.2rem; border: 1px dashed #d7dfe8; border-radius: 12px; color: #64748b; text-align: center; }
+.organization-empty p { margin-bottom: 0; font-size: .85rem; }
+.organization-save-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid #e7ecf1; }
+.organization-draft-status { color: #64748b; font-size: .85rem; }
+.organization-workspace > .panel > label { display: grid; gap: .45rem; margin: .8rem 0; }
+.organization-workspace .form > label { margin-bottom: .4rem; }

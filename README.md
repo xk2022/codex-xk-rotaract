@@ -32,7 +32,7 @@ GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rota
 
 [v0.4 UI／UX 改善](docs/2027/24-ui-ux-improvements.md)
 
-## 體驗第一版
+## 啟動前端（預設公開首頁）
 
 ```sh
 cd frontend
@@ -42,6 +42,6 @@ npm run dev
 
 完整流程與限制見[前端說明](frontend/README.md)，驗證證據見[交付紀錄](docs/2027/17-prototype-delivery.md)。
 
-## 線上雛形
+## 對外公開首頁
 
-[公開首頁](https://xk2022.github.io/codex-xk-rotaract/) · [管理入口](https://xk2022.github.io/codex-xk-rotaract/#/admin) · [公開首頁交付說明](docs/2027/20-public-index.md)。僅為合成資料操作雛形，尚未接上後端，重新整理會重設資料。完整發布狀態見[Pages交付紀錄](docs/2027/18-pages-deployment.md)。
+[公開首頁](https://xk2022.github.io/codex-xk-rotaract/) · [管理入口](https://xk2022.github.io/codex-xk-rotaract/#/admin) · [公開首頁交付說明](docs/2027/20-public-index.md)。僅為合成資料操作雛形，尚未接上後端，重新整理會重設資料。最新入口與全頁升級見[v0.5交付紀錄](docs/2027/25-public-entry-and-page-upgrade.md)。

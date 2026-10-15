@@ -1,8 +1,8 @@
-# 前端操作雛形 v0.4
+# 前端操作雛形 v0.5
 
 React 19 + TypeScript + Vite + Tailwind。保留品牌與配色、使用自有元件。本版以假資料補齊第一階段 UI／UX 初版；不是正式後端或安全驗收。
 
-[線上體驗](https://xk2022.github.io/codex-xk-rotaract/) · [完整交付清單](../docs/2027/19-phase1-ui-delivery.md)
+[對外公開首頁](https://xk2022.github.io/codex-xk-rotaract/) · [完整交付清單](../docs/2027/19-phase1-ui-delivery.md)
 
 [UI／UX 畫面規格](../docs/2027/21-ui-ux-spec.md) · [檢查與 bug 修正紀錄](../docs/2027/22-ui-ux-qa.md)
 
@@ -20,13 +20,16 @@ npm run test:browser:v2
 npm run test:browser:public
 npm run test:browser:ux
 npm run test:browser:enhancements
+npm run test:browser:all
 ```
 
 有系統 Chromium 可加 `CHROMIUM_PATH=/usr/bin/chromium`，`BASE_URL` 可指定網址。截圖位於 docs/previews/。
 
 ## 公開入口
 
-網址預設開啟公開首頁，沿用舊版「玩轉你的扶青年代」及產業地圖／資訊／行事曆入口。登入與註冊有獨立入口；管理者從「管理後台」進入登入頁，或選擇清楚標示的假資料體驗。原管理雛形可直接開啟 `#/demo`。詳見[公開首頁交付說明](../docs/2027/20-public-index.md)。
+React入口為 `main.tsx → Portal.tsx`，根網址預設只載入公開首頁。管理App延後至明確入口才載入。沿用舊版「玩轉你的扶青年代」及產業地圖／資訊／行事曆入口。登入與註冊有獨立入口；管理者從「管理後台」進入登入頁，或選擇清楚標示的假資料體驗。原管理雛形可直接開啟 `#/demo`。詳見[公開首頁交付說明](../docs/2027/20-public-index.md)。
+
+最新入口、全頁改造與驗證見[v0.5交付紀錄](../docs/2027/25-public-entry-and-page-upgrade.md)。公開體驗網址請使用根網址；`#/demo` 是明確的後台示範連結。
 
 ## 操作方式
 

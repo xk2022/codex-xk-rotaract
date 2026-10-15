@@ -38,6 +38,19 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+      - name: Install browser for public-entry verification
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Verify public entry and page flows from production build
+        working-directory: frontend
+        run: |
+          mkdir -p "$RUNNER_TEMP/public-portal"
+          ln -s "$GITHUB_WORKSPACE/frontend/dist" "$RUNNER_TEMP/public-portal/codex-xk-rotaract"
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory "$RUNNER_TEMP/public-portal" > "$RUNNER_TEMP/public-portal.log" 2>&1 &
+          portal_preview_pid=$!
+          trap 'kill "$portal_preview_pid"' EXIT
+          curl --retry 10 --retry-connrefused --retry-delay 1 --fail --silent --output /dev/null http://127.0.0.1:4173/codex-xk-rotaract/
+          BASE_URL=http://127.0.0.1:4173/codex-xk-rotaract/ npm run test:browser:all
       - name: Upload frontend only
         uses: actions/upload-pages-artifact@v3
         with:

@@ -1,0 +1,14 @@
+.member-operation-section { display: flex; gap: .75rem; align-items: flex-start; padding-top: .5rem; }
+.member-operation-section > span { display: grid; place-items: center; width: 2rem; height: 2rem; flex-shrink: 0; border-radius: .65rem; background: #f8eaf0; color: #8f244b; font-size: .75rem; font-weight: 700; }
+.member-operation-section h3 { margin: 0; font-size: .95rem; }
+.member-operation-section p { margin: .3rem 0 .5rem; font-size: .85rem; color: #64748b; line-height: 1.65; }
+.member-batch-summary { background: #f6f8fb; border: 1px solid #dfe6ee; border-radius: 12px; padding: 1rem 1.2rem; margin: 1rem 0; display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; }
+.member-batch-summary > div:first-child { flex: 1 1 18rem; }
+.member-batch-summary strong { color: #334155; font-size: .9rem; }
+.member-batch-summary p, .member-scenario-target p { color: #64748b; margin: .4rem 0 0; font-size: .85rem; line-height: 1.65; }
+.member-selection-chips { display: flex; flex-wrap: wrap; gap: .4rem; flex: 1 1 100%; }
+.member-selection-chips span { border: 1px solid #ddd4df; color: #753652; background: white; border-radius: 2rem; padding: .3rem .65rem; font-size: .8rem; }
+.member-batch-result { padding: .75rem 1rem; border-left: 3px solid #8e385a; background: #faf5f7; color: #5b3d4d; font-size: .85rem; }
+.member-scenario-target { padding: 1rem; border-radius: 10px; border: 1px solid #e4dfd2; background: #fcfaf4; color: #625031; }
+.member-operations .empty p { max-width: 30rem; margin: .65rem auto; line-height: 1.7; }
+@media (max-width: 600px) { .member-batch-summary { padding: .9rem; } .member-batch-summary > button { width: 100%; } }

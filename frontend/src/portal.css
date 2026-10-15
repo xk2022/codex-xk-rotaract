@@ -1,0 +1,48 @@
+.portal-workspace[hidden] {
+  display: none !important;
+}
+.portal-recovery {
+  max-width: 680px;
+  min-height: 60vh;
+  margin: 8vh auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+}
+.portal-recovery > svg {
+  color: #c8102e;
+}
+.portal-recovery h1 {
+  font-size: clamp(24px, 5vw, 36px);
+  color: #253049;
+}
+.portal-recovery p {
+  color: #4b586e;
+  font-size: 16px;
+  line-height: 1.8;
+}
+.portal-recovery .portal-eyebrow {
+  font-weight: 700;
+  color: #a50d27;
+}
+.portal-recovery > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.portal-loading-mark {
+  animation: portal-breathe 1.5s ease-in-out infinite;
+}
+@keyframes portal-breathe {
+  50% {
+    opacity: 0.45;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-loading-mark {
+    animation: none;
+  }
+}

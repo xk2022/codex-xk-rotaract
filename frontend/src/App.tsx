@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import "./workspace-polish.css";
 import type { FormEvent, ReactNode } from "react";
 import {
   ArrowDownLeft,
@@ -10,7 +11,6 @@ import {
   CalendarDays,
   Check,
   CheckCheck,
-  ChevronDown,
   ChevronRight,
   CircleHelp,
   ClipboardCheck,
@@ -182,7 +182,7 @@ function ModalShell({
     </dialog>
   );
 }
-export default function App() {
+export default function App({ embedded = false }: { embedded?: boolean } = {}) {
   const [portalRoute, setPortalRoute] = useState(readPortalRoute);
   const lastHash = useRef(window.location.hash);
   const lastRoot = useRef(readPortalRoute());
@@ -201,6 +201,19 @@ export default function App() {
   );
   const [page, setPage] = useState<Page>(readWorkspacePage);
   const [sidebar, setSidebar] = useState(false);
+  useEffect(() => {
+    if (!sidebar) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSidebar(false);
+        document
+          .querySelector<HTMLButtonElement>('[aria-label="開啟選單"]')
+          ?.focus();
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [sidebar]);
   const [query, setQuery] = useState("");
   const [authMode, setAuthMode] = useState<"login" | "forgot" | "reset">(
     "login",
@@ -208,6 +221,7 @@ export default function App() {
   const [feedbackMode, setFeedbackMode] = useState("normal");
   const [clubFilter, setClubFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [memberSort, setMemberSort] = useState("callName");
   const [listPage, setListPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [includeNonRegular, setIncludeNonRegular] = useState(false);
@@ -383,6 +397,14 @@ export default function App() {
   const scoped = state.members.filter(
     (m) => m.clubId === managedClub && m.status !== "unaffiliated",
   );
+  const overviewMembers = listedMembers(
+    state,
+    actor,
+    false,
+    "",
+    organization.state.clubs,
+    organization.district,
+  ).filter((member) => member.clubId === managedClub);
   const applications =
     actor === "visitor"
       ? []
@@ -409,7 +431,17 @@ export default function App() {
         (clubFilter === "all" || m.clubId === clubFilter) &&
         (typeFilter === "all" || typeFilter === "ROTARACT"),
     )
-    .sort((a, b) => a.callName.localeCompare(b.callName));
+    .sort((a, b) =>
+      memberSort === "joined-desc"
+        ? b.startsOn.localeCompare(a.startsOn) ||
+          a.callName.localeCompare(b.callName)
+        : memberSort === "joined-asc"
+          ? a.startsOn.localeCompare(b.startsOn) ||
+            a.callName.localeCompare(b.callName)
+          : memberSort === "name"
+            ? a.name.localeCompare(b.name, "zh-Hant")
+            : a.callName.localeCompare(b.callName, "zh-Hant"),
+    );
   const pageCount = Math.max(1, Math.ceil(members.length / pageSize));
   const currentPage = Math.min(listPage, pageCount);
   const pagedMembers = members.slice(
@@ -418,7 +450,16 @@ export default function App() {
   );
   useEffect(() => {
     setListPage(1);
-  }, [query, includeNonRegular, statusFilter, clubFilter, typeFilter, actor]);
+  }, [
+    query,
+    includeNonRegular,
+    statusFilter,
+    clubFilter,
+    typeFilter,
+    memberSort,
+    actor,
+    organization.district,
+  ]);
   const selectedMember = state.members.find((m) => m.id === selected);
   const canSeeSelected =
     selectedMember &&
@@ -539,6 +580,10 @@ export default function App() {
     setQuery("");
     setIncludeNonRegular(false);
     setStatusFilter("all");
+    setClubFilter("all");
+    setTypeFilter("all");
+    setMemberSort("callName");
+    setListPage(1);
     setModal(null);
     setMessage("已重設合成資料，可以重新體驗流程。");
   };
@@ -726,6 +771,17 @@ export default function App() {
       )}
       {modal === "register" ? (
         <form className="form" onSubmit={register}>
+          <ol className="workspace-journey" aria-label="註冊後的下一步">
+            <li className="current">
+              <b>1</b>建立帳號
+            </li>
+            <li>
+              <b>2</b>申請入社
+            </li>
+            <li>
+              <b>3</b>管理者核准
+            </li>
+          </ol>
           <p className="muted">
             僅供體驗，請使用合成資料與示範密碼。密碼不會保存，也不會建立真實帳號。
           </p>
@@ -790,7 +846,14 @@ export default function App() {
         </form>
       ) : modal === "join" ? (
         <form className="form" onSubmit={submitJoin}>
-          <p className="muted">由該社管理者核准後，才建立社籍並列入名冊。</p>
+          <div className="workflow-summary">
+            <strong>
+              申請人：{current.callName} · {current.name}
+            </strong>
+            <p>
+              由該社管理者核准後，才建立社籍並列入名冊。送出後可在「入社申請」查看進度。
+            </p>
+          </div>
           <label>
             選擇社團
             <select name="clubId">
@@ -879,6 +942,7 @@ export default function App() {
     portalRoute === "map" ||
     portalRoute === "calendar"
   ) {
+    if (embedded) return null;
     return (
       <PublicHome
         page={portalRoute}
@@ -973,7 +1037,10 @@ export default function App() {
           onClick={() => setSidebar(false)}
         />
       )}
-      <aside className={`sidebar ${sidebar ? "open" : ""}`}>
+      <aside
+        id="workspace-navigation"
+        className={`sidebar ${sidebar ? "open" : ""}`}
+      >
         <a
           className="brand"
           href="#"
@@ -990,6 +1057,13 @@ export default function App() {
             <small>萬花筒 KALEIDOSCOPE</small>
           </span>
         </a>
+        <button
+          className="icon-button workspace-mobile-close"
+          aria-label="關閉導覽選單"
+          onClick={() => setSidebar(false)}
+        >
+          <X size={20} />
+        </button>
         <div className="workspace">
           <span className="workspace-mark">R</span>
           <span>
@@ -1002,25 +1076,51 @@ export default function App() {
             </strong>
             <small>{manager ? "社團管理工作區" : "會員工作區"}</small>
           </span>
-          <ChevronDown size={14} />
         </div>
-        <p className="nav-caption">WORKSPACE</p>
         <nav aria-label="主要選單">
-          {visibleNav.map(({ page: target, label, icon: Icon }) => (
-            <button
-              key={target}
-              aria-label={label}
-              className={`nav-item ${page === target ? "active" : ""}`}
-              onClick={() => navigate(target)}
-            >
-              <Icon size={19} strokeWidth={1.7} />
-              <span>{label}</span>
-              {target === "applications" && pending.length > 0 && (
-                <span className="nav-count">{pending.length}</span>
-              )}
-              {target === page && <span className="active-dot" />}
-            </button>
-          ))}
+          {[
+            { title: "工作起點", pages: ["overview"] },
+            {
+              title: "社員與社籍",
+              pages: [
+                "members",
+                "applications",
+                "transfers",
+                "membership",
+                "annual",
+              ],
+            },
+            { title: "組織與授權", pages: ["club", "roles", "district"] },
+            { title: "我的帳號", pages: ["profile", "account"] },
+            { title: "紀錄與協助", pages: ["history", "audit", "support"] },
+          ].map((group) => {
+            const items = visibleNav.filter((item) =>
+              group.pages.includes(item.page),
+            );
+            return (
+              items.length > 0 && (
+                <div className="workspace-nav-group" key={group.title}>
+                  <p className="nav-caption">{group.title}</p>
+                  {items.map(({ page: target, label, icon: Icon }) => (
+                    <button
+                      key={target}
+                      aria-label={label}
+                      aria-current={page === target ? "page" : undefined}
+                      className={`nav-item ${page === target ? "active" : ""}`}
+                      onClick={() => navigate(target)}
+                    >
+                      <Icon size={19} strokeWidth={1.7} />
+                      <span>{label}</span>
+                      {target === "applications" && pending.length > 0 && (
+                        <span className="nav-count">{pending.length}</span>
+                      )}
+                      {target === page && <span className="active-dot" />}
+                    </button>
+                  ))}
+                </div>
+              )
+            );
+          })}
         </nav>
         <div className="sidebar-bottom">
           <div className="community-note">
@@ -1037,7 +1137,7 @@ export default function App() {
             <RotateCcw size={15} /> 重設示範資料
           </button>
           <div className="sidebar-footer">
-            <Flower2 size={16} /> ROTARACT KALEIDOSCOPE <span>v0.4</span>
+            <Flower2 size={16} /> ROTARACT KALEIDOSCOPE <span>v0.5</span>
           </div>
         </div>
       </aside>
@@ -1048,6 +1148,7 @@ export default function App() {
               className="icon-button mobile-menu"
               aria-label="開啟選單"
               aria-expanded={sidebar}
+              aria-controls="workspace-navigation"
               onClick={() => setSidebar(true)}
             >
               <Menu />
@@ -1055,7 +1156,15 @@ export default function App() {
             <span className="context-icon">
               <Building2 size={17} />
             </span>
-            <span>{manager ? clubName(actor) : "Rotaract 萬花筒"}</span>
+            <span>
+              {manager
+                ? getClubName(actorClub(actor))
+                : actor === "district"
+                  ? `${organization.district} 地區工作區`
+                  : actor === "platform"
+                    ? "平台帳號協助"
+                    : "Rotaract 萬花筒"}
+            </span>
             <ChevronRight size={14} />
             <span className="muted">
               {nav.find((n) => n.page === page)?.label}
@@ -1068,14 +1177,16 @@ export default function App() {
             <span className="year-chip">
               <CalendarDays size={14} /> 2026 — 2027
             </span>
-            <button
-              className="icon-button notification"
-              aria-label={`查看 ${pending.length} 筆待辦`}
-              onClick={() => navigate("applications")}
-            >
-              <Bell size={19} />
-              {pending.length > 0 && <i />}
-            </button>
+            {(manager || actor === "member") && (
+              <button
+                className="icon-button notification"
+                aria-label={`查看 ${pending.length} 筆待辦`}
+                onClick={() => navigate("applications")}
+              >
+                <Bell size={19} />
+                {pending.length > 0 && <i />}
+              </button>
+            )}
             <span className="topbar-divider" />
             {actor !== "visitor" && (
               <button
@@ -1102,7 +1213,7 @@ export default function App() {
         </header>
         <div className="demo-bar">
           <span>
-            <Sparkles size={14} /> UI／UX 初版 · 全部使用假資料，重新整理即重設
+            <Sparkles size={14} /> 操作預覽 · 僅使用假資料，重新整理即重設
           </span>
           {actor === "district" && (
             <label>
@@ -1178,9 +1289,21 @@ export default function App() {
                       ? "從一份申請，開啟新的扶青旅程。"
                       : page === "transfers"
                         ? "讓社籍交接清楚，也讓每段經歷被好好保留。"
-                        : page === "profile"
-                          ? "自在介紹自己，也保有自己的隱私選擇。"
-                          : "讓社友與世界，更認識你的社團。"}
+                        : ({
+                            profile: "資料由你維護，聯絡方式由你決定是否顯示。",
+                            account:
+                              "基本資料與登入方式分開管理，變更前先確認本人。",
+                            club: "維護社團介紹與聯絡方式，清楚呈現對外資訊。",
+                            roles: "授權給合適的人，確認任期與交接對象。",
+                            annual: "逐一核對當年度社籍，完成名冊確認。",
+                            membership:
+                              "確認對象、原因與日期，保留每段社籍經歷。",
+                            history:
+                              "每段經歷的公開範圍，都有清楚的同意與紀錄。",
+                            audit: "依操作紀錄查找異動，掌握變更的來由。",
+                            support: "追蹤帳號協助案件，確認補件與處理進度。",
+                            district: "在授權地區內維護社團與組織狀態。",
+                          }[page] ?? "讓每個操作都有清楚的下一步。")}
               </p>
             </div>
             <div className="heading-actions">
@@ -1219,7 +1342,7 @@ export default function App() {
                   <ClipboardCheck size={16} /> 審核入社申請{" "}
                   <span className="button-count">{pending.length}</span>
                 </button>
-              ) : (
+              ) : actor === "member" ? (
                 <button
                   className="button primary"
                   onClick={() =>
@@ -1229,6 +1352,13 @@ export default function App() {
                   <Settings2 size={16} />{" "}
                   {page === "account" ? "查看資料與隱私" : "編輯帳號資料"}
                 </button>
+              ) : (
+                <span className="workspace-scope">
+                  <ShieldCheck size={16} />
+                  {actor === "district"
+                    ? `${organization.district} 授權範圍`
+                    : "帳號支援範圍"}
+                </span>
               )}
             </div>
           </div>
@@ -1566,7 +1696,7 @@ export default function App() {
                         {
                           label: "社團社員",
                           value: scoped.length,
-                          note: "含 OB 與待確認社員",
+                          note: "含 OB、已退出與待確認社員",
                           icon: Users,
                           color: "rose",
                         },
@@ -1616,91 +1746,65 @@ export default function App() {
                           <div>
                             <h2>
                               社員一覽{" "}
-                              <span className="sub-count">{scoped.length}</span>
+                              <span className="sub-count">
+                                {overviewMembers.length}
+                              </span>
                             </h2>
-                            <p>{getClubName(managedClub)} · 本年度社員狀態</p>
+                            <p>{getClubName(managedClub)} · 僅顯示正常社籍</p>
                           </div>
                           <button
                             className="text-button"
                             onClick={() => {
-                              setIncludeNonRegular(true);
+                              setIncludeNonRegular(false);
+                              setStatusFilter("all");
                               navigate("members");
                             }}
                           >
                             查看全部 <ArrowRight size={15} />
                           </button>
                         </div>
-                        {list(scoped.slice(0, 4))}
+                        {list(overviewMembers.slice(0, 4))}
                         <div className="panel-footnote">
                           <ShieldCheck size={14} />{" "}
                           私人聯絡資料依會員隱私設定，於詳情中呈現。
                         </div>
                       </section>
-                      <section className="panel todos">
+                      <section className="panel workspace-guide">
                         <div className="panel-header">
                           <div>
-                            <h2>值得留意的事</h2>
-                            <p>讓每一件小事，都有著落。</p>
+                            <h2>操作前，先掌握範圍</h2>
+                            <p>你看得到的資料，仍依角色與隱私設定呈現。</p>
                           </div>
-                          <span className="tiny-dot" />
+                          <ShieldCheck size={22} />
                         </div>
-                        <button
-                          className="todo"
-                          onClick={() => navigate("applications")}
-                        >
-                          <span className="todo-icon amber">
-                            <ClipboardCheck size={19} />
-                          </span>
-                          <span>
-                            <strong>迎接新的社團夥伴</strong>
-                            <small>{pending.length} 筆入社申請待處理</small>
-                          </span>
-                          <ChevronRight size={16} />
-                        </button>
-                        <button
-                          className="todo"
-                          onClick={() => {
-                            setIncludeNonRegular(true);
-                            setStatusFilter("unconfirmed");
-                            navigate("members");
-                          }}
-                        >
-                          <span className="todo-icon blue">
-                            <CalendarDays size={19} />
-                          </span>
-                          <span>
-                            <strong>完成年度社員確認</strong>
-                            <small>
-                              {
-                                scoped.filter((m) => m.status === "unconfirmed")
-                                  .length
-                              }{" "}
-                              位社員待年度確認
-                            </small>
-                          </span>
-                          <ChevronRight size={16} />
-                        </button>
-                        <button
-                          className="todo"
-                          onClick={() => navigate("transfers")}
-                        >
-                          <span className="todo-icon green">
-                            <ArrowDownLeft size={19} />
-                          </span>
-                          <span>
-                            <strong>讓轉社交接更清楚</strong>
-                            <small>雙方核准後，由本人最終確認</small>
-                          </span>
-                          <ChevronRight size={16} />
-                        </button>
-                        <div className="gentle-note">
-                          <Flower2 size={22} />
-                          <p>
-                            每一份認真，
-                            <br />
-                            都讓社團變得更好一點。
-                          </p>
-                        </div>
+                        <dl>
+                          <div>
+                            <dt>目前身分</dt>
+                            <dd>
+                              {manager
+                                ? `${getClubName(actorClub(actor))} · 社團管理`
+                                : `${current.callName} · 會員本人`}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>社員查詢</dt>
+                            <dd>
+                              名冊預設只顯示正常社籍，其他狀態需另行勾選。
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>聯絡資料</dt>
+                            <dd>
+                              電話預設隱藏，Email 依本人選擇顯示於登入後的詳情。
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>年度確認</dt>
+                            <dd>
+                              8/1 起未確認者暫停免費地圖曝光，不會自動轉為 OB。
+                            </dd>
+                          </div>
+                        </dl>
                       </section>
                     </div>
                   </>
@@ -1776,6 +1880,21 @@ export default function App() {
                           <option value="ROTARACT">扶青社</option>
                           <option value="ROTARY">扶輪社</option>
                         </select>
+                        <label className="workspace-sort">
+                          排序
+                          <select
+                            aria-label="會員排序"
+                            value={memberSort}
+                            onChange={(e) => setMemberSort(e.target.value)}
+                          >
+                            <option value="callName">Call name A–Z</option>
+                            <option value="name">姓名</option>
+                            <option value="joined-desc">
+                              入社日期：新到舊
+                            </option>
+                            <option value="joined-asc">入社日期：舊到新</option>
+                          </select>
+                        </label>
                         <label className="checkbox">
                           <input
                             type="checkbox"
@@ -1787,6 +1906,43 @@ export default function App() {
                           />
                           包含非正常／待確認社籍
                         </label>
+                      </div>
+                      <div
+                        className="workspace-results"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        <span>
+                          <strong>{members.length} 位符合條件</strong> ·{" "}
+                          {actor === "district"
+                            ? organization.district
+                            : manager
+                              ? getClubName(actorClub(actor))
+                              : "已核准入社的會員"}{" "}
+                          ·{" "}
+                          {includeNonRegular
+                            ? "包含非正常／待確認社籍"
+                            : "正常社籍"}
+                          {query && ` · 搜尋「${query}」`}
+                        </span>
+                        {(query ||
+                          includeNonRegular ||
+                          statusFilter !== "all" ||
+                          clubFilter !== "all" ||
+                          typeFilter !== "all") && (
+                          <button
+                            className="text-button"
+                            onClick={() => {
+                              setQuery("");
+                              setIncludeNonRegular(false);
+                              setStatusFilter("all");
+                              setClubFilter("all");
+                              setTypeFilter("all");
+                            }}
+                          >
+                            清除篩選
+                          </button>
+                        )}
                       </div>
                       {list(pagedMembers)}
                       <div className="pagination">
@@ -2405,6 +2561,19 @@ function ApplicationCard({
 }) {
   const [reason, setReason] = useState("");
   const [startsOn, setStartsOn] = useState(demoToday);
+  const [reviewError, setReviewError] = useState("");
+  const review = (approve: boolean) => {
+    if (!approve && !reason.trim()) {
+      setReviewError("請先填寫拒絕原因，讓申請人了解如何調整。");
+      return;
+    }
+    if (approve && (!startsOn || startsOn > demoToday)) {
+      setReviewError("請選擇有效的實際入社日，不可晚於今天。");
+      return;
+    }
+    setReviewError("");
+    onReview(approve, approve ? "" : reason, startsOn);
+  };
   return (
     <article className="request-card">
       <div className="request-person">
@@ -2430,12 +2599,38 @@ function ApplicationCard({
           }
         </span>
       </div>
+      {a.status === "pending" && (
+        <div className="workspace-request-guide">
+          <ClipboardCheck size={18} />
+          <span>
+            <strong>
+              {manager
+                ? "下一步：核對申請人與實際入社日"
+                : "下一步：等待社團管理者回覆"}
+            </strong>
+            <small>
+              {manager
+                ? "核准後將建立社籍並列入名冊；拒絕時需填寫原因。"
+                : "核准前不會出現在會員名冊；仍可撤回申請。"}
+            </small>
+          </span>
+        </div>
+      )}
       <blockquote>{a.message}</blockquote>
       <p className="request-contact">
         Email：{member.emailVisible ? member.email : "會員已隱藏"} · 電話：
         {member.phoneVisible ? member.phone || "尚未填寫" : "會員已隱藏"}
       </p>
-      {a.reason && <p className="rejection-reason">拒絕原因：{a.reason}</p>}
+      {a.reason && (
+        <p className="rejection-reason">
+          {a.status === "rejected" ? "拒絕原因" : "處理說明"}：{a.reason}
+        </p>
+      )}
+      {reviewError && (
+        <p className="workspace-inline-error" role="alert">
+          {reviewError}
+        </p>
+      )}
       {a.status === "pending" &&
         (manager ? (
           <div className="review-actions">
@@ -2459,16 +2654,10 @@ function ApplicationCard({
                 maxLength={1000}
               />
             </label>
-            <button
-              className="button secondary"
-              onClick={() => onReview(false, reason, startsOn)}
-            >
+            <button className="button secondary" onClick={() => review(false)}>
               拒絕
             </button>
-            <button
-              className="button primary"
-              onClick={() => onReview(true, "", startsOn)}
-            >
+            <button className="button primary" onClick={() => review(true)}>
               <Check size={16} />
               核准入社
             </button>
@@ -2580,7 +2769,11 @@ function TransferCard({
           </p>
         </div>
       )}
-      {t.reason && <p className="rejection-reason">拒絕原因：{t.reason}</p>}
+      {t.reason && (
+        <p className="rejection-reason">
+          {t.status === "rejected" ? "拒絕原因" : "處理說明"}：{t.reason}
+        </p>
+      )}
       <div className="transfer-actions">
         {actorClub(actor) === t.fromClub && t.status === "completed" && (
           <button className="button secondary" onClick={onViewHistory}>

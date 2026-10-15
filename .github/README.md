@@ -1,6 +1,6 @@
 # GitHub 協作設定
 
-`workflows/deploy-frontend.yml` 提供 GitHub Pages 的前端雛形建置與部署：main 的 frontend 變更與手動執行觸發，Node 24、npm ci、41 項單元測試及 TypeScript／Vite build，僅發布 frontend/dist。
+`workflows/deploy-frontend.yml` 提供 GitHub Pages 的前端雛形建置與部署：main 的 frontend 變更與手動執行觸發，Node 24、npm ci、41 項單元測試及 TypeScript／Vite build，在正式建置子路徑執行公開入口與全頁瀏覽器檢查，通過後才發布 frontend/dist。
 
 權限依工作分開：build contents:read，deploy pages:write／id-token:write，部署環境 github-pages；不設定個人存取憑證、不發布後端或私人文件。並行部署依序完成，不中斷已開始的部署。
 

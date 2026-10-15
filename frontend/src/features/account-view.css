@@ -89,3 +89,24 @@
     padding: 12px;
   }
 }
+
+.auth-view { max-width: 720px; }
+.auth-view .detail-body { max-width: 580px; }
+.auth-task-summary { border-left: 3px solid #aa1748; padding: 2px 0 2px 14px; }
+.auth-step { color: #9c173d; font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+.auth-task-summary p { margin: 6px 0 0; color: #475467; }
+.auth-demo-note { border: 1px dashed #d1d5db; border-radius: 8px; padding: 10px 12px; color: #475467; overflow-wrap: anywhere; }
+.auth-password-toggle { justify-self: start; padding: 8px 0; background: transparent; border: 0; color: #9c173d; font: inherit; font-size: 13px; cursor: pointer; min-height: 44px; text-decoration: underline; text-underline-offset: 3px; }
+.auth-password-toggle:focus-visible { outline: 3px solid #9c173d; outline-offset: 2px; }
+.auth-feedback.error { color: #9c2434; background: #fff0f1; border: 1px solid #efc4cb; }
+.auth-feedback.success { color: #216044; background: #eef9f3; border: 1px solid #c3e4d2; }
+.account-impact-summary { padding: 14px 16px; background: #f8f9fc; border: 1px solid #e2e5ec; border-radius: 10px; font-size: 14px; overflow-wrap: anywhere; }
+.account-impact-summary strong { color: #344054; }
+.account-impact-summary p { margin: 8px 0 0; color: #475467; }
+.account-settings .account-feedback { margin: 0 0 16px; }
+.auth-view input[aria-invalid="true"], .account-settings input[aria-invalid="true"] { border-color: #b4233e; }
+@media (max-width: 540px) {
+  .auth-view .detail-body { padding: 16px; }
+  .auth-view input { min-width: 0; max-width: 100%; }
+  .account-impact-summary { padding: 12px; font-size: 13px; }
+}

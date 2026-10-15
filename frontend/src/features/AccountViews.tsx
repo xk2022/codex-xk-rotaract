@@ -39,11 +39,15 @@ export function AuthView({
   const [openedTicket, setOpenedTicket] = useState<ResetTicket | null>(null);
   const [clockOffset, setClockOffset] = useState(0);
   const [notice, setNotice] = useState("");
+  const [isError, setIsError] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const now = () => Date.now() + clockOffset;
 
   const switchMode = (next: Mode) => {
     setPassword("");
     setConfirmation("");
+    setShowPassword(false);
+    setIsError(false);
     setNotice("");
     onMode(next);
   };
@@ -51,6 +55,7 @@ export function AuthView({
     setPassword("");
     setConfirmation("");
     if (!resetUsable(selected, ticket, now())) {
+      setIsError(true);
       setNotice("此連結已失效：可能已重送、使用或超過 30 分鐘。請重新申請。");
       return;
     }
@@ -59,6 +64,7 @@ export function AuthView({
   };
   function submit(event: FormEvent) {
     event.preventDefault();
+    setIsError(false);
     try {
       if (mode === "login") {
         const id = demoLogin(members, identity, password);
@@ -83,11 +89,12 @@ export function AuthView({
         setNotice("模擬重設完成。新密碼未保存；請使用公開示範密碼登入。");
       }
     } catch (error) {
+      setIsError(true);
       setNotice((error as Error).message);
     }
   }
   return (
-    <section className="panel">
+    <section className="panel auth-view">
       <div className="feature-header">
         <h2>
           {mode === "login"
@@ -99,9 +106,31 @@ export function AuthView({
         <p>合成資料體驗，不會寄信或保存真實密碼。請勿輸入真實密碼。</p>
       </div>
       <div className="detail-body section-stack">
-        <p className="notice">所有示範帳號密碼：{DEMO_PASSWORD}</p>
+        <div className="auth-task-summary">
+          <span className="auth-step">
+            {mode === "login"
+              ? "會員入口"
+              : mode === "forgot"
+                ? "步驟 1 / 2"
+                : "步驟 2 / 2"}
+          </span>
+          <p>
+            {mode === "login"
+              ? "使用任一登入識別，繼續管理你的會員資料。"
+              : mode === "forgot"
+                ? "先輸入登錄信箱，再開啟下方模擬信件中的重設連結。"
+                : "設定並確認新示範密碼，完成後返回登入。"}
+          </p>
+        </div>
+        <p className="auth-demo-note">
+          合成帳號共用示範密碼：<strong>{DEMO_PASSWORD}</strong>
+        </p>
         {notice && (
-          <p role="status" className="notice">
+          <p
+            id="auth-feedback"
+            role={isError ? "alert" : "status"}
+            className={`notice auth-feedback ${isError ? "error" : "success"}`}
+          >
             {notice}
           </p>
         )}
@@ -114,16 +143,27 @@ export function AuthView({
                 type={mode === "forgot" ? "email" : "text"}
                 value={identity}
                 onChange={(e) => setIdentity(e.target.value)}
+                aria-describedby={`auth-identity-hint${isError ? " auth-feedback" : ""}`}
+                aria-invalid={isError || undefined}
                 autoComplete="username"
               />
             </label>
+          )}
+          {mode !== "reset" && (
+            <p id="auth-identity-hint" className="field-hint">
+              {mode === "login"
+                ? "可輸入完整 Email、含國碼電話（如 +886912000101），或帳號代號（如 rot_cora27）。"
+                : "使用原登錄信箱，例如 cora@example.test；此體驗不會實際寄送郵件。"}
+            </p>
           )}
           {mode !== "forgot" && (
             <label>
               {mode === "login" ? "示範密碼" : "新示範密碼（12～128 字元）"}
               <input
                 required
-                type="password"
+                type={showPassword ? "text" : "password"}
+                aria-invalid={isError || undefined}
+                aria-describedby={isError ? "auth-feedback" : undefined}
                 maxLength={256}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -138,13 +178,32 @@ export function AuthView({
               再次輸入新示範密碼
               <input
                 required
-                type="password"
+                type={showPassword ? "text" : "password"}
+                aria-invalid={isError || undefined}
+                aria-describedby={isError ? "auth-feedback" : undefined}
                 maxLength={256}
                 value={confirmation}
                 onChange={(e) => setConfirmation(e.target.value)}
                 autoComplete="new-password"
               />
             </label>
+          )}
+          {mode !== "forgot" && (
+            <button
+              type="button"
+              className="auth-password-toggle"
+              aria-pressed={showPassword}
+              aria-label={showPassword ? "隱藏密碼內容" : "顯示密碼內容"}
+              onClick={() => setShowPassword((value) => !value)}
+            >
+              {showPassword ? "隱藏密碼" : "顯示密碼"}
+            </button>
+          )}
+          {mode === "reset" && (
+            <p className="field-hint">
+              12～128
+              字元，可使用空白及貼上；請避免常見弱密碼。新值不會保存，完成後仍使用公開示範密碼登入。
+            </p>
           )}
           <button className="button primary">
             {mode === "login"
@@ -183,6 +242,7 @@ export function AuthView({
           <button
             className="button secondary"
             onClick={() => {
+              setIsError(false);
               setClockOffset((offset) => offset + 31 * 60_000);
               setNotice(
                 "已將示範時間推進 31 分鐘；開啟連結或提交重設，可體驗過期處理。",
@@ -419,20 +479,21 @@ export function AccountView({
             </button>
           </div>
         )}
-        {notice && (
-          <p
-            role={noticeType === "error" ? "alert" : "status"}
-            className={`notice account-feedback ${noticeType}`}
-          >
-            {notice}
-          </p>
-        )}
         <div
           id="account-panel-0"
           role="tabpanel"
           aria-labelledby="account-tab-0"
           hidden={tab !== 0}
         >
+          {notice && tab === 0 && (
+            <p
+              id="account-feedback-0"
+              role={noticeType === "error" ? "alert" : "status"}
+              className={`notice account-feedback ${noticeType}`}
+            >
+              {notice}
+            </p>
+          )}
           <form
             className="form"
             onSubmit={(e) => {
@@ -517,6 +578,15 @@ export function AccountView({
           aria-labelledby="account-tab-1"
           hidden={tab !== 1}
         >
+          {notice && tab === 1 && (
+            <p
+              id="account-feedback-1"
+              role={noticeType === "error" ? "alert" : "status"}
+              className={`notice account-feedback ${noticeType}`}
+            >
+              {notice}
+            </p>
+          )}
           <form
             className="form"
             onSubmit={(e) => {
@@ -531,6 +601,19 @@ export function AccountView({
             }}
           >
             <h3>變更登入聯絡資料</h3>
+            <div className="account-impact-summary" id="account-contact-impact">
+              <strong>一次更新一項登入識別</strong>
+              <p>
+                更新成功後，舊{kind === "phone" ? "電話" : "Email"}
+                立即無法登入；其他登入方式與會員資料維持原有關聯。
+              </p>
+              {contactDirty && (
+                <p>
+                  本次將{kind === "phone" ? "電話" : "Email"}更新為：
+                  <b>{contact}</b>
+                </p>
+              )}
+            </div>
             <p>
               目前電話：{member.phone || "未填寫"}
               <br />
@@ -552,6 +635,7 @@ export function AccountView({
                   setKind(nextKind);
                   setContact("");
                   setPassword("");
+                  setNotice("");
                 }}
               >
                 <option value="phone">電話</option>
@@ -563,6 +647,8 @@ export function AccountView({
               <input
                 required
                 type={kind === "email" ? "email" : "tel"}
+                aria-describedby={`account-contact-impact${noticeType === "error" && notice ? " account-feedback-1" : ""}`}
+                aria-invalid={(noticeType === "error" && !!notice) || undefined}
                 value={contact}
                 onChange={(e) => setContact(e.target.value)}
               />
@@ -592,6 +678,15 @@ export function AccountView({
           aria-labelledby="account-tab-2"
           hidden={tab !== 2}
         >
+          {notice && tab === 2 && (
+            <p
+              id="account-feedback-2"
+              role={noticeType === "error" ? "alert" : "status"}
+              className={`notice account-feedback ${noticeType}`}
+            >
+              {notice}
+            </p>
+          )}
           <form
             className="form"
             onSubmit={(e) => {
@@ -606,6 +701,21 @@ export function AccountView({
             }}
           >
             <h3>帳號代號</h3>
+            <div className="account-impact-summary" id="account-code-impact">
+              <strong>
+                {codeLocked ? "唯一一次修改已使用" : "此項修改只能執行一次"}
+              </strong>
+              <p>
+                {codeLocked
+                  ? "目前代號仍可登入；電話與 Email 也可繼續使用。"
+                  : "確認後無法再次修改。舊代號將保留，且不再接受登入；所有會員資料仍屬於同一帳號。"}
+              </p>
+              {codeDirty && (
+                <p>
+                  本次變更：<b>{member.code}</b> → <b>{code}</b>
+                </p>
+              )}
+            </div>
             <p>
               目前：{member.code} · 剩餘修改次數：{codeLocked ? "0" : "1"}
             </p>
@@ -617,6 +727,8 @@ export function AccountView({
                 minLength={6}
                 maxLength={20}
                 pattern="[A-Za-z0-9_]+"
+                aria-describedby={`account-code-impact${noticeType === "error" && notice ? " account-feedback-2" : ""}`}
+                aria-invalid={(noticeType === "error" && !!notice) || undefined}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
               />

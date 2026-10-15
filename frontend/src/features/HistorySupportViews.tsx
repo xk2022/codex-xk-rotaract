@@ -1,3 +1,4 @@
+import "./history-support.css";
 import { useEffect, useState, useRef } from "react";
 import type { Actor, State } from "../domain";
 import { clubName, actorClub, clubs } from "../domain";
@@ -103,6 +104,14 @@ export function HistoryView({
       setNotice((e as Error).message);
     }
   };
+  const scopedHistory = state.history.filter(scope);
+  const pendingCount = demo.requests.filter(
+    (r) =>
+      r.status === "pending" &&
+      r.expires > Date.now() &&
+      state.history[r.index] &&
+      scope(state.history[r.index]),
+  ).length;
   if (actor === "visitor")
     return (
       <section className="panel detail-body">
@@ -110,7 +119,7 @@ export function HistoryView({
       </section>
     );
   return (
-    <section className="panel">
+    <section className="panel history-workspace">
       <div className="panel-header">
         <div>
           <h2>歷史經歷與公開同意</h2>
@@ -118,16 +127,57 @@ export function HistoryView({
         </div>
       </div>
       <div className="detail-body form">
-        <p className="info-note">
-          {actor === "district"
-            ? `地區示範範圍：${district}，只顯示目前轄內社團。`
-            : actor === "platform"
-              ? "平台支援身分不自動取得歷史操作權；例外須另外確認。"
-              : actor === "member"
-                ? "僅顯示自己的歷史與待辦。"
-                : "僅顯示本社歷史。"}{" "}
-          同意請求有效七日，拒絕或逾期後七日內不可重提；內容或公開設定變更需重新同意。
-        </p>
+        <div className="hs-overview">
+          <div>
+            <span className="hs-eyebrow">
+              {actor === "member" ? "你的歷史，由你決定" : "歷史公開協助"}
+            </span>
+            <h3>
+              {actor === "member"
+                ? "先回覆待辦，再調整公開範圍"
+                : "協助整理，不代替本人決定"}
+            </h3>
+            <p>
+              {actor === "member"
+                ? "每一段已結束社籍都可獨立設定，公開前會再次確認內容。"
+                : "先確認授權範圍，再針對隱藏經歷提出公開請求。"}
+            </p>
+          </div>
+          <div className="hs-stat">
+            <strong>{pendingCount}</strong>
+            <span>{actor === "member" ? "等待你回覆" : "等待本人回覆"}</span>
+          </div>
+          <div className="hs-stat">
+            <strong>{scopedHistory.filter((h) => h.visible).length}</strong>
+            <span>已公開經歷</span>
+          </div>
+        </div>
+        <details className="hs-guidance">
+          <summary>公開規則與目前可操作範圍</summary>
+          <p className="info-note">
+            {actor === "district"
+              ? `地區示範範圍：${district}，只顯示目前轄內社團。`
+              : actor === "platform"
+                ? "平台支援身分不自動取得歷史操作權；例外須另外確認。"
+                : actor === "member"
+                  ? "僅顯示自己的歷史與待辦。"
+                  : "僅顯示本社歷史。"}{" "}
+            同意請求有效七日，拒絕或逾期後七日內不可重提；內容或公開設定變更需重新同意。
+          </p>
+        </details>
+        <div className="hs-section-heading">
+          <span className="hs-step">01</span>
+          <div>
+            <h3>
+              {actor === "member" ? "我的公開設定與待回覆" : "管理協助與授權"}
+            </h3>
+            <p>
+              {actor === "member"
+                ? "隱藏是預設狀態；收到請求後，仍由你決定。"
+                : "操作會留下紀錄，公開請求不會立即公開資料。"}
+            </p>
+          </div>
+        </div>
         {actor !== "member" && actor !== "platform" && (
           <label className="check-row">
             <input
@@ -167,6 +217,15 @@ export function HistoryView({
             <small>示範密碼：DemoPass2026!；正式系統由後端驗證授權。</small>
           </fieldset>
         )}
+        {!scopedHistory.length &&
+          state.history.length > 0 &&
+          actor !== "platform" && (
+            <div className="hs-empty">
+              <span>✓</span>
+              <h3>目前範圍沒有歷史待辦</h3>
+              <p>已結束的社籍會整理在這裡，新的公開請求也會同步顯示。</p>
+            </div>
+          )}
         {!state.history.length && (
           <>
             <p>目前尚無已結束社籍。</p>
@@ -204,7 +263,7 @@ export function HistoryView({
                 password === "DemoPass2026!" &&
                 reason.trim())) && (
               <section
-                className="panel detail-body"
+                className="panel detail-body hs-history-card"
                 key={`${h.memberId}-${index}`}
               >
                 <h3>
@@ -213,6 +272,14 @@ export function HistoryView({
                 <p>
                   {h.startsOn} — {h.endsOn} · {h.visible ? "已公開" : "隱藏"}
                 </p>
+                <div className="hs-record-meta">
+                  <span
+                    className={h.visible ? "hs-pill hs-pill-green" : "hs-pill"}
+                  >
+                    {h.visible ? "已公開" : "僅限本人與授權管理"}
+                  </span>
+                  <span>內容版本 {h.version ?? 0}</span>
+                </div>
                 {actor === "member" ? (
                   <button
                     className="button secondary"
@@ -287,7 +354,17 @@ export function HistoryView({
                 {demo.requests
                   .filter((r) => r.index === index)
                   .map((r) => (
-                    <div key={r.id}>
+                    <div
+                      className={`hs-consent ${r.status === "pending" ? "hs-consent-pending" : ""}`}
+                      key={r.id}
+                    >
+                      <span className="hs-eyebrow">
+                        {r.status === "pending"
+                          ? actor === "member"
+                            ? "等待你確認"
+                            : "等待會員本人回覆"
+                          : "請求處理紀錄"}
+                      </span>
                       <p>
                         {r.expires <= Date.now() && r.status === "pending"
                           ? "已逾期"
@@ -408,7 +485,7 @@ export function SupportView({ state, actor, onAudit, demo }: Props) {
       </section>
     );
   return (
-    <section className="panel">
+    <section className="panel support-workspace">
       <div className="panel-header">
         <div>
           <h2>帳號復原與舊會員資料認領</h2>
@@ -416,6 +493,45 @@ export function SupportView({ state, actor, onAudit, demo }: Props) {
         </div>
       </div>
       <div className="detail-body form">
+        <div className="hs-overview">
+          <div>
+            <span className="hs-eyebrow">帳號支援中心</span>
+            <h3>
+              {actor === "platform"
+                ? "讓每一件求助都有下一步"
+                : "告訴我們，你需要哪一種協助"}
+            </h3>
+            <p>
+              {actor === "platform"
+                ? "依案件說明完成核身，再提供清楚的處理結果。"
+                : "送出申請後，可在下方追蹤回覆、補件及確認後續步驟。"}
+            </p>
+          </div>
+          <div className="hs-stat">
+            <strong>
+              {
+                demo.cases.filter(
+                  (c) =>
+                    (actor === "platform" ||
+                      c.memberId === state.currentMemberId) &&
+                    ["pending", "supplement"].includes(c.status),
+                ).length
+              }
+            </strong>
+            <span>進行中案件</span>
+          </div>
+        </div>
+        <div className="hs-section-heading">
+          <span className="hs-step">01</span>
+          <div>
+            <h3>{actor === "member" ? "提出新的協助申請" : "案件處理清單"}</h3>
+            <p>
+              {actor === "member"
+                ? "選擇類型並描述情況，平台會以案件回覆告知下一步。"
+                : "先查看目前狀態及本人提供的資訊。"}
+            </p>
+          </div>
+        </div>
         {actor === "member" && (
           <form
             className="form"
@@ -456,7 +572,7 @@ export function SupportView({ state, actor, onAudit, demo }: Props) {
             (c) => actor === "platform" || c.memberId === state.currentMemberId,
           )
           .map((c) => (
-            <section className="panel detail-body" key={c.id}>
+            <section className="panel detail-body hs-case-card" key={c.id}>
               <h3>
                 {c.kind === "claim" ? "舊會員資料認領" : "帳號人工復原"} ·{" "}
                 {caseLabel[c.status]}
@@ -481,8 +597,13 @@ export function SupportView({ state, actor, onAudit, demo }: Props) {
                               : "核身已通過，等待本人確認新聯絡信箱"}
                 。
               </p>
-              <p>{c.message}</p>
-              {c.reply && <p>平台回覆：{c.reply}</p>}
+              <details className="hs-guidance">
+                <summary>查看申請內容與案件回覆</summary>
+                <p className="hs-case-message">{c.message}</p>
+                {c.reply && (
+                  <p className="hs-case-reply">平台回覆：{c.reply}</p>
+                )}
+              </details>
               {c.status === "approved" && actor === "member" && (
                 <SupportFollowup item={c} demo={demo} />
               )}
@@ -614,7 +735,7 @@ export function AuditView({
   );
   if (order === "oldest") results.reverse();
   return (
-    <section className="panel">
+    <section className="panel audit-workspace">
       <div className="panel-header">
         <div>
           <h2>異動紀錄</h2>
@@ -669,9 +790,23 @@ export function AuditView({
               </div>
             </div>
             {results.length ? (
-              <ol aria-label="異動紀錄搜尋結果">
+              <ol className="hs-timeline" aria-label="異動紀錄搜尋結果">
                 {results.map((entry) => (
-                  <li key={entry.index}>{entry.text}</li>
+                  <li key={entry.index}>
+                    <span className="hs-timeline-dot" aria-hidden="true" />
+                    <div>
+                      {entry.text.includes(" · ") ? (
+                        <>
+                          <small className="hs-event-time">
+                            {entry.text.split(" · ")[0]}
+                          </small>
+                          <p>{entry.text.split(" · ").slice(1).join(" · ")}</p>
+                        </>
+                      ) : (
+                        <p>{entry.text}</p>
+                      )}
+                    </div>
+                  </li>
                 ))}
               </ol>
             ) : entries.length ? (
@@ -764,13 +899,24 @@ export function PublicSupportView({ demo }: { demo: Demo }) {
     (c) => c.id === receipt && c.memberId === "anonymous",
   );
   return (
-    <section className="panel detail-body">
+    <section className="panel detail-body support-workspace hs-public-support">
+      <span className="hs-eyebrow">帳號支援中心</span>
       <h2>無法登入？申請人工協助</h2>
+      <p className="hs-public-lead">
+        有案件收據就查進度，第一次求助就建立申請。
+      </p>
       <p>
         僅示範受理與案件收據；不收真實證件，不寄真實郵件。登入識別是否存在，不會在此揭露。收據查詢僅供假資料體驗，正式服務須另驗證私密憑證。
       </p>
+      <div className="hs-section-heading">
+        <span className="hs-step">01</span>
+        <div>
+          <h3>已有申請，查詢處理進度</h3>
+          <p>輸入自己的收據，查看平台回覆與需要補充的內容。</p>
+        </div>
+      </div>
       <form
-        className="form"
+        className="form hs-lookup-form"
         onSubmit={(e) => {
           e.preventDefault();
           setReceipt(lookup.trim());
@@ -790,9 +936,20 @@ export function PublicSupportView({ demo }: { demo: Demo }) {
       {searched && !item && <p role="status">查無此示範收據，或資料已重設。</p>}
       {item ? (
         <>
-          <p role="status">
-            收據：{item.id} · {caseLabel[item.status]}
-          </p>
+          <div className="hs-case-status" role="status">
+            <span className="hs-eyebrow">目前狀態</span>
+            <h3>{caseLabel[item.status]}</h3>
+            <small>收據：{item.id}</small>
+            <p>
+              {item.status === "pending"
+                ? "等待平台核身審查；有新回覆時可在此查看。"
+                : item.status === "supplement"
+                  ? "等待你補充說明，完成後將再次送交平台審查。"
+                  : item.status === "approved"
+                    ? "核身已通過，請依下方步驟完成本人確認。"
+                    : "請查看退回原因，需要時可另提申請。"}
+            </p>
+          </div>
           <p>{item.reply || "平台尚未回覆。"}</p>
           {item.status === "supplement" && (
             <form
@@ -835,7 +992,7 @@ export function PublicSupportView({ demo }: { demo: Demo }) {
         </>
       ) : (
         <form
-          className="form"
+          className="form hs-new-case"
           onSubmit={(e) => {
             e.preventDefault();
             const f = new FormData(e.currentTarget);
@@ -856,6 +1013,13 @@ export function PublicSupportView({ demo }: { demo: Demo }) {
             setSearched(false);
           }}
         >
+          <div className="hs-section-heading">
+            <span className="hs-step">02</span>
+            <div>
+              <h3>第一次求助，建立申請</h3>
+              <p>填寫合成聯絡方式及情況說明，送出後請保留收據。</p>
+            </div>
+          </div>
           <label>
             可收信的聯絡 Email（請用 example.test）
             <input

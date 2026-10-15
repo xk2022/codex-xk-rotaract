@@ -258,6 +258,21 @@ export function PublicHome({
   const [menu, setMenu] = useState(false);
   const [city, setCity] = useState("全部地區");
   const [query, setQuery] = useState("");
+  const [industry, setIndustry] = useState("全部產業");
+  const [eventCity, setEventCity] = useState("全部地區");
+  const [eventType, setEventType] = useState("全部類型");
+  const [calendarView, setCalendarView] = useState<"calendar" | "list">(() =>
+    window.matchMedia("(max-width: 560px)").matches ? "list" : "calendar",
+  );
+  const clearBusinesses = () => {
+    setQuery("");
+    setCity("全部地區");
+    setIndustry("全部產業");
+  };
+  const clearEvents = () => {
+    setEventCity("全部地區");
+    setEventType("全部類型");
+  };
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [eventIndex, setEventIndex] = useState<number | null>(null);
   const [monthOffset, setMonthOffset] = useState(0);
@@ -298,6 +313,7 @@ export function PublicHome({
   const filtered = businesses.filter(
     (b) =>
       (city === "全部地區" || b.city === city) &&
+      (industry === "全部產業" || b.category === industry) &&
       `${b.name}${b.callName}${b.club}${b.category}`
         .toLowerCase()
         .includes(query.toLowerCase()),
@@ -310,7 +326,11 @@ export function PublicHome({
     monthDate.getMonth() + 1,
     0,
   ).getDate();
-  const monthEvents = monthOffset === 0 ? events : [];
+  const monthEvents = (monthOffset === 0 ? events : []).filter(
+    (event) =>
+      (eventCity === "全部地區" || event.city === eventCity) &&
+      (eventType === "全部類型" || event.type === eventType),
+  );
   return (
     <div className="ph-site">
       <a
@@ -395,7 +415,7 @@ export function PublicHome({
             <section className="ph-hero ph-container">
               <div className="ph-hero-copy">
                 <p className="ph-eyebrow">
-                  <span /> TOGETHER, WE CREATE MORE.
+                  <span /> 連結社友，探索你的生活圈
                 </p>
                 <h1>
                   玩轉你的
@@ -433,14 +453,14 @@ export function PublicHome({
                   <p>
                     因為連結，讓生活更有意思。
                     <br />
-                    <small>CONNECT PEOPLE. EXPLORE POSSIBILITIES.</small>
+                    <small>商家與活動公開瀏覽，會員資料登入後查詢。</small>
                   </p>
                 </div>
               </div>
               <div className="ph-hero-art">
                 <CommunityArt />
                 <span className="ph-art-caption">
-                  YOUR NEXT CONNECTION STARTS HERE ↗
+                  從一場相遇，開始新的可能 ↗
                 </span>
               </div>
             </section>
@@ -451,7 +471,7 @@ export function PublicHome({
               <div className="ph-container">
                 <div className="ph-section-heading">
                   <div>
-                    <p className="ph-eyebrow">EXPLORE THE COMMUNITY</p>
+                    <p className="ph-eyebrow">認識商家・參與活動・連結社友</p>
                     <h2 id="ph-discover-title">你的扶青生活，從這裡展開</h2>
                   </div>
                   <p>讓交流走進日常，讓每次相遇都有新的可能。</p>
@@ -461,9 +481,10 @@ export function PublicHome({
                     className="ph-entry ph-entry-map"
                     onClick={() => navigate("map")}
                   >
-                    <span className="ph-entry-number">01 / DISCOVER</span>
+                    <span className="ph-entry-number">01 / 探索商家</span>
                     <MapPin size={39} strokeWidth={1.4} />
-                    <h3>Rotaract BizMap</h3>
+                    <h3>商家地圖</h3>
+                    <span className="ph-product-name">Rotaract BizMap</span>
                     <p>
                       找到身邊的扶青好店，
                       <br />
@@ -479,9 +500,10 @@ export function PublicHome({
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <span className="ph-entry-number">02 / CONNECT</span>
+                    <span className="ph-entry-number">02 / 扶青資訊</span>
                     <Sparkles size={39} strokeWidth={1.4} />
-                    <h3>Rotaract Info</h3>
+                    <h3>扶青資訊</h3>
+                    <span className="ph-product-name">Rotaract Info</span>
                     <p>
                       發現扶青的新鮮事，
                       <br />
@@ -495,9 +517,10 @@ export function PublicHome({
                     className="ph-entry ph-entry-calendar"
                     onClick={() => navigate("calendar")}
                   >
-                    <span className="ph-entry-number">03 / EXPERIENCE</span>
+                    <span className="ph-entry-number">03 / 參與活動</span>
                     <CalendarDays size={39} strokeWidth={1.4} />
-                    <h3>Rotaract Kalendar</h3>
+                    <h3>社團行事曆</h3>
+                    <span className="ph-product-name">Rotaract Kalendar</span>
                     <p>
                       把期待的活動放進行事曆，
                       <br />
@@ -512,11 +535,11 @@ export function PublicHome({
             </section>
             <section className="ph-join ph-container">
               <div>
-                <p className="ph-eyebrow">
-                  A LITTLE CONNECTION. A BIG POSSIBILITY.
-                </p>
+                <p className="ph-eyebrow">加入會員，找到你的社群</p>
                 <h2>從認識彼此，到一起做更多。</h2>
-                <p>加入會員，連結社友，開啟你的扶青生活新篇章。</p>
+                <p>
+                  免費建立帳號，申請加入所屬社團；管理者核准後，你的資料才會依隱私設定顯示於會員名冊。
+                </p>
               </div>
               <button className="ph-button ph-button-red" onClick={onRegister}>
                 建立會員帳號 <ArrowRight size={18} />
@@ -558,6 +581,7 @@ export function PublicHome({
                   <label className="ph-city-filter">
                     地區
                     <select
+                      aria-label="地區"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                     >
@@ -566,7 +590,32 @@ export function PublicHome({
                       ))}
                     </select>
                   </label>
-                  <span>{filtered.length} 間示範商家</span>
+                  <label className="ph-city-filter">
+                    產業
+                    <select
+                      aria-label="產業"
+                      value={industry}
+                      onChange={(e) => setIndustry(e.target.value)}
+                    >
+                      {["全部產業", "餐飲咖啡", "專業服務", "生活旅遊"].map(
+                        (value) => (
+                          <option key={value}>{value}</option>
+                        ),
+                      )}
+                    </select>
+                  </label>
+                  <button
+                    className="ph-clear-filter"
+                    onClick={clearBusinesses}
+                    disabled={
+                      !query && city === "全部地區" && industry === "全部產業"
+                    }
+                  >
+                    清除商家篩選
+                  </button>
+                  <span role="status" aria-live="polite">
+                    找到 {filtered.length} 間示範商家
+                  </span>
                 </div>
                 <div className="ph-map-layout">
                   <div
@@ -622,10 +671,7 @@ export function PublicHome({
                         <p>試試其他關鍵字或地區。</p>
                         <button
                           className="ph-text-button"
-                          onClick={() => {
-                            setQuery("");
-                            setCity("全部地區");
-                          }}
+                          onClick={clearBusinesses}
                         >
                           清除篩選
                         </button>
@@ -693,10 +739,71 @@ export function PublicHome({
                   >
                     回到示範月份
                   </button>
-                  <span>公開活動 · {monthEvents.length} 場</span>
+                  <span role="status" aria-live="polite">
+                    公開活動 · {monthEvents.length} 場
+                  </span>
                 </div>
-                <div className="ph-calendar-layout">
-                  <div className="ph-calendar-grid">
+                <div className="ph-event-filters">
+                  <label className="ph-city-filter">
+                    活動地區
+                    <select
+                      aria-label="活動地區"
+                      value={eventCity}
+                      onChange={(e) => setEventCity(e.target.value)}
+                    >
+                      {["全部地區", "台北", "台中", "高雄"].map((value) => (
+                        <option key={value}>{value}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="ph-city-filter">
+                    活動類型
+                    <select
+                      aria-label="活動類型"
+                      value={eventType}
+                      onChange={(e) => setEventType(e.target.value)}
+                    >
+                      {["全部類型", "交流", "服務", "成長"].map((value) => (
+                        <option key={value}>{value}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    className="ph-clear-filter"
+                    onClick={clearEvents}
+                    disabled={
+                      eventCity === "全部地區" && eventType === "全部類型"
+                    }
+                  >
+                    清除活動篩選
+                  </button>
+                  <div
+                    className="ph-view-switch"
+                    role="group"
+                    aria-label="活動顯示方式"
+                  >
+                    <button
+                      aria-pressed={calendarView === "calendar"}
+                      onClick={() => setCalendarView("calendar")}
+                    >
+                      <CalendarDays size={16} />
+                      月曆
+                    </button>
+                    <button
+                      aria-pressed={calendarView === "list"}
+                      onClick={() => setCalendarView("list")}
+                    >
+                      活動列表
+                    </button>
+                  </div>
+                </div>
+                <div
+                  className={`ph-calendar-layout ph-calendar-view-${calendarView}`}
+                >
+                  <div
+                    className="ph-calendar-grid"
+                    hidden={calendarView === "list"}
+                  >
                     {["日", "一", "二", "三", "四", "五", "六"].map((d) => (
                       <div className="ph-weekday" key={d}>
                         {d}
@@ -737,7 +844,7 @@ export function PublicHome({
                           onClick={() => openEvent(events.indexOf(event))}
                         >
                           <span className="ph-event-date">
-                            <small>OCT</small>
+                            <small>10 月</small>
                             <strong>{event.day}</strong>
                           </span>
                           <span>
@@ -754,8 +861,25 @@ export function PublicHome({
                     ) : (
                       <div className="ph-empty">
                         <CalendarDays size={30} />
-                        <h3>這個月尚無示範活動</h3>
-                        <p>可回到 2026 年 10 月查看活動預覽。</p>
+                        <h3>
+                          {monthOffset === 0
+                            ? "沒有符合篩選的活動"
+                            : "這個月尚無示範活動"}
+                        </h3>
+                        <p>
+                          {monthOffset === 0
+                            ? "調整地區或活動類型，看看其他公開活動。"
+                            : "可回到 2026 年 10 月查看活動預覽。"}
+                        </p>
+                        <button
+                          className="ph-text-button"
+                          onClick={() => {
+                            setMonthOffset(0);
+                            clearEvents();
+                          }}
+                        >
+                          查看全部示範活動 <ArrowRight size={14} />
+                        </button>
                       </div>
                     )}
                   </div>

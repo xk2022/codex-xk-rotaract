@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./member-operations.css";
 import type { FormEvent } from "react";
 import {
   CalendarDays,
@@ -70,7 +71,7 @@ export function MembershipView({ state, actor, run }: MemberOperationsProps) {
     }
   };
   return (
-    <div className="section-stack">
+    <div className="section-stack member-operations">
       <section className="panel">
         <div className="panel-header">
           <div>
@@ -89,6 +90,17 @@ export function MembershipView({ state, actor, run }: MemberOperationsProps) {
           <form className="form" onSubmit={submit}>
             {members.length ? (
               <>
+                <div className="member-operation-section">
+                  <span>01</span>
+                  <div>
+                    <h3>選擇辦理內容</h3>
+                    <p>
+                      {manager
+                        ? "僅限本社仍有有效社籍的社員。"
+                        : "申請送出後，仍需由所屬社團管理者核准。"}
+                    </p>
+                  </div>
+                </div>
                 <div className="two-fields">
                   {manager && (
                     <label>
@@ -129,6 +141,13 @@ export function MembershipView({ state, actor, run }: MemberOperationsProps) {
                     />
                   </label>
                 </div>
+                <div className="member-operation-section">
+                  <span>02</span>
+                  <div>
+                    <h3>留下異動依據</h3>
+                    <p>原因與日期會保存於受控紀錄，供後續查核與更正。</p>
+                  </div>
+                </div>
                 <label>
                   辦理原因
                   <textarea
@@ -154,11 +173,18 @@ export function MembershipView({ state, actor, run }: MemberOperationsProps) {
                     · {kind === "ob" ? "OB（扶青社畢業）" : "退社"}
                   </strong>
                   <p>
-                    社籍結束日：{date}。
+                    {clubName(
+                      members.find((m) => m.id === selectedMemberId)?.clubId ??
+                        self.clubId,
+                    )}{" "}
+                    · 社籍結束日：{date}。
                     {manager
                       ? "確認後結束有效社籍"
                       : "社團核准前仍保留目前社籍"}
                     ；完成後離開正常名冊，歷史預設隱藏。資料不會刪除。
+                  </p>
+                  <p>
+                    免費地圖曝光資格停止；獨立有效付費廣告仍依期限判斷，登入帳號與歷史資料保留。
                   </p>
                 </div>
                 <label className="check-row">
@@ -182,7 +208,9 @@ export function MembershipView({ state, actor, run }: MemberOperationsProps) {
             ) : (
               <div className="empty">
                 <h3>目前沒有可辦理的有效社籍</h3>
-                <p>已結束社籍可於歷史經歷查閱。</p>
+                <p>
+                  已結束社籍可於歷史經歷查閱；待處理申請請至下方辦理紀錄查看，不需重複送出。
+                </p>
               </div>
             )}
           </form>
@@ -314,6 +342,7 @@ export function AnnualView({ state, actor, run }: MemberOperationsProps) {
   const [showOnlyPending, setShowOnlyPending] = useState(false);
   const [preview, setPreview] = useState("current");
   const [applied, setApplied] = useState(false);
+  const [batchMessage, setBatchMessage] = useState("");
   if (!isManager(actor))
     return (
       <section className="panel detail-body">
@@ -333,7 +362,7 @@ export function AnnualView({ state, actor, run }: MemberOperationsProps) {
   );
   const pending = rows.filter((m) => m.status === "unconfirmed");
   return (
-    <div className="section-stack">
+    <div className="section-stack member-operations">
       <section className="panel">
         <div className="panel-header">
           <div>
@@ -343,7 +372,9 @@ export function AnnualView({ state, actor, run }: MemberOperationsProps) {
             </h2>
             <p>{clubName(actorClub(actor))} · 7/1 起新年度，7/31 寬限結束。</p>
           </div>
-          <span className="badge unconfirmed">待確認 {pending.length} 位</span>
+          <span className="badge unconfirmed">
+            本次篩選待確認 {pending.length} 位
+          </span>
         </div>
         <div className="detail-body">
           <div className="stepper">
@@ -383,23 +414,73 @@ export function AnnualView({ state, actor, run }: MemberOperationsProps) {
               className="button primary"
               disabled={!validPicked.length}
               onClick={() => {
-                validPicked.forEach((memberId) =>
-                  run(
-                    {
-                      type: "confirmYear",
-                      memberId,
-                      year: state.demoYear ?? 2026,
-                    },
-                    "年度名冊已確認，恢復免費曝光資格。",
-                  ),
+                const completed: string[] = [];
+                validPicked.forEach((memberId) => {
+                  if (
+                    run(
+                      {
+                        type: "confirmYear",
+                        memberId,
+                        year: state.demoYear ?? 2026,
+                      },
+                      "年度名冊已確認，恢復免費曝光資格。",
+                    )
+                  )
+                    completed.push(memberId);
+                });
+                setPicked(picked.filter((id) => !completed.includes(id)));
+                setBatchMessage(
+                  completed.length === validPicked.length
+                    ? `已完成 ${completed.length} 位社員的年度確認。`
+                    : `已完成 ${completed.length} 位；${validPicked.length - completed.length} 位未完成，請依錯誤提示檢查社員狀態後重試。`,
                 );
-                setPicked([]);
               }}
             >
               <ClipboardCheck size={16} />
               確認選取（{validPicked.length}）
             </button>
           </div>
+          <section
+            className="member-batch-summary"
+            aria-label="年度批次確認摘要"
+            aria-live="polite"
+          >
+            <div>
+              <strong>
+                {validPicked.length
+                  ? `已選取 ${validPicked.length} 位待確認社員`
+                  : "先選取需要年度確認的社員"}
+              </strong>
+              <p>
+                {validPicked.length
+                  ? "確認後恢復正常社籍及符合條件的免費地圖曝光；OB 與已退社者不在本次操作內。"
+                  : "勾選個別社員，或按「選取待確認社員」選取目前搜尋結果中的待確認者。"}
+              </p>
+            </div>
+            {validPicked.length > 0 && (
+              <>
+                <div className="member-selection-chips">
+                  {rows
+                    .filter((m) => validPicked.includes(m.id))
+                    .map((m) => (
+                      <span key={m.id}>{m.callName}</span>
+                    ))}
+                </div>
+                <button
+                  className="button secondary"
+                  type="button"
+                  onClick={() => setPicked([])}
+                >
+                  清除選取
+                </button>
+              </>
+            )}
+          </section>
+          {batchMessage && (
+            <p className="member-batch-result" role="status">
+              {batchMessage}
+            </p>
+          )}
           <div className="record-list">
             {rows.map((m) => (
               <div className="record-row" key={m.id}>
@@ -453,7 +534,28 @@ export function AnnualView({ state, actor, run }: MemberOperationsProps) {
             ))}
             {!rows.length && (
               <div className="empty">
-                <h3>沒有符合條件的社員</h3>
+                <h3>
+                  {query || showOnlyPending
+                    ? "沒有符合條件的社員"
+                    : "本社尚無可確認的社員"}
+                </h3>
+                <p>
+                  {query || showOnlyPending
+                    ? "請調整搜尋文字或取消「僅看待確認」，已退社與 OB 不需年度續留確認。"
+                    : "社員經核准加入本社後，才會出現在年度名冊。"}
+                </p>
+                {(query || showOnlyPending) && (
+                  <button
+                    type="button"
+                    className="button secondary"
+                    onClick={() => {
+                      setQuery("");
+                      setShowOnlyPending(false);
+                    }}
+                  >
+                    清除篩選
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -489,6 +591,15 @@ export function AnnualView({ state, actor, run }: MemberOperationsProps) {
                 ? "未完成新年度確認的有效社籍改為待確認，隱藏免費曝光；有效付費廣告不受影響。"
                 : "目前是本年度已過寬限期的合成資料。"}
           </p>
+          {preview === "august" && (
+            <div className="member-scenario-target">
+              <strong>套用範圍：{clubName(actorClub(actor))}</strong>
+              <p>
+                將切換至 2027 年度的 8/1
+                情境；本社尚未確認的有效社籍需重新確認，其他社團不受影響。
+              </p>
+            </div>
+          )}
           {preview === "august" && (
             <button
               className="button secondary"

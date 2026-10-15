@@ -209,7 +209,7 @@ export function OrganizationView({ actor, organization }: Props) {
   const editorRegion = useRef<HTMLDivElement>(null);
   const c = options.find((c) => c.id === selected) ?? options[0];
   return (
-    <div className="section-stack" ref={editorRegion}>
+    <div className="section-stack organization-workspace" ref={editorRegion}>
       <div className="panel">
         <h2>社團資料與公開設定</h2>
         <p>
@@ -345,6 +345,13 @@ function ClubEditor({
       <p>
         {club.district} · {club.type}（地區／類型由地區受控流程處理）
       </p>
+      <div className="organization-section-heading">
+        <span>01</span>
+        <div>
+          <h3>社團識別</h3>
+          <p>名稱與社徽用於公開社團頁，修改僅限授權角色。</p>
+        </div>
+      </div>
       {field("name", "社團名稱")}
       <label>
         社徽（PNG / JPEG / WebP，2 MiB）
@@ -360,11 +367,25 @@ function ClubEditor({
       )}
       {imageError && <p role="alert">{imageError}</p>}
       {!canBrand && <p>一般管理者可修改介紹與聯絡，無法修改名稱及社徽。</p>}
+      <div className="organization-section-heading">
+        <span>02</span>
+        <div>
+          <h3>介紹與聯絡</h3>
+          <p>社團簡介公開；以下聯絡資料依勾選設定呈現。</p>
+        </div>
+      </div>
       {field("description", "社團簡介")}
       <div className="two-fields">
         {field("email", "聯絡 Email")}
         {field("website", "官方網站")}
         {field("social", "社群連結")}
+      </div>
+      <div className="organization-section-heading">
+        <span>03</span>
+        <div>
+          <h3>公開範圍</h3>
+          <p>未勾選的聯絡欄位不顯示於公開社團頁。</p>
+        </div>
       </div>
       {(["publicEmail", "publicWebsite", "publicSocial"] as const).map(
         (k, i) => (
@@ -378,9 +399,14 @@ function ClubEditor({
           </label>
         ),
       )}
-      <button className="button primary" type="submit">
-        儲存社團資料
-      </button>
+      <div className="organization-save-row">
+        <span className="organization-draft-status" role="status">
+          {dirty ? "有尚未儲存的修改" : "目前資料已儲存"}
+        </span>
+        <button className="button primary" type="submit">
+          儲存社團資料
+        </button>
+      </div>
     </form>
   );
 }
@@ -407,7 +433,7 @@ export function RolesView({ actor, organization, members }: Props) {
     (m) => m.clubId === c?.id && m.status === "confirmed",
   );
   return (
-    <div className="section-stack">
+    <div className="section-stack organization-workspace">
       <div className="panel">
         <h2>角色授權與年度交接</h2>
         <p>
@@ -437,7 +463,19 @@ export function RolesView({ actor, organization, members }: Props) {
         </label>
       </div>
       <div className="panel">
-        <h3>授權清單 · {day}</h3>
+        <div className="organization-section-heading">
+          <span>01</span>
+          <div>
+            <h3>授權清單 · {day}</h3>
+            <p>{c?.name ?? "請選擇管理社團"} · 僅顯示這個社團的職務與任期。</p>
+          </div>
+        </div>
+        {!organization.state.roles.some((r) => r.clubId === c?.id) && (
+          <div className="organization-empty">
+            <strong>目前沒有個人管理授權</strong>
+            <p>可在下方選擇有效社員新增授權，或預先安排下年度人選。</p>
+          </div>
+        )}
         {organization.state.roles
           .filter((r) => r.clubId === c?.id)
           .map((r) => (
@@ -509,7 +547,13 @@ export function RolesView({ actor, organization, members }: Props) {
           });
         }}
       >
-        <h3>新增授權／預先指定下任</h3>
+        <div className="organization-section-heading">
+          <span>02</span>
+          <div>
+            <h3>新增授權／預先指定下任</h3>
+            <p>先選社員與角色，再確認任期及權限範圍。</p>
+          </div>
+        </div>
         {!permitted && <p>目前身分無角色授權權限。</p>}
         <fieldset disabled={!permitted}>
           <label>
@@ -633,7 +677,7 @@ export function DistrictView({ actor, organization }: Props) {
       </div>
     );
   return (
-    <div className="section-stack">
+    <div className="section-stack organization-workspace">
       <div className="panel">
         <h2>地區社團管理</h2>
         <Scope actor={actor} scope={scope} />
@@ -657,9 +701,7 @@ export function DistrictView({ actor, organization }: Props) {
             <h3>
               {c.name} · {c.enabled ? "啟用" : "停用"}
             </h3>
-            <p>
-              停用會停止新申請與免費地圖曝光，終止未完成入社／轉社。保留既有社籍及歷史；獨立有效付費廣告不受影響。恢復不重開已終止案件。
-            </p>
+
             <section
               className="organization-summary"
               aria-label={`${c.name}狀態變更預覽`}
@@ -762,7 +804,21 @@ export function DistrictView({ actor, organization }: Props) {
           </div>
         ))}
       <div className="panel">
-        <h3>跨區提案</h3>
+        <div className="organization-section-heading">
+          <span>02</span>
+          <div>
+            <h3>跨區提案</h3>
+            <p>檢視來源與目標地區的核准進度，僅能代表目前授權地區操作。</p>
+          </div>
+        </div>
+        {!organization.state.proposals.some((p) =>
+          [p.from, p.to].includes(scope.district),
+        ) && (
+          <div className="organization-empty">
+            <strong>目前沒有跨區提案</strong>
+            <p>需異動社團所屬地區時，先在轄內社團卡片填寫原因並提出提案。</p>
+          </div>
+        )}
         {organization.state.proposals
           .filter((p) => [p.from, p.to].includes(scope.district))
           .map((p) => (
@@ -816,7 +872,13 @@ export function DistrictView({ actor, organization }: Props) {
           );
         }}
       >
-        <h3>新增轄內社團</h3>
+        <div className="organization-section-heading">
+          <span>03</span>
+          <div>
+            <h3>新增轄內社團</h3>
+            <p>建立後可維護基本資料；不會自動授予任何個人管理角色。</p>
+          </div>
+        </div>
         <label>
           名稱
           <input
