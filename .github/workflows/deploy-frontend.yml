@@ -20,7 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -39,10 +38,6 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: npm run build
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - name: Upload frontend only
         uses: actions/upload-pages-artifact@v3
         with:
@@ -58,6 +53,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Verify Pages is enabled
+        uses: actions/configure-pages@v5
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
