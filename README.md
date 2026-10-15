@@ -4,7 +4,9 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：[使用者驗收操作包](docs/2027/43-user-acceptance-walkthrough.md)與[回饋變更登錄](docs/2027/44-feedback-and-change-register.md)：三條主流程、公開工具加驗與待回報結果。
+最新：[流程1工程代跑結果](docs/2027/45-acceptance-flow1-engineering-result.md)：註冊接續、跨社隔離、核准與名冊／本人資料一致性通過，使用者驗收待回報。
+
+[使用者驗收操作包](docs/2027/43-user-acceptance-walkthrough.md)與[回饋變更登錄](docs/2027/44-feedback-and-change-register.md)：三條主流程、公開工具加驗與待回報結果。
 
 [八項前端整體驗收與待辦](docs/2027/42-frontend-acceptance-and-change-backlog.md)：完整回歸、工作區角色接續與跨社年度提醒修正。
 
