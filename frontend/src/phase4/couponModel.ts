@@ -42,11 +42,11 @@ export function projectCoupons(state: CouponState, context: CouponContext): (Cou
     return state.offers.filter(o => couponAvailable(o, context)).map(o => ({ ...o, remaining: couponRemaining(state, o), companyName: context.companies.find(c => c.id === o.companyId)!.name }));
 }
 export function projectMyClaims(state: CouponState, actor: CouponActor): CouponClaim[] { return actor.memberId ? state.claims.filter(c => c.memberId === actor.memberId).map(c => ({ ...c })) : []; }
-export function lookupCouponCode(state: CouponState, code: string, companyId: string, actor: CouponActor, context: CouponContext): { id: string; title: string; status: CouponClaim['status']; expiresAt: string; claimVersion: number; offerVersion: number } | undefined {
+export function lookupCouponCode(state: CouponState, code: string, companyId: string, actor: CouponActor, context: CouponContext): { id: string; title: string; status: CouponClaim['status']; description: string; terms: string; startsAt: string; usedAt?: string; expiresAt: string; claimVersion: number; offerVersion: number } | undefined {
     const company = context.companies.find(c => c.id === companyId && c.ownerId === actor.memberId);
     const claim = state.claims.find(c => c.code === code.trim() && c.companyId === companyId);
     const offer = claim && state.offers.find(o => o.id === claim.offerId);
-    return company && claim && offer ? { id: claim.id, title: claim.title, status: claim.status, expiresAt: claim.expiresAt, claimVersion: claim.version, offerVersion: offer.version } : undefined;
+    return company && claim && offer ? { id: claim.id, title: claim.title, status: claim.status, description: claim.description, terms: claim.terms, startsAt: claim.startsAt, ...(claim.usedAt ? { usedAt: claim.usedAt } : {}), expiresAt: claim.expiresAt, claimVersion: claim.version, offerVersion: offer.version } : undefined;
 }
 function fields(input: CouponInput): CouponInput { return { companyId: input.companyId, title: input.title.trim(), description: input.description.trim(), terms: input.terms.trim(), startsAt: input.startsAt, endsAt: input.endsAt, totalQuota: input.totalQuota, perMemberLimit: input.perMemberLimit }; }
 export function applyCouponAction(state: CouponState, action: CouponAction, context: CouponContext, random: () => string = () => crypto.randomUUID()): CouponResult {

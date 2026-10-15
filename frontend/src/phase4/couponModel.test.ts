@@ -31,4 +31,14 @@ describe('優惠規則', () => {
  it('作廢與已用不再可核銷並持續占每人名額', () => { const a = ok(claim()); const v = ok(run(a.state, { type: 'void', actor: member, id: a.claim!.id, version: 1, reason: '取消' })); expect(run(v.state, { ...redeem(a.claim!.code), claimVersion: 2 }).ok).toBe(false); const u = ok(run(a.state, redeem(a.claim!.code))); expect(claim(u.state).ok).toBe(false); });
  it('owner延長效期不能延長原碼', () => { const a = ok(claim()); const offer = a.state.offers[0]; const b = ok(run(a.state, { type: 'update', actor: owner, id: offer.id, version: 1, input: { ...offer, endsAt: '2026-12-01T00:00:00Z' } })); const c = ctx(); c.asOf = offer.endsAt; expect(b.state.claims.at(-1)?.expiresAt).toBe(offer.endsAt); expect(run(b.state, redeem(a.claim!.code, 2), c).ok).toBe(false); });
 
+ it('商家檢查取得領取快照與已核銷時間，且不包含會員或代碼', () => {
+  const a = ok(claim()); const offer = a.state.offers[0];
+  const b = ok(run(a.state, { type: 'update', actor: owner, id: offer.id, version: 1, input: { ...offer, description: '新版內容', terms: '新版條件', endsAt: '2026-12-01T00:00:00Z' } }));
+  const view = lookupCouponCode(b.state, a.claim!.code, 'coffee', owner, ctx())!;
+  expect(view.description).toBe(offer.description); expect(view.terms).toBe(offer.terms); expect(view.expiresAt).toBe(offer.endsAt);
+  expect(view).not.toHaveProperty('memberId'); expect(view).not.toHaveProperty('code'); expect(view).not.toHaveProperty('claimedAt');
+  const c = ok(run(b.state, redeem(a.claim!.code, 2)));
+  expect(lookupCouponCode(c.state, a.claim!.code, 'coffee', owner, ctx())?.usedAt).toBe(c.claim?.usedAt);
+  expect(lookupCouponCode(c.state, a.claim!.code, 'coffee', member, ctx())).toBeUndefined();
+ });
 });

@@ -28,12 +28,13 @@ try {
  await ws.getByLabel('會員出示的兌換碼').fill(code);await ws.getByRole('button',{name:'檢查兌換碼',exact:true}).click();assert.match(await ws.innerText(),/查無本公司可檢查的兌換碼/);
  await ws.getByLabel('優惠示範身分').selectOption('3');await ws.getByRole('button',{name:'商家核銷',exact:true}).click();
  await ws.getByLabel('會員出示的兌換碼').fill(code);await ws.getByRole('button',{name:'檢查兌換碼',exact:true}).click();
+ assert.match(await ws.locator('.cw-redeem-result').innerText(),/領取時的使用條件/);
  await ws.getByRole('button',{name:'確認核銷',exact:true}).click();
  await page.getByRole('dialog',{name:'確認核銷優惠'}).getByRole('button',{name:'取消',exact:true}).click();
  await ws.getByRole('button',{name:'確認核銷',exact:true}).click();await page.getByRole('dialog',{name:'確認核銷優惠'}).getByRole('button',{name:'確定核銷',exact:true}).click();
- assert.match(await ws.innerText(),/核銷完成/);
+ assert.match(await ws.getByRole('status',{name:'核銷完成摘要'}).innerText(),/日常之間咖啡/);assert.match(await ws.getByRole('status',{name:'核銷完成摘要'}).innerText(),/不能再次核銷/);
  await ws.getByLabel('會員出示的兌換碼').fill(code);await ws.getByRole('button',{name:'檢查兌換碼',exact:true}).click();assert.equal(await ws.getByRole('button',{name:'確認核銷',exact:true}).isDisabled(),true);
- await ws.getByRole('button',{name:'優惠維護',exact:true}).click();await ws.getByRole('button',{name:'新增優惠',exact:true}).click();
+ await ws.getByRole('button',{name:'優惠維護',exact:true}).click();await ws.getByLabel('管理狀態篩選',{exact:true}).selectOption('pending');assert.equal(await ws.locator('.cw-card').count(),0);assert.match(await ws.innerText(),/目前沒有此狀態的優惠/);await ws.getByLabel('管理狀態篩選',{exact:true}).selectOption('approved');assert.equal(await ws.locator('.cw-card').count(),3);assert.match(await ws.locator('.cw-card').first().innerText(),/已核銷 1/);await ws.getByLabel('管理狀態篩選',{exact:true}).selectOption('all');await ws.getByRole('button',{name:'新增優惠',exact:true}).click();
  const title=`社友優惠測試${Date.now()}`;
  await ws.getByLabel('優惠名稱',{exact:true}).fill(title);await ws.getByLabel('優惠內容',{exact:true}).fill('到店提供社友飲品優惠（合成）');await ws.getByLabel('使用條件',{exact:true}).fill('每碼限用一次，優惠依現場服務提供。');
  await ws.getByLabel('開始時間（台北）',{exact:true}).fill('2026-10-15T10:00');await ws.getByLabel('結束時間（台北，不含）',{exact:true}).fill('2026-10-31T20:00');await ws.getByLabel('總名額',{exact:true}).fill('2');
