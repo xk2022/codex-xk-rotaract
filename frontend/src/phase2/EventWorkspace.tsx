@@ -349,7 +349,7 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
       setEditing({ id: result.id, version: result.version, status: result.status });
       setNotice(
         result.status === "published"
-          ? "活動內容已更正，維持已發布；讀者會看到最新內容。"
+          ? result.publicWithdrawnAt ? "活動內容已更正；仍維持撤下公開曝光。" : "活動內容已更正，維持已發布；讀者會看到最新內容。"
           : effectiveActor.role === "club_manager"
           ? "草稿已儲存，請交由社長／秘書或備援帳號發布。"
           : "草稿已儲存；確認預覽後，再從活動列表發布。",
@@ -624,9 +624,10 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
                           {statusLabels[event.status]}
                         </span>
                         <span className="ew-chip">
-                          {visibilityLabels[event.visibility]}
+                          {event.publicWithdrawnAt ? "已撤下公開曝光" : visibilityLabels[event.visibility]}
                         </span>
                       </div>
+                      {event.publicWithdrawnAt && <p className="ew-local-warning">社團停用時已撤下公開曝光。恢復或更正原筆不會重新公開；如需發布，請複製為新草稿。</p>}
                       <h3>{event.title}</h3>
                       <div className="ew-meta">
                         <span>
@@ -1156,7 +1157,7 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
           correctionDialog.current?.close();
         }}>
           <h3>確認更正已發布活動</h3>
-          <p>將更新「{form.title}」的原筆內容，維持已發布，依新的時間與顯示範圍立即呈現。請確認地點、時間與活動說明。</p>
+          <p>將更新「{form.title}」的原筆內容，{selectedEvent?.publicWithdrawnAt ? "維持撤下公開曝光，更正不會重新公開。" : "維持已發布，依新的時間與顯示範圍立即呈現。"}請確認地點、時間與活動說明。</p>
           <p className="ew-note">此示範不會發送通知；更正不會建立另一場活動。</p>
           <div className="ew-actions">
             <button type="button" className="ew-button" onClick={() => correctionDialog.current?.close()}>返回編輯</button>

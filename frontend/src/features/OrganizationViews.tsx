@@ -3,10 +3,7 @@ import type { ReactNode } from "react";
 import "./organization-view.css";
 import { actorClub, isManager } from "../domain";
 import type { Member } from "../domain";
-import {
-  initialOrganizations,
-  organizationTransition,
-} from "./organizationModel";
+import { useCommunityDemo } from "../phase2/store";
 import type {
   OrgCommand,
   OrgContext,
@@ -66,11 +63,10 @@ function ConfirmOrganizationAction({
   );
 }
 export function useOrganizationDemo(onAudit?: (message: string) => void) {
-  const [state, setState] = useState(initialOrganizations);
+  const { organizations: state, dispatchOrganization, reset } = useCommunityDemo();
   const [district, setDistrict] = useState("D3481");
   function dispatch(command: OrgCommand, context: OrgContext) {
-    const next = organizationTransition(state, context, command);
-    setState(next);
+    const next = dispatchOrganization(command, context);
     const targetClub =
       "clubId" in command
         ? command.clubId
@@ -101,7 +97,7 @@ export function useOrganizationDemo(onAudit?: (message: string) => void) {
     setDistrict,
     dispatch,
     reset: () => {
-      setState(initialOrganizations());
+      reset();
       setDistrict("D3481");
     },
   };

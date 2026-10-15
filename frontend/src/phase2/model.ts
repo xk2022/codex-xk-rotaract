@@ -16,7 +16,7 @@ export interface CommunityClub {
     website: string;
     enabled: boolean;
     public: boolean;
-    clubTypeCode: 'ROTARACT';
+    clubTypeCode: 'ROTARACT' | 'ROTARY';
     emailPublic: boolean;
     websitePublic: boolean;
     addressPublic: boolean;
@@ -44,9 +44,10 @@ export interface CommunityEvent {
     status: 'draft' | 'published' | 'cancelled' | 'archived';
     time: EventTime;
     cancellationReason?: string;
+    publicWithdrawnAt?: string;
     version: number;
 }
-export type EventInput = Omit<CommunityEvent, 'id' | 'status' | 'version' | 'cancellationReason'>;
+export type EventInput = Omit<CommunityEvent, 'id' | 'status' | 'version' | 'cancellationReason' | 'publicWithdrawnAt'>;
 export type EventAction = {
     type: 'create';
     actor: EventActor;
@@ -183,7 +184,7 @@ export function formatEventDate(event: CommunityEvent): string {
     return `${format.format(start)} – ${format.format(end)} · ${event.time.timeZone}`;
 }
 export function publicProjection(events: CommunityEvent[], clubs: CommunityClub[], now = new Date()): CommunityEvent[] {
-    return events.filter(e => e.visibility === 'public' && ['published', 'cancelled'].includes(e.status) && (e.organizerType === 'district' ? clubs.some(c => c.districtId === e.organizerId) : clubs.some(c => c.id === e.organizerId && (c.enabled || !!c.disabledAt && eventBounds(e).end <= now && eventBounds(e).end.getTime() <= Date.parse(c.disabledAt)))));
+    return events.filter(e => !e.publicWithdrawnAt && e.visibility === 'public' && ['published', 'cancelled'].includes(e.status) && (e.organizerType === 'district' ? clubs.some(c => c.districtId === e.organizerId) : clubs.some(c => c.id === e.organizerId && (c.enabled || !!c.disabledAt && eventBounds(e).end <= now && eventBounds(e).end.getTime() <= Date.parse(c.disabledAt)))));
 }
 export function visibleEvents(events: CommunityEvent[], clubs: CommunityClub[], actor: EventActor, now = new Date()): CommunityEvent[] {
     const publicIds = new Set(publicProjection(events, clubs, now).map(e => e.id));
@@ -264,7 +265,7 @@ export function applyEventAction(events: CommunityEvent[], clubs: CommunityClub[
     if (action.type === 'copy') {
         if (event.organizerType === 'club' && !clubs.some(c => c.id === event.organizerId && c.enabled))
             return { ok: false, error: '停用社團不能新增活動。' };
-        const { cancellationReason: _reason, ...rest } = event;
+        const { cancellationReason: _reason, publicWithdrawnAt: _withdrawn, ...rest } = event;
         return { ok: true, event: { ...rest, id: newId, title: `${event.title.slice(0, 194)}（副本）`, status: 'draft', version: 0 } };
     }
     if (action.type === 'update') {
@@ -277,7 +278,7 @@ export function applyEventAction(events: CommunityEvent[], clubs: CommunityClub[
         const fieldErrors = validateEventInput(action.input, clubs);
         if (Object.keys(fieldErrors).length)
             return { ok: false, error: '請檢查活動欄位。', fieldErrors };
-        return { ok: true, event: { ...event, ...action.input, title: action.input.title.trim(), version: event.version + 1 } };
+        return { ok: true, event: { ...event, ...action.input, title: action.input.title.trim(), publicWithdrawnAt: event.publicWithdrawnAt, version: event.version + 1 } };
     }
     if (action.type === 'publish') {
         if (event.status !== 'draft' || !canPublishEvent(action.actor, event, clubs))
