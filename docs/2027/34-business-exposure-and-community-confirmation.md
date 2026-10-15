@@ -55,3 +55,9 @@
 模型允許已確認者即使失去社籍或商家已隱藏仍撤回本人既存紀錄；目前公開詳情隱藏後沒有操作入口，會員確認紀錄／撤回管理頁保留待辦。不能將本輪視為所有撤回情境UI都完成。
 
 [手機暫時曝光與六人確認預覽](../previews/business-trial-confirmed-mobile.png)。
+
+## 部署紀錄
+
+程式提交 `af7279d` 已由 [GitHub Actions 38706168786](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38706168786) 完成105項測試、正式建置、包含三日曝光與六人確認的瀏覽器流程，以及Pages部署，結果success。
+
+[商家名錄](https://xk2022.github.io/codex-xk-rotaract/#/map) · [商家維護](https://xk2022.github.io/codex-xk-rotaract/#/demo?view=businesses)。
