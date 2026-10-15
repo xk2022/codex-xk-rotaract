@@ -67,7 +67,12 @@ import {
 } from "./features/HistorySupportViews";
 import { AnnualView, MembershipView } from "./features/MemberOperations";
 import { PublicHome } from "./features/PublicHome";
-import { goToPortal, readPortalRoute } from "./portalRoute";
+import {
+  goToPortal,
+  readPortalRoute,
+  readWorkspacePage,
+  goToWorkspacePage,
+} from "./portalRoute";
 
 type Page =
   | "overview"
@@ -179,6 +184,12 @@ function ModalShell({
 }
 export default function App() {
   const [portalRoute, setPortalRoute] = useState(readPortalRoute);
+  const lastHash = useRef(window.location.hash);
+  const lastRoot = useRef(readPortalRoute());
+  const skipDraftGuard = useRef(false);
+  const confirmDraftLeave = () =>
+    !document.querySelector('[data-unsaved="true"]') ||
+    window.confirm("你有尚未儲存的變更。離開將放棄這些內容，確定離開嗎？");
   const [state, setRawState] = useState<State>(initialState);
   const stateRef = useRef(state);
   const setState = (next: State) => {
@@ -188,7 +199,7 @@ export default function App() {
   const [actor, setActor] = useState<Actor>(() =>
     readPortalRoute() === "demo" ? "taipei" : "visitor",
   );
-  const [page, setPage] = useState<Page>("overview");
+  const [page, setPage] = useState<Page>(readWorkspacePage);
   const [sidebar, setSidebar] = useState(false);
   const [query, setQuery] = useState("");
   const [authMode, setAuthMode] = useState<"login" | "forgot" | "reset">(
@@ -211,8 +222,21 @@ export default function App() {
   const [error, setError] = useState("");
   useEffect(() => {
     const onRouteChange = () => {
+      if (!skipDraftGuard.current && !confirmDraftLeave()) {
+        window.history.replaceState(
+          null,
+          "",
+          `${window.location.pathname}${window.location.search}${lastHash.current}`,
+        );
+        return;
+      }
+      skipDraftGuard.current = false;
       const next = readPortalRoute();
+      const rootChanged = next !== lastRoot.current;
+      lastRoot.current = next;
+      lastHash.current = window.location.hash;
       setPortalRoute(next);
+      if (next === "workspace" || next === "demo") setPage(readWorkspacePage());
       setModal(next === "register" ? "register" : null);
       setSelected(null);
       setHistoryMemberId(null);
@@ -224,10 +248,7 @@ export default function App() {
         setActor("visitor");
         setAuthMode("login");
       }
-      if (next === "demo") {
-        setActor("taipei");
-        setPage("overview");
-      }
+      if (next === "demo" && rootChanged) setActor("taipei");
       window.scrollTo(0, 0);
     };
     window.addEventListener("hashchange", onRouteChange);
@@ -282,6 +303,46 @@ export default function App() {
             ? !["club", "roles", "annual", "district"].includes(n.page)
             : !["account", "district", "support"].includes(n.page),
   );
+  useEffect(() => {
+    if (actor !== "visitor" && !visibleNav.some((item) => item.page === page)) {
+      setPage(
+        actor === "platform"
+          ? "support"
+          : actor === "district"
+            ? "district"
+            : "overview",
+      );
+    }
+  }, [actor, page]);
+  useEffect(() => {
+    const unload = (event: BeforeUnloadEvent) => {
+      if (document.querySelector('[data-unsaved="true"]')) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", unload);
+    return () => window.removeEventListener("beforeunload", unload);
+  }, []);
+  useEffect(() => {
+    const main = document.getElementById("main");
+    if (main) {
+      main.focus({ preventScroll: true });
+    }
+  }, [page]);
+  useEffect(() => {
+    const root = readPortalRoute();
+    if (actor !== "visitor" && (root === "workspace" || root === "demo")) {
+      const hash = `#/${root}?view=${page}`;
+      if (window.location.hash !== hash)
+        window.history.replaceState(
+          null,
+          "",
+          `${window.location.pathname}${window.location.search}${hash}`,
+        );
+      lastHash.current = hash;
+    }
+  }, [page, actor, portalRoute]);
   const disabledClubs = useRef<string[]>([]);
   useEffect(() => {
     const disabled = organization.state.clubs
@@ -374,6 +435,14 @@ export default function App() {
     (t) => t.memberId === current.id && ["pending", "ready"].includes(t.status),
   );
   const navigate = (next: Page) => {
+    if (next !== page && !confirmDraftLeave()) return;
+    skipDraftGuard.current =
+      window.location.hash !==
+      `/${readPortalRoute() === "demo" ? "demo" : "workspace"}?view=${next}`.replace(
+        /^/,
+        "#",
+      );
+    goToWorkspacePage(next);
     setPage(next);
     setSelected(null);
     setSidebar(false);
@@ -382,6 +451,7 @@ export default function App() {
     setMessage("");
   };
   const switchActor = (next: Actor) => {
+    if (next !== actor && !confirmDraftLeave()) return false;
     setActor(next);
     setSelected(null);
     setHistoryMemberId(null);
@@ -403,6 +473,7 @@ export default function App() {
       ].includes(page)
     )
       setPage(next === "member" ? "profile" : "overview");
+    return true;
   };
   const run = (command: Command, success: string) => {
     try {
@@ -455,10 +526,15 @@ export default function App() {
     setPage("members");
   };
   const reset = () => {
+    if (!confirmDraftLeave()) return;
     setState(initialState());
     organization.reset();
     cases.reset();
-    switchActor("taipei");
+    setActor("taipei");
+    setSelected(null);
+    setHistoryMemberId(null);
+    setFeedbackMode("normal");
+    setError("");
     setPage("overview");
     setQuery("");
     setIncludeNonRegular(false);
@@ -487,7 +563,7 @@ export default function App() {
     );
     if (ok) {
       setActor("member");
-      goToPortal("workspace");
+      goToWorkspacePage("profile");
       setModal(null);
       setPage("profile");
     }
@@ -961,7 +1037,7 @@ export default function App() {
             <RotateCcw size={15} /> 重設示範資料
           </button>
           <div className="sidebar-footer">
-            <Flower2 size={16} /> ROTARACT KALEIDOSCOPE <span>v0.3</span>
+            <Flower2 size={16} /> ROTARACT KALEIDOSCOPE <span>v0.4</span>
           </div>
         </div>
       </aside>
@@ -1005,7 +1081,8 @@ export default function App() {
               <button
                 className="text-button"
                 onClick={() => {
-                  switchActor("visitor");
+                  if (!switchActor("visitor")) return;
+                  skipDraftGuard.current = true;
                   goToPortal("login");
                   setPage("overview");
                   setAuthMode("login");
@@ -1033,7 +1110,10 @@ export default function App() {
               <select
                 aria-label="目前授權地區"
                 value={organization.district}
-                onChange={(e) => organization.setDistrict(e.target.value)}
+                onChange={(e) => {
+                  if (confirmDraftLeave())
+                    organization.setDistrict(e.target.value);
+                }}
               >
                 <option>D3481</option>
                 <option>D3462</option>
@@ -1142,9 +1222,12 @@ export default function App() {
               ) : (
                 <button
                   className="button primary"
-                  onClick={() => navigate("profile")}
+                  onClick={() =>
+                    navigate(page === "account" ? "profile" : "account")
+                  }
                 >
-                  <Settings2 size={16} /> 編輯個人資料
+                  <Settings2 size={16} />{" "}
+                  {page === "account" ? "查看資料與隱私" : "編輯帳號資料"}
                 </button>
               )}
             </div>
@@ -1288,6 +1371,126 @@ export default function App() {
 
                 {page === "overview" && (
                   <>
+                    <section
+                      className="panel task-center"
+                      aria-labelledby="task-title"
+                    >
+                      <div className="panel-header">
+                        <div>
+                          <h2 id="task-title">現在需要你處理</h2>
+                          <p>先完成眼前的事，再查看社團全貌。</p>
+                        </div>
+                        <span className="year-chip">依目前身分顯示</span>
+                      </div>
+                      <div className="task-list">
+                        {manager ? (
+                          <>
+                            <button onClick={() => navigate("applications")}>
+                              <ClipboardCheck />
+                              <span>
+                                <strong>
+                                  {pending.length
+                                    ? `${pending.length} 筆入社申請等你審核`
+                                    : "入社申請已處理完畢"}
+                                </strong>
+                                <small>
+                                  確認申請人與入社日期，再核准或回覆原因
+                                </small>
+                              </span>
+                              <ArrowRight />
+                            </button>
+                            <button onClick={() => navigate("annual")}>
+                              <CalendarDays />
+                              <span>
+                                <strong>
+                                  {
+                                    scoped.filter(
+                                      (m) => m.status === "unconfirmed",
+                                    ).length
+                                  }{" "}
+                                  位社員待年度確認
+                                </strong>
+                                <small>
+                                  先核對當年度社籍，可選取多位一起確認
+                                </small>
+                              </span>
+                              <ArrowRight />
+                            </button>
+                            <button onClick={() => navigate("transfers")}>
+                              <ArrowDownLeft />
+                              <span>
+                                <strong>
+                                  {
+                                    transfers.filter(
+                                      (t) =>
+                                        t.status === "pending" &&
+                                        ((t.fromClub === actorClub(actor) &&
+                                          !t.fromApproved) ||
+                                          (t.toClub === actorClub(actor) &&
+                                            !t.toApproved)),
+                                    ).length
+                                  }{" "}
+                                  筆轉社等本社回覆
+                                </strong>
+                                <small>
+                                  兩社同意後，由會員本人完成最後確認
+                                </small>
+                              </span>
+                              <ArrowRight />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  current.clubId ? "profile" : "applications",
+                                )
+                              }
+                            >
+                              <Users />
+                              <span>
+                                <strong>
+                                  {current.clubId
+                                    ? "查看我的社籍與隱私設定"
+                                    : "申請加入你的社團"}
+                                </strong>
+                                <small>
+                                  {current.clubId
+                                    ? "決定其他會員可以看見哪些聯絡資料"
+                                    : "管理者核准後，才能被會員名冊查詢"}
+                                </small>
+                              </span>
+                              <ArrowRight />
+                            </button>
+                            {activeTransfer && (
+                              <button onClick={() => navigate("transfers")}>
+                                <ArrowDownLeft />
+                                <span>
+                                  <strong>
+                                    {activeTransfer.status === "ready"
+                                      ? "轉社已獲雙方同意，請你最後確認"
+                                      : "你的轉社申請正在等待兩社回覆"}
+                                  </strong>
+                                  <small>目前社籍在本人最後確認前仍保留</small>
+                                </span>
+                                <ArrowRight />
+                              </button>
+                            )}
+                            <button onClick={() => navigate("account")}>
+                              <Settings2 />
+                              <span>
+                                <strong>維護帳號與登入聯絡方式</strong>
+                                <small>
+                                  姓名、頭像、電話、Email與代號統一管理
+                                </small>
+                              </span>
+                              <ArrowRight />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </section>
                     <div className="overview-grid">
                       <section className="welcome-card">
                         <div className="welcome-content">
@@ -1996,70 +2199,38 @@ export default function App() {
                             <Badge status={current.status} />
                           </div>
                         </div>
-                        <form
-                          className="form detail-body"
-                          key={current.id}
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            const data = new FormData(e.currentTarget);
-                            run(
-                              {
-                                type: "profile",
-                                name: String(data.get("name")),
-                                callName: String(data.get("callName")),
-                              },
-                              "個人資料已更新。",
-                            );
-                          }}
-                        >
-                          <div className="two-fields">
-                            <label>
-                              姓名
-                              <input
-                                name="name"
-                                defaultValue={current.name}
-                                required
-                                maxLength={100}
-                              />
-                            </label>
-                            <label>
-                              Call name
-                              <input
-                                name="callName"
-                                defaultValue={current.callName}
-                                required
-                                maxLength={100}
-                              />
-                            </label>
-                          </div>
-                          <label>
-                            Email
-                            <input value={current.email} readOnly />
-                            <small>
-                              可前往帳號設定體驗單項變更與示範密碼驗證。
-                            </small>
-                          </label>
-                          <label>
-                            電話
-                            <input
-                              value={current.phone || "尚未填寫"}
-                              readOnly
-                            />
-                          </label>
-                          <div className="transfer-actions">
-                            <button className="button primary" type="submit">
-                              <Check size={16} />
-                              儲存基本資料
-                            </button>
-                            <button
-                              className="button secondary"
-                              type="button"
-                              onClick={() => navigate("account")}
-                            >
-                              變更電話／Email／帳號代號
-                            </button>
-                          </div>
-                        </form>
+                        <div className="form detail-body">
+                          <h3>個人資料與隱私</h3>
+                          <p className="field-hint">
+                            基本資料與登入方式統一在帳號設定修改；此頁管理你的對外可見範圍。
+                          </p>
+                          <dl className="details">
+                            <div>
+                              <dt>姓名</dt>
+                              <dd>{current.name}</dd>
+                            </div>
+                            <div>
+                              <dt>Call name</dt>
+                              <dd>{current.callName}</dd>
+                            </div>
+                            <div>
+                              <dt>Email</dt>
+                              <dd>{current.email}</dd>
+                            </div>
+                            <div>
+                              <dt>電話</dt>
+                              <dd>{current.phone || "尚未填寫"}</dd>
+                            </div>
+                          </dl>
+                          <button
+                            className="button primary"
+                            onClick={() => navigate("account")}
+                          >
+                            <Settings2 size={16} />
+                            編輯帳號與基本資料
+                            <ArrowRight size={16} />
+                          </button>
+                        </div>
                       </section>
                       <div>
                         <section className="panel privacy-panel">
@@ -2390,6 +2561,25 @@ function TransferCard({
           本人最終確認
         </span>
       </div>
+      {ongoing && (
+        <div className="workflow-summary">
+          <strong>
+            下一步：
+            {t.status === "ready"
+              ? "會員本人最終確認"
+              : !t.fromApproved && !t.toApproved
+                ? "等待原社與目標社回覆"
+                : !t.fromApproved
+                  ? "等待原社回覆"
+                  : "等待目標社回覆"}
+          </strong>
+          <p>
+            {t.status === "ready"
+              ? `完成後，原社籍將結束並轉至${getClubName(t.toClub)}；原社歷史預設隱藏。`
+              : "申請期間保留原社籍，不會提前轉出。"}
+          </p>
+        </div>
+      )}
       {t.reason && <p className="rejection-reason">拒絕原因：{t.reason}</p>}
       <div className="transfer-actions">
         {actorClub(actor) === t.fromClub && t.status === "completed" && (

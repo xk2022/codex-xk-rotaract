@@ -1,6 +1,6 @@
 {
   "name": "xk-rotaract-prototype",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,8 @@
     "test:browser": "node scripts/browser-smoke.mjs",
     "test:browser:v2": "node scripts/browser-ui-v2.mjs",
     "test:browser:public": "node scripts/browser-public.mjs",
-    "test:browser:ux": "node scripts/browser-ux.mjs"
+    "test:browser:ux": "node scripts/browser-ux.mjs",
+    "test:browser:enhancements": "node scripts/browser-enhancements.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.0",

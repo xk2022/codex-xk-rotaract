@@ -1,0 +1,91 @@
+.account-settings .account-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.account-tabs > button {
+  appearance: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  padding: 14px 12px;
+  background: transparent;
+  color: #667085;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.account-tabs > button.active {
+  color: #aa1748;
+  border-bottom-color: #aa1748;
+}
+.account-tabs > button:focus-visible {
+  outline: 3px solid #9c0c27;
+  outline-offset: -3px;
+  border-radius: 5px;
+}
+.account-dirty-dot {
+  color: #a95b00;
+}
+.account-settings [role="tabpanel"] {
+  max-width: 760px;
+}
+.account-settings [role="tabpanel"][hidden] {
+  display: none !important;
+}
+.account-draft-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fff8e7;
+  border: 1px solid #f0d9a2;
+  border-radius: 10px;
+  color: #77501b;
+}
+.account-settings .account-avatar-block {
+  margin-top: 24px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 20px;
+}
+.account-avatar-block img {
+  display: block;
+  border-radius: 16px;
+  object-fit: cover;
+}
+.account-settings .account-feedback.error {
+  color: #9c2434;
+  background: #fff0f1;
+  border: 1px solid #efc4cb;
+}
+.account-settings .account-feedback.success {
+  color: #216044;
+  background: #eef9f3;
+  border: 1px solid #c3e4d2;
+}
+@media (max-width: 540px) {
+  .account-settings .account-tabs {
+    padding: 0 10px;
+    gap: 0;
+  }
+  .account-tabs > button {
+    padding: 13px 8px;
+    font-size: 13px;
+    flex: 1;
+    white-space: nowrap;
+  }
+  .account-settings .detail-body {
+    padding: 16px;
+  }
+  .account-settings input,
+  .account-settings select {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .account-draft-bar {
+    font-size: 13px;
+    padding: 12px;
+  }
+}

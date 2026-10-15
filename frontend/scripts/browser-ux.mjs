@@ -25,6 +25,7 @@ try {
   await page.getByLabel("畫面情境").selectOption("conflict");
   await page.getByRole("button", { name: "重新取得資料", exact: true }).click();
   const preserved = (await name.inputValue()) === "未儲存的合成草稿";
+  await page.getByRole("button", { name: "放棄變更", exact: true }).click();
   await page.getByLabel("體驗身分").selectOption("taipei");
   await nav("退社與 OB");
   const select = page.getByLabel("辦理社員");

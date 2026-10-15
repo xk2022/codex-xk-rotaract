@@ -1,10 +1,12 @@
-# 前端操作雛形 v0.3.1
+# 前端操作雛形 v0.4
 
 React 19 + TypeScript + Vite + Tailwind。保留品牌與配色、使用自有元件。本版以假資料補齊第一階段 UI／UX 初版；不是正式後端或安全驗收。
 
 [線上體驗](https://xk2022.github.io/codex-xk-rotaract/) · [完整交付清單](../docs/2027/19-phase1-ui-delivery.md)
 
 [UI／UX 畫面規格](../docs/2027/21-ui-ux-spec.md) · [檢查與 bug 修正紀錄](../docs/2027/22-ui-ux-qa.md)
+
+[v0.4 改善與驗證](../docs/2027/24-ui-ux-improvements.md)：閱讀性、帳號分頁、草稿保護、工作區深連結、任務總覽與確認摘要。
 
 ## 啟動與驗證
 
@@ -17,6 +19,7 @@ npm run test:browser
 npm run test:browser:v2
 npm run test:browser:public
 npm run test:browser:ux
+npm run test:browser:enhancements
 ```
 
 有系統 Chromium 可加 `CHROMIUM_PATH=/usr/bin/chromium`，`BASE_URL` 可指定網址。截圖位於 docs/previews/。

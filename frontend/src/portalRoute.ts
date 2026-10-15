@@ -10,7 +10,11 @@ export type PortalRoute =
 
 // Hash paths keep direct links and refresh working under the GitHub Pages subpath.
 export function readPortalRoute(hash = window.location.hash): PortalRoute {
-  const path = hash.replace(/^#\/?/, "").replace(/\/$/, "").toLowerCase();
+  const path = hash
+    .split("?")[0]
+    .replace(/^#\/?/, "")
+    .replace(/\/$/, "")
+    .toLowerCase();
   if (path === "bizmap") return "map";
   return [
     "map",
@@ -27,4 +31,33 @@ export function readPortalRoute(hash = window.location.hash): PortalRoute {
 
 export function goToPortal(route: PortalRoute) {
   window.location.hash = route === "home" ? "/" : `/${route}`;
+}
+
+export const workspacePages = [
+  "overview",
+  "members",
+  "applications",
+  "club",
+  "profile",
+  "transfers",
+  "account",
+  "roles",
+  "annual",
+  "membership",
+  "history",
+  "audit",
+  "support",
+  "district",
+] as const;
+export function readWorkspacePage(
+  hash = window.location.hash,
+): (typeof workspacePages)[number] {
+  const value = new URLSearchParams(hash.split("?")[1] ?? "").get("view");
+  return workspacePages.includes(value as (typeof workspacePages)[number])
+    ? (value as (typeof workspacePages)[number])
+    : "overview";
+}
+export function goToWorkspacePage(page: (typeof workspacePages)[number]) {
+  const root = readPortalRoute() === "demo" ? "demo" : "workspace";
+  window.location.hash = `/${root}?view=${page}`;
 }

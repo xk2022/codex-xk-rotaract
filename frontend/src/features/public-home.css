@@ -41,7 +41,7 @@
 }
 .ph-brand-word > span {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 4px;
   font-weight: 500;
   margin-top: 6px;
@@ -52,7 +52,7 @@
   background: #d8cdc0;
 }
 .ph-brand-small {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.1px;
   line-height: 1.8;
   font-weight: 700;
@@ -122,10 +122,10 @@
   padding-bottom: 64px;
 }
 .ph-eyebrow {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 2px;
-  color: #9d7360;
+  color: #65574b;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -153,7 +153,7 @@
 .ph-hero-description {
   font-size: 15px;
   line-height: 1.9;
-  color: #746a60;
+  color: #65574b;
 }
 .ph-hero-actions {
   display: flex;
@@ -188,7 +188,7 @@
   place-items: center;
   border: 2px solid #faf8f3;
   border-radius: 50%;
-  font-size: 11px;
+  font-size: 12px;
   background: #e6c9aa;
   margin-left: -5px;
   font-style: normal;
@@ -203,11 +203,11 @@
   background: #f0d0cd;
 }
 .ph-hero-note p {
-  font-size: 11px;
-  color: #746a60;
+  font-size: 12px;
+  color: #65574b;
 }
 .ph-hero-note small {
-  font-size: 7px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 .ph-hero-art {
@@ -222,9 +222,9 @@
 .ph-art-caption {
   display: block;
   text-align: center;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 2px;
-  color: #948371;
+  color: #65574b;
   margin-top: -4px;
 }
 .ph-mobile-break {
@@ -250,7 +250,7 @@
   margin-top: 8px;
 }
 .ph-section-heading > p {
-  color: #84776a;
+  color: #65574b;
   font-size: 12px;
 }
 .ph-entry-grid {
@@ -277,9 +277,9 @@
   box-shadow: 0 10px 25px #493c3510;
 }
 .ph-entry-number {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.6px;
-  color: #948371;
+  color: #65574b;
   margin-bottom: 24px;
 }
 .ph-entry > svg {
@@ -292,7 +292,7 @@
   font-weight: 700;
 }
 .ph-entry > p {
-  color: #85786b;
+  color: #65574b;
   font-size: 12px;
   line-height: 1.9;
   margin-top: 11px;
@@ -305,7 +305,7 @@
   border-top: 1px solid #e9e0d5;
   margin-top: 26px;
   padding-top: 17px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 .ph-entry-info {
@@ -329,7 +329,7 @@
   gap: 32px;
 }
 .ph-join p:not(.ph-eyebrow) {
-  color: #84776a;
+  color: #65574b;
   font-size: 13px;
   margin-top: 10px;
 }
@@ -352,14 +352,14 @@
   letter-spacing: -1px;
 }
 .ph-footer-brand span {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 2px;
   margin-left: 13px;
   font-weight: 400;
 }
 .ph-footer-main p {
-  font-size: 10px;
-  color: #b8ada1;
+  font-size: 12px;
+  color: #65574b;
   margin-top: 8px;
 }
 .ph-footer-links {
@@ -372,8 +372,8 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 11px;
-  color: #ded5cb;
+  font-size: 12px;
+  color: #65574b;
   padding: 8px 0;
 }
 .ph-footer-bottom {
@@ -383,9 +383,9 @@
   padding-top: 18px;
   padding-bottom: 18px;
   border-top: 1px solid #554b42;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.3px;
-  color: #ad9f91;
+  color: #65574b;
 }
 .ph-directory {
   padding-top: 29px;
@@ -398,7 +398,7 @@
   gap: 5px;
   font-size: 12px;
   background: none;
-  color: #85786b;
+  color: #65574b;
   margin-bottom: 29px;
   padding: 0;
 }
@@ -411,7 +411,7 @@
 }
 .ph-directory-heading > p:last-child {
   font-size: 13px;
-  color: #85786b;
+  color: #65574b;
   margin-top: 12px;
 }
 .ph-filters {
@@ -454,8 +454,8 @@
   font-size: 12px;
 }
 .ph-filters > span {
-  font-size: 11px;
-  color: #948371;
+  font-size: 12px;
+  color: #65574b;
   margin-left: auto;
 }
 .ph-map-layout {
@@ -488,7 +488,7 @@
   white-space: nowrap;
 }
 .ph-map-pin > span {
-  font-size: 10px;
+  font-size: 12px;
   background: #fffaf4;
   color: #493c35;
   box-shadow: 0 2px 8px #493c351a;
@@ -505,9 +505,9 @@
   left: 12px;
   background: #fffaf4dd;
   padding: 5px 9px;
-  font-size: 9px;
+  font-size: 12px;
   border-radius: 3px;
-  color: #746a60;
+  color: #65574b;
 }
 .ph-business-list {
   display: flex;
@@ -541,7 +541,7 @@
   color: #806044;
 }
 .ph-business-art small {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 .ph-business-art-studio {
@@ -559,8 +559,8 @@
   padding: 4px 0;
 }
 .ph-business-content > small {
-  font-size: 9px;
-  color: #95816b;
+  font-size: 12px;
+  color: #65574b;
 }
 .ph-business-content > strong {
   font-size: 17px;
@@ -568,8 +568,8 @@
   font-weight: 700;
 }
 .ph-business-content > span {
-  font-size: 10px;
-  color: #84776a;
+  font-size: 12px;
+  color: #65574b;
   overflow-wrap: anywhere;
 }
 .ph-business-content .ph-business-more {
@@ -578,7 +578,7 @@
   align-items: center;
   gap: 7px;
   margin-top: 12px;
-  font-size: 10px;
+  font-size: 12px;
 }
 .ph-member-prompt {
   display: flex;
@@ -586,7 +586,7 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
-  color: #84776a;
+  color: #65574b;
   font-size: 12px;
   margin-top: 28px;
 }
@@ -621,8 +621,8 @@
 }
 .ph-calendar-toolbar > span {
   margin-left: auto;
-  font-size: 11px;
-  color: #948371;
+  font-size: 12px;
+  color: #65574b;
 }
 .ph-calendar-layout {
   display: grid;
@@ -643,10 +643,10 @@
   background: #eee8df;
   padding: 11px;
   text-align: center;
-  font-size: 10px;
+  font-size: 12px;
   border-right: 1px solid #e4dace;
   border-bottom: 1px solid #e4dace;
-  color: #84776a;
+  color: #65574b;
 }
 .ph-day {
   min-height: 86px;
@@ -654,7 +654,7 @@
   border-bottom: 1px solid #e4dace;
   padding: 7px;
   min-width: 0;
-  font-size: 11px;
+  font-size: 12px;
 }
 .ph-day-empty {
   background: #f7f3ed;
@@ -670,7 +670,7 @@
   color: #ac1830;
   padding: 4px;
   border-radius: 2px;
-  font-size: 8px;
+  font-size: 12px;
   margin-top: 4px;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -707,16 +707,16 @@
   gap: 3px;
 }
 .ph-event-card > span:nth-child(2) > small {
-  font-size: 9px;
-  color: #9d7360;
+  font-size: 12px;
+  color: #65574b;
 }
 .ph-event-card > span:nth-child(2) > strong {
   font-size: 13px;
   font-weight: 700;
 }
 .ph-event-card > span:nth-child(2) > span {
-  font-size: 10px;
-  color: #84776a;
+  font-size: 12px;
+  color: #65574b;
 }
 .ph-event-date {
   background: #eee8df;
@@ -730,8 +730,8 @@
   flex-shrink: 0;
 }
 .ph-event-date > small {
-  font-size: 8px;
-  color: #9d7360;
+  font-size: 12px;
+  color: #65574b;
   letter-spacing: 1px;
 }
 .ph-event-date > strong {
@@ -742,7 +742,7 @@
 .ph-empty {
   text-align: center;
   padding: 40px 15px;
-  color: #948371;
+  color: #65574b;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -795,7 +795,7 @@
   margin: 18px 0;
 }
 .ph-modal > p:not(.ph-eyebrow) {
-  color: #84776a;
+  color: #65574b;
   font-size: 13px;
   line-height: 1.9;
 }
@@ -812,7 +812,7 @@
   font-size: 12px;
 }
 .ph-modal dt {
-  color: #948371;
+  color: #65574b;
   flex-shrink: 0;
 }
 .ph-modal dd {
@@ -821,7 +821,7 @@
   overflow-wrap: anywhere;
 }
 .ph-modal .ph-modal-note {
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 20px;
 }
 @media (min-width: 1450px) {
@@ -929,11 +929,11 @@
     margin-top: 26px;
   }
   .ph-hero .ph-eyebrow {
-    font-size: 8px;
+    font-size: 12px;
     letter-spacing: 1.3px;
   }
   .ph-art-caption {
-    font-size: 6px;
+    font-size: 12px;
     letter-spacing: 1px;
   }
   .ph-section-heading {
@@ -958,16 +958,16 @@
     font-size: 18px;
   }
   .ph-entry > p {
-    font-size: 11px;
+    font-size: 12px;
   }
   .ph-entry-number {
-    font-size: 7px;
+    font-size: 12px;
   }
   .ph-entry-link {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ph-join .ph-eyebrow {
-    font-size: 8px;
+    font-size: 12px;
     letter-spacing: 1.5px;
   }
   .ph-map-layout,
@@ -994,10 +994,10 @@
     font-size: 14px;
   }
   .ph-business-content > span {
-    font-size: 9px;
+    font-size: 12px;
   }
   .ph-business-content > small {
-    font-size: 8px;
+    font-size: 12px;
   }
   .ph-calendar-grid {
     max-width: none;
@@ -1023,7 +1023,7 @@
     font-size: 26px;
   }
   .ph-brand-word > span {
-    font-size: 9px;
+    font-size: 12px;
     letter-spacing: 3.6px;
   }
   .ph-header-inner {
@@ -1055,7 +1055,7 @@
     font-size: 12px;
   }
   .ph-hero-actions .ph-text-button {
-    font-size: 11px;
+    font-size: 12px;
     gap: 5px;
   }
   .ph-hero-note {
@@ -1085,11 +1085,11 @@
     line-height: 1.5;
   }
   .ph-section-heading .ph-eyebrow {
-    font-size: 8px;
+    font-size: 12px;
     letter-spacing: 1.6px;
   }
   .ph-section-heading > p {
-    font-size: 11px;
+    font-size: 12px;
   }
   .ph-section-heading {
     margin-bottom: 22px;
@@ -1112,7 +1112,7 @@
   }
   .ph-entry-number {
     margin-bottom: 15px;
-    font-size: 8px;
+    font-size: 12px;
   }
   .ph-entry h3 {
     font-size: 23px;
@@ -1122,7 +1122,7 @@
     margin-top: 8px;
   }
   .ph-entry-link {
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 18px;
     padding-top: 13px;
   }
@@ -1135,7 +1135,7 @@
   }
   .ph-join .ph-eyebrow {
     line-height: 1.9;
-    font-size: 7px;
+    font-size: 12px;
   }
   .ph-join p:not(.ph-eyebrow) {
     font-size: 12px;
@@ -1157,7 +1157,7 @@
   .ph-footer-bottom {
     flex-direction: column;
     gap: 6px;
-    font-size: 8px;
+    font-size: 12px;
     padding-block: 16px;
   }
   .ph-directory {
@@ -1168,7 +1168,7 @@
     margin-bottom: 26px;
   }
   .ph-directory-heading .ph-eyebrow {
-    font-size: 9px;
+    font-size: 12px;
   }
   .ph-directory-heading h1 {
     font-size: 29px;
@@ -1190,13 +1190,13 @@
     flex-basis: 100%;
   }
   .ph-city-filter {
-    font-size: 11px;
+    font-size: 12px;
   }
   .ph-city-filter select {
-    font-size: 11px;
+    font-size: 12px;
   }
   .ph-filters > span {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ph-map-layout {
     gap: 17px;
@@ -1209,11 +1209,11 @@
     gap: 0;
   }
   .ph-map-pin > span {
-    font-size: 8px;
+    font-size: 12px;
     padding: 4px 6px;
   }
   .ph-map-disclaimer {
-    font-size: 8px;
+    font-size: 12px;
     bottom: 8px;
     left: 8px;
   }
@@ -1235,19 +1235,19 @@
     font-size: 17px;
   }
   .ph-business-content > span {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ph-business-content > small {
-    font-size: 9px;
+    font-size: 12px;
   }
   .ph-member-prompt {
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 22px;
     justify-content: start;
     gap: 6px;
   }
   .ph-member-prompt > button {
-    font-size: 11px;
+    font-size: 12px;
   }
   .ph-calendar-toolbar {
     gap: 10px;
@@ -1260,28 +1260,28 @@
     font-size: 16px;
   }
   .ph-calendar-toolbar > .ph-text-button {
-    font-size: 10px;
+    font-size: 12px;
     margin-left: auto;
   }
   .ph-calendar-toolbar > span {
     margin-left: 0;
     flex-basis: 100%;
-    font-size: 10px;
+    font-size: 12px;
   }
   .ph-calendar-layout {
     gap: 21px;
   }
   .ph-weekday {
     padding: 8px 3px;
-    font-size: 9px;
+    font-size: 12px;
   }
   .ph-day {
     padding: 5px 3px;
     min-height: 70px;
-    font-size: 10px;
+    font-size: 12px;
   }
   .ph-day > button {
-    font-size: 7px;
+    font-size: 12px;
     padding: 3px 2px;
   }
   .ph-day > button > span:last-child {
@@ -1311,7 +1311,7 @@
     font-size: 23px;
   }
   .ph-modal dl > div {
-    font-size: 11px;
+    font-size: 12px;
     gap: 12px;
   }
   .ph-modal > p:not(.ph-eyebrow) {
@@ -1328,4 +1328,47 @@
   max-width: none;
   margin: 0;
   min-height: 0;
+}
+
+/* Readable supporting copy and comfortable touch targets. */
+.ph-site {
+  font-size: 15px;
+}
+.ph-site input,
+.ph-site select {
+  font-size: 16px;
+  min-height: 44px;
+}
+.ph-nav > button,
+.ph-nav > a,
+.ph-text-button,
+.ph-footer-links > button,
+.ph-calendar-controls > button {
+  min-height: 44px;
+}
+.ph-site button:focus-visible,
+.ph-site a:focus-visible {
+  outline: 3px solid #9c0c27;
+  outline-offset: 4px;
+}
+.ph-hero-social small,
+.ph-art-note,
+.ph-brand-small {
+  letter-spacing: 1px;
+}
+@media (max-width: 560px) {
+  .ph-hero-social {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .ph-hero-social > div {
+    min-width: 0;
+  }
+  .ph-footer-bottom {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ph-nav .ph-button {
+    width: 100%;
+  }
 }

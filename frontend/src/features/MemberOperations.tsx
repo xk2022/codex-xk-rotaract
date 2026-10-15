@@ -146,6 +146,21 @@ export function MembershipView({ state, actor, run }: MemberOperationsProps) {
                     由管理者直接辦理，不建立待審申請
                   </label>
                 )}
+                <div className="workflow-summary" aria-label="社籍異動影響摘要">
+                  <strong>
+                    即將{manager ? "直接辦理" : "申請"}：
+                    {members.find((m) => m.id === selectedMemberId)?.callName ??
+                      self.callName}{" "}
+                    · {kind === "ob" ? "OB（扶青社畢業）" : "退社"}
+                  </strong>
+                  <p>
+                    社籍結束日：{date}。
+                    {manager
+                      ? "確認後結束有效社籍"
+                      : "社團核准前仍保留目前社籍"}
+                    ；完成後離開正常名冊，歷史預設隱藏。資料不會刪除。
+                  </p>
+                </div>
                 <label className="check-row">
                   <input
                     type="checkbox"

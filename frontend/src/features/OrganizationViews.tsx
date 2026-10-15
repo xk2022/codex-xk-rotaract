@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import type { ReactNode } from "react";
+import "./organization-view.css";
 import { actorClub, isManager } from "../domain";
 import type { Member } from "../domain";
 import {
@@ -12,17 +14,97 @@ import type {
   Office,
   OrgClub,
 } from "./organizationModel";
+function ConfirmOrganizationAction({
+  label,
+  title,
+  children,
+  disabled,
+  onConfirm,
+}: {
+  label: string;
+  title: string;
+  children: ReactNode;
+  disabled?: boolean;
+  onConfirm: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  return (
+    <>
+      <button
+        type="button"
+        className="button"
+        disabled={disabled}
+        onClick={() => dialog.current?.showModal()}
+      >
+        {label}
+      </button>
+      <dialog ref={dialog} className="organization-confirm" aria-label={title}>
+        <h3>{title}</h3>
+        <div className="organization-summary">{children}</div>
+        <div className="organization-actions">
+          <button
+            type="button"
+            className="button"
+            autoFocus
+            onClick={() => dialog.current?.close()}
+          >
+            返回檢查
+          </button>
+          <button
+            type="button"
+            className="button primary"
+            onClick={() => {
+              onConfirm();
+              dialog.current?.close();
+            }}
+          >
+            確認執行
+          </button>
+        </div>
+      </dialog>
+    </>
+  );
+}
 export function useOrganizationDemo(onAudit?: (message: string) => void) {
   const [state, setState] = useState(initialOrganizations);
   const [district, setDistrict] = useState("D3481");
   function dispatch(command: OrgCommand, context: OrgContext) {
     const next = organizationTransition(state, context, command);
     setState(next);
-    const targetClub = "clubId" in command ? command.clubId : command.type === "add" ? command.id : command.type === "removeRole" ? state.roles.find(r => r.id === command.id)?.clubId : command.type === "approveMove" ? state.proposals.find(p => p.id === command.id)?.clubId : undefined;
-    const labels:Record<OrgCommand['type'],string>={edit:'更新社團資料',status:command.type === 'status' && command.enabled ? '恢復社團' : '停用社團',add:'新增社團',role:'授予社團角色',removeRole:'撤銷角色',move:'提出跨區提案',approveMove:'地區核准跨區'};
-    onAudit?.(`[社團:${targetClub ?? 'none'}] ${labels[command.type]} · ${next.clubs.find(c => c.id === targetClub)?.name ?? '社團'}`);
+    const targetClub =
+      "clubId" in command
+        ? command.clubId
+        : command.type === "add"
+          ? command.id
+          : command.type === "removeRole"
+            ? state.roles.find((r) => r.id === command.id)?.clubId
+            : command.type === "approveMove"
+              ? state.proposals.find((p) => p.id === command.id)?.clubId
+              : undefined;
+    const labels: Record<OrgCommand["type"], string> = {
+      edit: "更新社團資料",
+      status:
+        command.type === "status" && command.enabled ? "恢復社團" : "停用社團",
+      add: "新增社團",
+      role: "授予社團角色",
+      removeRole: "撤銷角色",
+      move: "提出跨區提案",
+      approveMove: "地區核准跨區",
+    };
+    onAudit?.(
+      `[社團:${targetClub ?? "none"}] ${labels[command.type]} · ${next.clubs.find((c) => c.id === targetClub)?.name ?? "社團"}`,
+    );
   }
-  return { state, district, setDistrict, dispatch, reset: () => { setState(initialOrganizations()); setDistrict("D3481") } };
+  return {
+    state,
+    district,
+    setDistrict,
+    dispatch,
+    reset: () => {
+      setState(initialOrganizations());
+      setDistrict("D3481");
+    },
+  };
 }
 export type OrganizationController = ReturnType<typeof useOrganizationDemo>;
 type Props = {
@@ -36,7 +118,10 @@ const officeLabel: Record<Office, string> = {
   manager: "一般管理者",
   backup: "社團備援帳號",
 };
-function useScope(actor: OrganizationActor, organization: OrganizationController) {
+function useScope(
+  actor: OrganizationActor,
+  organization: OrganizationController,
+) {
   const [office, setOffice] = useState<Office>(
     actor === "taichung" ? "secretary" : "president",
   );
@@ -61,7 +146,14 @@ function Scope({
       示範授權地區
       <select
         value={scope.district}
-        onChange={(e) => scope.setDistrict(e.target.value)}
+        onChange={(e) => {
+          if (
+            document.querySelector('[data-unsaved="true"]') &&
+            !window.confirm("資料尚未儲存，確定捨棄變更並切換授權地區嗎？")
+          )
+            return;
+          scope.setDistrict(e.target.value);
+        }}
       >
         <option>D3481</option>
         <option>D3462</option>
@@ -72,7 +164,14 @@ function Scope({
       本社示範職務
       <select
         value={scope.office}
-        onChange={(e) => scope.setOffice(e.target.value as Office)}
+        onChange={(e) => {
+          if (
+            document.querySelector('[data-unsaved="true"]') &&
+            !window.confirm("資料尚未儲存，確定捨棄變更並切換示範職務嗎？")
+          )
+            return;
+          scope.setOffice(e.target.value as Office);
+        }}
       >
         {Object.entries(officeLabel).map(([v, l]) => (
           <option key={v} value={v}>
@@ -100,15 +199,17 @@ function useFeedback() {
 export function OrganizationView({ actor, organization }: Props) {
   const scope = useScope(actor, organization);
   const feedback = useFeedback();
-  const allowed =
-    actor === "district" || isManager(actor);
+  const allowed = actor === "district" || isManager(actor);
   const options = organization.state.clubs.filter((c) =>
-    actor === "district" ? c.district === scope.district : c.id === actorClub(actor),
+    actor === "district"
+      ? c.district === scope.district
+      : c.id === actorClub(actor),
   );
   const [selected, setSelected] = useState("");
+  const editorRegion = useRef<HTMLDivElement>(null);
   const c = options.find((c) => c.id === selected) ?? options[0];
   return (
-    <div className="section-stack">
+    <div className="section-stack" ref={editorRegion}>
       <div className="panel">
         <h2>社團資料與公開設定</h2>
         <p>
@@ -119,7 +220,14 @@ export function OrganizationView({ actor, organization }: Props) {
           管理社團
           <select
             value={c?.id ?? ""}
-            onChange={(e) => setSelected(e.target.value)}
+            onChange={(e) => {
+              if (
+                editorRegion.current?.querySelector('[data-unsaved="true"]') &&
+                !window.confirm("社團資料尚未儲存，確定捨棄變更並切換社團嗎？")
+              )
+                return;
+              setSelected(e.target.value);
+            }}
           >
             {options.map((x) => (
               <option key={x.id} value={x.id}>
@@ -161,6 +269,19 @@ function ClubEditor({
 }) {
   const [draft, setDraft] = useState(club);
   const [imageError, setImageError] = useState("");
+  const dirty = (
+    [
+      "name",
+      "description",
+      "email",
+      "website",
+      "social",
+      "publicEmail",
+      "publicWebsite",
+      "publicSocial",
+      "emblem",
+    ] as const
+  ).some((field) => draft[field] !== club[field]);
   const field = (
     name: "name" | "description" | "email" | "website" | "social",
     label: string,
@@ -204,6 +325,7 @@ function ClubEditor({
   return (
     <form
       className="panel form"
+      data-unsaved={dirty ? "true" : "false"}
       onSubmit={(e) => {
         e.preventDefault();
         save({
@@ -274,7 +396,9 @@ export function RolesView({ actor, organization, members }: Props) {
   const [end, setEnd] = useState("2027-06-30");
   const [preview, setPreview] = useState(false);
   const options = organization.state.clubs.filter((c) =>
-    actor === "district" ? c.district === scope.district : c.id === actorClub(actor),
+    actor === "district"
+      ? c.district === scope.district
+      : c.id === actorClub(actor),
   );
   const c = options.find((c) => c.id === clubId) ?? options[0];
   const permitted = !!c && (actor === "district" || scope.office !== "manager");
@@ -331,10 +455,12 @@ export function RolesView({ actor, organization, members }: Props) {
                     ? "已到期"
                     : "有效"}
               </p>
-              <button
-                className="button"
+              <ConfirmOrganizationAction
+                key={`${r.id}-${actor}-${scope.district}-${scope.office}`}
+                label="撤銷授權"
+                title="確認撤銷此項授權？"
                 disabled={!permitted}
-                onClick={() =>
+                onConfirm={() =>
                   feedback.run(() =>
                     organization.dispatch(
                       { type: "removeRole", id: r.id },
@@ -343,8 +469,18 @@ export function RolesView({ actor, organization, members }: Props) {
                   )
                 }
               >
-                撤銷授權
-              </button>
+                <p>
+                  <strong>
+                    {members.find((m) => m.id === r.memberId)?.callName ??
+                      r.memberId}
+                  </strong>{" "}
+                  在 {c?.name} 的「{officeLabel[r.office]}」授權將被撤銷。
+                </p>
+                <p>
+                  原任期：{r.startsOn}～{r.endsOn}
+                  。執行後立即失去這一項職務權限，其他授權與社員身分保留。
+                </p>
+              </ConfirmOrganizationAction>
             </div>
           ))}
         <p>
@@ -429,7 +565,49 @@ export function RolesView({ actor, organization, members }: Props) {
           >
             帶入下年度任期
           </button>
-          <button type="submit" className="button primary">
+          <section
+            className="organization-summary"
+            aria-label="授權內容預覽"
+            aria-live="polite"
+          >
+            <h4>送出前確認授權內容</h4>
+            <dl>
+              <div>
+                <dt>授權社團</dt>
+                <dd>{c?.name ?? "尚未選擇"}</dd>
+              </div>
+              <div>
+                <dt>授權對象</dt>
+                <dd>
+                  {eligible.find((m) => m.id === memberId)?.callName ??
+                    "請先選擇本社有效社員"}
+                </dd>
+              </div>
+              <div>
+                <dt>授予職務</dt>
+                <dd>{officeLabel[office]}</dd>
+              </div>
+              <div>
+                <dt>生效期間</dt>
+                <dd>
+                  {start || "未填起日"} ～ {end || "未填迄日"}
+                </dd>
+              </div>
+            </dl>
+            <p>
+              {office === "manager"
+                ? "可確認社員狀態、審核入社與轉社、維護介紹與聯絡資料；不可修改名稱、社徽、角色或交接人選。"
+                : "可確認社員狀態、審核入社與轉社、維護社團資料及名稱／社徽，並可配置該社管理角色及交接人選。"}
+            </p>
+            <p>
+              權限僅限本社、於任期內有效；預先指派不會提前生效，到期後不自動延長。
+            </p>
+          </section>
+          <button
+            type="submit"
+            className="button primary"
+            disabled={!eligible.some((m) => m.id === memberId)}
+          >
             確認授權
           </button>
         </fieldset>
@@ -482,9 +660,28 @@ export function DistrictView({ actor, organization }: Props) {
             <p>
               停用會停止新申請與免費地圖曝光，終止未完成入社／轉社。保留既有社籍及歷史；獨立有效付費廣告不受影響。恢復不重開已終止案件。
             </p>
-            <button
-              className="button"
-              onClick={() =>
+            <section
+              className="organization-summary"
+              aria-label={`${c.name}狀態變更預覽`}
+            >
+              <h4>{c.enabled ? "停用" : "恢復"}操作摘要</h4>
+              <p>
+                目標社團：<strong>{c.name}</strong>（{c.district}）
+              </p>
+              <p>狀態變更：{c.enabled ? "啟用 → 停用" : "停用 → 啟用"}</p>
+              <p>操作原因：{reason.trim() || "請先填寫本次操作原因"}</p>
+              <p>
+                {c.enabled
+                  ? "將停止新入社與新增活動，終止未完成入社／轉社，取消免費地圖曝光。既有社籍、歷史與獨立有效付費廣告保留。"
+                  : "恢復新申請與符合資格的免費曝光；已終止申請與撤下活動不會自動重開或重新發布。"}
+              </p>
+            </section>
+            <ConfirmOrganizationAction
+              key={`${c.id}-${c.enabled}-${scope.district}`}
+              label={c.enabled ? "確認停用" : "確認恢復"}
+              title={`確認${c.enabled ? "停用" : "恢復"}「${c.name}」？`}
+              disabled={!reason.trim()}
+              onConfirm={() =>
                 feedback.run(() =>
                   organization.dispatch(
                     {
@@ -498,8 +695,17 @@ export function DistrictView({ actor, organization }: Props) {
                 )
               }
             >
-              {c.enabled ? "確認停用" : "確認恢復"}
-            </button>
+              <p>
+                目標：<strong>{c.name}</strong>（{c.district}）
+              </p>
+              <p>原因：{reason}</p>
+              <p>
+                {c.enabled
+                  ? "執行後立即停止新申請、終止未完成入社／轉社，並隱藏免費地圖曝光；恢復社團也不會重開已終止案件。"
+                  : "恢復後可重新提出申請；已終止案件及已撤下活動仍維持原狀。"}
+              </p>
+              <p>既有社員與歷史資料保留，獨立有效付費廣告依原期限顯示。</p>
+            </ConfirmOrganizationAction>
             <label>
               跨區目標
               <select
@@ -510,6 +716,29 @@ export function DistrictView({ actor, organization }: Props) {
                 <option>D3462</option>
               </select>
             </label>
+            <section className="organization-summary" aria-label="跨區申請摘要">
+              <p>
+                <strong>{c.name}</strong>：{c.district} → {target}
+              </p>
+              <p>原因：{reason.trim() || "尚未填寫"}</p>
+              {organization.state.proposals
+                .filter((p) => p.clubId === c.id && p.status === "pending")
+                .map((p) => (
+                  <p key={p.id}>
+                    目前提案：來源 {p.from}{" "}
+                    {p.sourceApproved ? "已核准" : "待核准"}／目標 {p.to}{" "}
+                    {p.targetApproved ? "已核准" : "待核准"}
+                    。雙方核准前維持原地區。
+                  </p>
+                ))}
+              {!organization.state.proposals.some(
+                (p) => p.clubId === c.id && p.status === "pending",
+              ) && (
+                <p>
+                  尚無進行中提案；提出後，來源及目標地區須分別核准才會移轉。
+                </p>
+              )}
+            </section>
             <button
               className="button"
               onClick={() =>

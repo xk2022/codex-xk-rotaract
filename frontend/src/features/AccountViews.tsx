@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import "./account-view.css";
 import type { FormEvent } from "react";
 import type { Member } from "../domain";
 import {
@@ -243,6 +244,10 @@ export function AccountView({
   onUpdate,
   onAudit,
 }: AccountProps) {
+  const tabs = ["基本資料", "登入聯絡資料", "帳號代號"];
+  const [tab, setTab] = useState(0);
+  const [noticeType, setNoticeType] = useState<"success" | "error">("success");
+  const [avatarDraft, setAvatarDraft] = useState(member.avatarUrl ?? "");
   const [name, setName] = useState(member.name);
   const [callName, setCallName] = useState(member.callName);
   const [kind, setKind] = useState<"phone" | "email">("phone");
@@ -262,15 +267,50 @@ export function AccountView({
     };
   }, []);
 
+  const basicDirty =
+    name !== member.name ||
+    callName !== member.callName ||
+    avatarDraft !== (member.avatarUrl ?? "");
+  const contactDirty = contact !== "" && contact !== member[kind];
+  const codeDirty =
+    code !== "" && code.toLowerCase() !== member.code.toLowerCase();
+  const dirty = [basicDirty, contactDirty, codeDirty];
+  const anyDirty = dirty.some(Boolean);
+  const selectTab = (index: number) => {
+    setTab(index);
+    setPassword("");
+    setCodePassword("");
+    setNotice("");
+  };
+  const discard = () => {
+    setName(member.name);
+    setCallName(member.callName);
+    setAvatarDraft(member.avatarUrl ?? "");
+    setContact("");
+    setCode("");
+    setPassword("");
+    setCodePassword("");
+    uploadVersion.current += 1;
+    setUploading(false);
+    setNoticeType("success");
+    setNotice("已放棄尚未儲存的變更，保留目前已儲存資料。");
+  };
+  const showError = (message: string) => {
+    setNoticeType("error");
+    setNotice(message);
+  };
   const apply = (action: () => Partial<Member>, message: string) => {
     try {
       onUpdate(action());
       onAudit(message);
+      setNoticeType("success");
       setNotice(message);
       setPassword("");
       setCodePassword("");
+      return true;
     } catch (error) {
-      setNotice((error as Error).message);
+      showError((error as Error).message);
+      return false;
     }
   };
   async function uploadAvatar(file: File) {
@@ -279,7 +319,7 @@ export function AccountView({
       !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
       file.size > 2 * 1024 * 1024
     ) {
-      setNotice("請使用 2 MiB 內的 PNG、JPEG 或 WebP 圖片。");
+      showError("請使用 2 MiB 內的 PNG、JPEG 或 WebP 圖片。");
       return;
     }
     setUploading(true);
@@ -303,11 +343,13 @@ export function AccountView({
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
       const avatarUrl = canvas.toDataURL("image/png");
       if (alive.current && uploadVersion.current === version) {
-        apply(() => ({ avatarUrl }), "已更新頭像預覽，僅保留於本次體驗。");
+        setAvatarDraft(avatarUrl);
+        setNoticeType("success");
+        setNotice("頭像預覽已準備好，請按「儲存基本資料」套用。");
       }
     } catch (error) {
       if (alive.current && uploadVersion.current === version) {
-        setNotice(
+        showError(
           error instanceof Error && error.message.startsWith("圖片尺寸")
             ? error.message
             : "圖片無法解碼或處理，請使用有效的 PNG、JPEG 或 WebP 圖片。",
@@ -321,178 +363,287 @@ export function AccountView({
   }
   const codeLocked = (member.codeChanges ?? 0) >= 1;
   return (
-    <section className="panel">
+    <section
+      className="panel account-settings"
+      data-unsaved={anyDirty ? "true" : "false"}
+    >
       <div className="feature-header">
         <h2>我的帳號設定</h2>
         <p>電話、Email 與帳號代號，皆對應你的同一份會員資料。</p>
       </div>
+      <div className="account-tabs" role="tablist" aria-label="帳號設定分類">
+        {tabs.map((label, index) => (
+          <button
+            key={label}
+            id={`account-tab-${index}`}
+            type="button"
+            role="tab"
+            aria-selected={tab === index}
+            aria-controls={`account-panel-${index}`}
+            tabIndex={tab === index ? 0 : -1}
+            className={tab === index ? "active" : ""}
+            onClick={() => selectTab(index)}
+            onKeyDown={(event) => {
+              let next = index;
+              if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+              else if (event.key === "ArrowLeft")
+                next = (index + tabs.length - 1) % tabs.length;
+              else if (event.key === "Home") next = 0;
+              else if (event.key === "End") next = tabs.length - 1;
+              else return;
+              event.preventDefault();
+              selectTab(next);
+              document.getElementById(`account-tab-${next}`)?.focus();
+            }}
+          >
+            {label}
+            {dirty[index] && (
+              <span className="account-dirty-dot" aria-label="有未儲存變更">
+                {" "}
+                ·
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
       <div className="detail-body section-stack">
+        {anyDirty && (
+          <div className="account-draft-bar" role="status">
+            <span>有未儲存變更，切換分頁會保留草稿。</span>
+            <button
+              type="button"
+              className="button secondary"
+              onClick={discard}
+            >
+              放棄變更
+            </button>
+          </div>
+        )}
         {notice && (
-          <p role="status" className="notice">
+          <p
+            role={noticeType === "error" ? "alert" : "status"}
+            className={`notice account-feedback ${noticeType}`}
+          >
             {notice}
           </p>
         )}
-        <form
-          className="form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            apply(() => profilePatch(name, callName), "已更新本人基本資料。");
-          }}
+        <div
+          id="account-panel-0"
+          role="tabpanel"
+          aria-labelledby="account-tab-0"
+          hidden={tab !== 0}
         >
-          <h3>基本資料</h3>
-          <div className="two-fields">
-            <label>
-              姓名
-              <input
-                required
-                maxLength={100}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </label>
-            <label>
-              Call name
-              <input
-                required
-                maxLength={100}
-                value={callName}
-                onChange={(e) => setCallName(e.target.value)}
-              />
-            </label>
-          </div>
-          <p className="field-hint">
-            本階段姓名可自行修改；後續金流身分驗證另行擴充。
-          </p>
-          <button className="button primary">儲存基本資料</button>
-        </form>
-        <div className="form">
-          <h3>會員頭像</h3>
-          {member.avatarUrl && (
-            <img
-              src={member.avatarUrl}
-              alt="本人頭像預覽"
-              width="88"
-              height="88"
-            />
-          )}
-          <label>
-            上傳頭像（PNG／JPEG／WebP，最多 2 MiB、4096 × 4096 像素）
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              disabled={uploading}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void uploadAvatar(file);
-                e.target.value = "";
-              }}
-            />
-          </label>
-          {uploading && <p role="status">正在檢查並處理圖片…</p>}
-          <p className="field-hint">
-            圖片將重新編碼並縮放至最多 512 像素，只保存本次示範預覽。
-          </p>
-        </div>
-        <form
-          className="form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            apply(
-              () => contactPatch(member, members, kind, contact, password),
-              `已更新本人${kind === "phone" ? "電話" : "Email"}。`,
-            );
-          }}
-        >
-          <h3>變更登入聯絡資料</h3>
-          <p>
-            目前電話：{member.phone || "未填寫"}
-            <br />
-            目前 Email：{member.email}
-          </p>
-          <label>
-            本次變更項目
-            <select
-              value={kind}
-              onChange={(e) => {
-                setKind(e.target.value as "phone" | "email");
-                setContact("");
-                setPassword("");
-              }}
+          <form
+            className="form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (
+                apply(
+                  () => ({
+                    ...profilePatch(name, callName),
+                    avatarUrl: avatarDraft || undefined,
+                  }),
+                  "已更新本人基本資料。",
+                )
+              ) {
+                setName(name.trim());
+                setCallName(callName.trim());
+              }
+            }}
+          >
+            <h3>基本資料</h3>
+            <div className="two-fields">
+              <label>
+                姓名
+                <input
+                  required
+                  maxLength={100}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </label>
+              <label>
+                Call name
+                <input
+                  required
+                  maxLength={100}
+                  value={callName}
+                  onChange={(e) => setCallName(e.target.value)}
+                />
+              </label>
+            </div>
+            <p className="field-hint">
+              本階段姓名可自行修改；後續金流身分驗證另行擴充。
+            </p>
+            <button
+              className="button primary"
+              disabled={!basicDirty || uploading}
             >
-              <option value="phone">電話</option>
-              <option value="email">Email</option>
-            </select>
-          </label>
-          <label>
-            新的{kind === "phone" ? "電話（含國碼）" : "Email"}
-            <input
-              required
-              type={kind === "email" ? "email" : "tel"}
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-            />
-          </label>
-          <label>
-            輸入目前示範密碼，確認本人
-            <input
-              required
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-            />
-          </label>
-          <p className="field-hint">
-            一次只變更一項。示範密碼：{DEMO_PASSWORD}。後續可選擇加入電話／Email
-            驗證。
-          </p>
-          <button className="button primary">驗證並更新單項資料</button>
-        </form>
-        <form
-          className="form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            apply(
-              () => codePatch(member, members, code, codePassword),
-              "已修改帳號代號；舊代號保留且無法登入。",
-            );
-          }}
+              儲存基本資料
+            </button>
+          </form>
+          <div className="form account-avatar-block">
+            <h3>會員頭像</h3>
+            {avatarDraft && (
+              <img
+                src={avatarDraft}
+                alt="本人頭像預覽"
+                width="88"
+                height="88"
+              />
+            )}
+            <label>
+              上傳頭像（PNG／JPEG／WebP，最多 2 MiB、4096 × 4096 像素）
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                disabled={uploading}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void uploadAvatar(file);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            {uploading && <p role="status">正在檢查並處理圖片…</p>}
+            <p className="field-hint">
+              圖片將重新編碼並縮放至最多 512 像素，只保存本次示範預覽。
+            </p>
+          </div>
+        </div>
+        <div
+          id="account-panel-1"
+          role="tabpanel"
+          aria-labelledby="account-tab-1"
+          hidden={tab !== 1}
         >
-          <h3>帳號代號</h3>
-          <p>
-            目前：{member.code} · 剩餘修改次數：{codeLocked ? "0" : "1"}
-          </p>
-          <label>
-            新代號
-            <input
-              required
-              disabled={codeLocked}
-              minLength={6}
-              maxLength={20}
-              pattern="[A-Za-z0-9_]+"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-          </label>
-          <label>
-            輸入目前示範密碼，確認本人
-            <input
-              required
-              type="password"
-              disabled={codeLocked}
-              value={codePassword}
-              onChange={(e) => setCodePassword(e.target.value)}
-              autoComplete="current-password"
-            />
-          </label>
-          <p className="field-hint">
-            6～20
-            字元英文字母、數字與底線，不分大小寫。全平台唯一，舊代號永久保留。
-          </p>
-          <button className="button primary" disabled={codeLocked}>
-            確認使用唯一一次修改
-          </button>
-        </form>
+          <form
+            className="form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (
+                apply(
+                  () => contactPatch(member, members, kind, contact, password),
+                  `已更新本人${kind === "phone" ? "電話" : "Email"}。`,
+                )
+              )
+                setContact("");
+            }}
+          >
+            <h3>變更登入聯絡資料</h3>
+            <p>
+              目前電話：{member.phone || "未填寫"}
+              <br />
+              目前 Email：{member.email}
+            </p>
+            <label>
+              本次變更項目
+              <select
+                value={kind}
+                onChange={(e) => {
+                  const nextKind = e.target.value as "phone" | "email";
+                  if (
+                    contactDirty &&
+                    !window.confirm(
+                      "目前聯絡資料尚未儲存，確定放棄並切換變更項目？",
+                    )
+                  )
+                    return;
+                  setKind(nextKind);
+                  setContact("");
+                  setPassword("");
+                }}
+              >
+                <option value="phone">電話</option>
+                <option value="email">Email</option>
+              </select>
+            </label>
+            <label>
+              新的{kind === "phone" ? "電話（含國碼）" : "Email"}
+              <input
+                required
+                type={kind === "email" ? "email" : "tel"}
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+              />
+            </label>
+            <label>
+              輸入目前示範密碼，確認本人
+              <input
+                required
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </label>
+            <p className="field-hint">
+              一次只變更一項。示範密碼：{DEMO_PASSWORD}
+              。後續可選擇加入電話／Email 驗證。
+            </p>
+            <button className="button primary" disabled={!contactDirty}>
+              驗證並更新單項資料
+            </button>
+          </form>
+        </div>
+        <div
+          id="account-panel-2"
+          role="tabpanel"
+          aria-labelledby="account-tab-2"
+          hidden={tab !== 2}
+        >
+          <form
+            className="form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (
+                apply(
+                  () => codePatch(member, members, code, codePassword),
+                  "已修改帳號代號；舊代號保留且無法登入。",
+                )
+              )
+                setCode("");
+            }}
+          >
+            <h3>帳號代號</h3>
+            <p>
+              目前：{member.code} · 剩餘修改次數：{codeLocked ? "0" : "1"}
+            </p>
+            <label>
+              新代號
+              <input
+                required
+                disabled={codeLocked}
+                minLength={6}
+                maxLength={20}
+                pattern="[A-Za-z0-9_]+"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+              />
+            </label>
+            <label>
+              輸入目前示範密碼，確認本人
+              <input
+                required
+                type="password"
+                disabled={codeLocked}
+                value={codePassword}
+                onChange={(e) => setCodePassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </label>
+            <p className="field-hint">
+              6～20
+              字元英文字母、數字與底線，不分大小寫。全平台唯一，舊代號永久保留。
+            </p>
+            <button
+              className="button primary"
+              disabled={codeLocked || !codeDirty}
+            >
+              確認使用唯一一次修改
+            </button>
+          </form>
+        </div>
       </div>
     </section>
   );

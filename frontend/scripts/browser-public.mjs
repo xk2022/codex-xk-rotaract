@@ -123,7 +123,7 @@ try {
   await page.getByLabel("Email、國碼電話或帳號代號").fill("cora@example.test");
   await page.getByLabel("示範密碼", { exact: true }).fill("DemoPass2026!");
   await page.getByRole("button", { name: "登入示範帳號" }).click();
-  await page.waitForURL("**#/workspace");
+  await page.waitForURL(/#\/workspace(?:\?view=\w+)?$/);
   assert.equal(await page.getByLabel("體驗身分").inputValue(), "member");
   await skip("main");
   await page.reload();
@@ -139,7 +139,7 @@ try {
   await page.getByRole("link", { name: "公開首頁", exact: true }).click();
   await noPrivateData();
   await page.goBack();
-  assert.equal(new URL(page.url()).hash, "#/demo");
+  assert.match(new URL(page.url()).hash, /^#\/demo(?:\?view=overview)?$/);
   await page.getByRole("heading", { name: "管理總覽." }).waitFor();
   // Public registration keeps the existing membership application journey.
   await page.goto(`${base}#/register`);
@@ -151,7 +151,7 @@ try {
     .fill("index-nova@example.test");
   await dialog.getByLabel("示範密碼", { exact: true }).fill("DemoPass2026!");
   await dialog.getByRole("button", { name: "建立示範會員" }).click();
-  await page.waitForURL("**#/workspace");
+  await page.waitForURL(/#\/workspace(?:\?view=\w+)?$/);
   assert.equal(await page.getByLabel("體驗身分").inputValue(), "member");
   assert(
     await page

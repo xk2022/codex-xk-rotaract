@@ -27,7 +27,7 @@ export function useCaseDemo() {
 }
 type Demo = ReturnType<typeof useCaseDemo>;
 type Props = {
-  catalog?: readonly {id:string;name:string;district:string}[];
+  catalog?: readonly { id: string; name: string; district: string }[];
   district?: string;
   state: State;
   actor: Actor;
@@ -51,7 +51,8 @@ export function HistoryView({
   onChangeState,
   onAudit,
   demo,
-  catalog = clubs, district = "D3481",
+  catalog = clubs,
+  district = "D3481",
 }: Props) {
   const [notice, setNotice] = useState("");
   const [confirmRequest, setConfirmRequest] = useState<string | null>(null);
@@ -82,7 +83,7 @@ export function HistoryView({
     actor === "member"
       ? h.memberId === state.currentMemberId
       : actor === "district"
-        ? catalog.find(c => c.id === h.clubId)?.district === district
+        ? catalog.find((c) => c.id === h.clubId)?.district === district
         : actorClub(actor) === h.clubId;
   const audit = (h: State["history"][number], text: string) =>
     onAudit(`[會員:${h.memberId}][社團:${h.clubId}] ${text}`);
@@ -127,7 +128,16 @@ export function HistoryView({
                 : "僅顯示本社歷史。"}{" "}
           同意請求有效七日，拒絕或逾期後七日內不可重提；內容或公開設定變更需重新同意。
         </p>
-        {actor !== "member" && actor !== "platform" && <label className="check-row"><input type="checkbox" checked={moderate} onChange={e => setModerate(e.target.checked)} />示範已額外授予歷史協助權（history:moderate）</label>}
+        {actor !== "member" && actor !== "platform" && (
+          <label className="check-row">
+            <input
+              type="checkbox"
+              checked={moderate}
+              onChange={(e) => setModerate(e.target.checked)}
+            />
+            示範已額外授予歷史協助權（history:moderate）
+          </label>
+        )}
         {actor === "platform" && (
           <fieldset>
             <legend>特定管理者例外（示範）</legend>
@@ -218,7 +228,9 @@ export function HistoryView({
                   <div className="actions">
                     <button
                       className="button secondary"
-                      disabled={!h.visible || (actor !== "platform" && !moderate)}
+                      disabled={
+                        !h.visible || (actor !== "platform" && !moderate)
+                      }
                       onClick={() => {
                         update(index, false);
                         audit(h, "管理者隱藏歷史");
@@ -230,7 +242,9 @@ export function HistoryView({
                     <button
                       className="button primary"
                       disabled={
-                        h.visible || (actor !== "platform" && !moderate) || requestBlocked(demo.requests, index)
+                        h.visible ||
+                        (actor !== "platform" && !moderate) ||
+                        requestBlocked(demo.requests, index)
                       }
                       onClick={() => {
                         demo.setRequests((rs) => [
@@ -239,7 +253,12 @@ export function HistoryView({
                             id: crypto.randomUUID(),
                             index,
                             memberId: h.memberId,
-                            requestedBy: actor === "district" ? `${district}地區管理者` : (catalog.find(c => c.id === actorClub(actor))?.name ?? "獲授權平台管理者"),
+                            requestedBy:
+                              actor === "district"
+                                ? `${district}地區管理者`
+                                : (catalog.find(
+                                    (c) => c.id === actorClub(actor),
+                                  )?.name ?? "獲授權平台管理者"),
                             version: historyVersion(h),
                             expires: Date.now() + 7 * 86400000,
                             status: "pending",
@@ -304,28 +323,32 @@ export function HistoryView({
                               key={String(approve)}
                               className="button secondary"
                               onClick={() =>
-                                approve ? setConfirmRequest(r.id) : attempt(() => {
-                                  const result = decideConsent(
-                                    r,
-                                    approve,
-                                    historyVersion(h),
-                                  );
-                                  if (approve) update(index, true);
-                                  demo.setRequests((rs) =>
-                                    rs.map((x) => (x.id === r.id ? result : x)),
-                                  );
-                                  audit(
-                                    h,
-                                    approve
-                                      ? "本人同意歷史公開請求"
-                                      : "本人拒絕歷史公開請求",
-                                  );
-                                  setNotice(
-                                    approve
-                                      ? "已同意並公開。"
-                                      : "已拒絕，維持原公開設定。",
-                                  );
-                                })
+                                approve
+                                  ? setConfirmRequest(r.id)
+                                  : attempt(() => {
+                                      const result = decideConsent(
+                                        r,
+                                        approve,
+                                        historyVersion(h),
+                                      );
+                                      if (approve) update(index, true);
+                                      demo.setRequests((rs) =>
+                                        rs.map((x) =>
+                                          x.id === r.id ? result : x,
+                                        ),
+                                      );
+                                      audit(
+                                        h,
+                                        approve
+                                          ? "本人同意歷史公開請求"
+                                          : "本人拒絕歷史公開請求",
+                                      );
+                                      setNotice(
+                                        approve
+                                          ? "已同意並公開。"
+                                          : "已拒絕，維持原公開設定。",
+                                      );
+                                    })
                               }
                             >
                               {approve ? "同意公開此版本" : "拒絕"}
@@ -338,19 +361,35 @@ export function HistoryView({
               </section>
             ),
         )}
-        {confirmRequest && actor === "member" && (() => {
-          const request = demo.requests.find(r => r.id === confirmRequest);
-          const history = request && state.history[request.index];
-          return request && history ? <ConsentPrompt history={history} requestedBy={request.requestedBy ?? "社團授權管理者"} onClose={() => setConfirmRequest(null)} onAccept={() => {
-            if (request.memberId !== state.currentMemberId) throw new Error("只有本人可以同意。");
-            const result = decideConsent(request, true, historyVersion(history));
-            update(request.index, true);
-            demo.setRequests(rs => rs.map(r => r.id === request.id ? result : r));
-            audit(history, "本人彈窗同意指定版本歷史公開");
-            setNotice("已同意公開指定版本，其他經歷不受影響。");
-            setConfirmRequest(null);
-          }} /> : null;
-        })()}
+        {confirmRequest &&
+          actor === "member" &&
+          (() => {
+            const request = demo.requests.find((r) => r.id === confirmRequest);
+            const history = request && state.history[request.index];
+            return request && history ? (
+              <ConsentPrompt
+                history={history}
+                requestedBy={request.requestedBy ?? "社團授權管理者"}
+                onClose={() => setConfirmRequest(null)}
+                onAccept={() => {
+                  if (request.memberId !== state.currentMemberId)
+                    throw new Error("只有本人可以同意。");
+                  const result = decideConsent(
+                    request,
+                    true,
+                    historyVersion(history),
+                  );
+                  update(request.index, true);
+                  demo.setRequests((rs) =>
+                    rs.map((r) => (r.id === request.id ? result : r)),
+                  );
+                  audit(history, "本人彈窗同意指定版本歷史公開");
+                  setNotice("已同意公開指定版本，其他經歷不受影響。");
+                  setConfirmRequest(null);
+                }}
+              />
+            ) : null;
+          })()}
         {notice && <p role="status">{notice}</p>}
       </div>
     </section>
@@ -423,6 +462,25 @@ export function SupportView({ state, actor, onAudit, demo }: Props) {
                 {caseLabel[c.status]}
               </h3>
               <small>收據：{c.id}</small>
+              <p className="info-note" aria-label={`案件下一步 ${c.id}`}>
+                下一步：
+                {c.status === "pending"
+                  ? "等待平台管理者核身審查"
+                  : c.status === "supplement"
+                    ? "等待申請本人補充說明"
+                    : c.status === "rejected"
+                      ? "案件已退回；可依回覆調整後另提申請"
+                      : c.followup === "associationConfirmed"
+                        ? "本人已確認關聯，等待正式資料處理"
+                        : c.followup === "resetReady"
+                          ? "模擬流程已完成；正式服務將提供密碼重設頁"
+                          : c.followup === "emailConfirmed"
+                            ? "等待本人開啟模擬密碼重設連結"
+                            : c.kind === "claim"
+                              ? "核身已通過，等待本人確認舊會員資料關聯"
+                              : "核身已通過，等待本人確認新聯絡信箱"}
+                。
+              </p>
               <p>{c.message}</p>
               {c.reply && <p>平台回覆：{c.reply}</p>}
               {c.status === "approved" && actor === "member" && (
@@ -537,6 +595,24 @@ export function AuditView({
   actor: Actor;
   state: State;
 }) {
+  const [query, setQuery] = useState("");
+  const [order, setOrder] = useState("newest");
+  // Search only the scoped, masked text supplied by the parent.
+  const visibleEntries = entries.map((entry, index) => ({
+    index,
+    text: entry
+      .replace(/\[(?:會員|社團|member|club|metadata):[^\]]*\]/g, "")
+      .replace(/DemoPass2026!/g, "[密碼已遮罩]")
+      .replace(/((?:password|密碼)\s*[:：=]\s*)[^\s·，,；;]+/gi, "$1[已遮罩]")
+      .split(" · ")
+      .map((part) => labels[part.trim()] ?? part.trim())
+      .join(" · "),
+  }));
+  const needle = query.trim().toLocaleLowerCase();
+  const results = visibleEntries.filter((entry) =>
+    entry.text.toLocaleLowerCase().includes(needle),
+  );
+  if (order === "oldest") results.reverse();
   return (
     <section className="panel">
       <div className="panel-header">
@@ -548,20 +624,66 @@ export function AuditView({
       <div className="detail-body">
         {actor === "visitor" ? (
           <p>請登入查看。</p>
-        ) : entries.length ? (
-          <ol>
-            {entries.map((entry, i) => (
-              <li key={i}>
-                {entry
-                  .replace(/\[(?:會員|社團|member|club|metadata):[^\]]*\]/g, "")
-                  .split(" · ")
-                  .map((part) => labels[part] ?? part)
-                  .join(" · ")}
-              </li>
-            ))}
-          </ol>
         ) : (
-          <p>目前範圍尚無異動紀錄，完成操作後將顯示於此。</p>
+          <>
+            <div className="form">
+              <div className="two-fields">
+                <label>
+                  搜尋異動紀錄
+                  <input
+                    type="search"
+                    aria-label="搜尋異動紀錄"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="輸入操作、姓名或日期"
+                  />
+                </label>
+                <label>
+                  紀錄排序
+                  <select
+                    aria-label="紀錄排序"
+                    value={order}
+                    onChange={(event) => setOrder(event.target.value)}
+                  >
+                    <option value="newest">最新在前</option>
+                    <option value="oldest">最舊在前</option>
+                  </select>
+                </label>
+              </div>
+              <div className="actions">
+                <p role="status" aria-label="異動紀錄結果筆數">
+                  顯示 {results.length} 筆／共 {visibleEntries.length}{" "}
+                  筆可見紀錄
+                </p>
+                <button
+                  type="button"
+                  className="text-button"
+                  disabled={!query && order === "newest"}
+                  onClick={() => {
+                    setQuery("");
+                    setOrder("newest");
+                  }}
+                >
+                  清除搜尋與排序
+                </button>
+              </div>
+            </div>
+            {results.length ? (
+              <ol aria-label="異動紀錄搜尋結果">
+                {results.map((entry) => (
+                  <li key={entry.index}>{entry.text}</li>
+                ))}
+              </ol>
+            ) : entries.length ? (
+              <div className="info-note">
+                <p>
+                  找不到符合「{query.trim()}」的紀錄，請調整關鍵字或清除搜尋。
+                </p>
+              </div>
+            ) : (
+              <p>目前範圍尚無異動紀錄，完成操作後將顯示於此。</p>
+            )}
+          </>
         )}
       </div>
     </section>
@@ -754,9 +876,75 @@ export function PublicSupportView({ demo }: { demo: Demo }) {
   );
 }
 
-function ConsentPrompt({history,requestedBy,onClose,onAccept}:{history:State['history'][number];requestedBy:string;onClose:()=>void;onAccept:()=>void}) {
-  const dialog=useRef<HTMLDialogElement>(null);
-  const [error,setError]=useState('');
-  useEffect(()=>{dialog.current?.showModal()},[]);
-  return <dialog ref={dialog} className="modal" onCancel={onClose} aria-labelledby="consent-title"><header><div><span className="eyebrow">YOUR PRIVACY, YOUR CHOICE</span><h2 id="consent-title">同意公開這筆歷史？</h2></div><button className="icon-button" onClick={onClose} aria-label="關閉同意視窗">×</button></header><div className="form"><p>請求者：{requestedBy}。只有以下這一筆指定版本經歷會變更。</p><div className="info-note">{history.callNameSnapshot} · {clubName(history.clubId)}<br/>{history.startsOn} — {history.endsOn}</div><p className="field-hint">公開欄位：社團、類型、起迄期間與狀態。依歷史公開投影呈現，不包含電話、Email、內部原因或核身證據。</p>{error&&<p role="alert" className="notice error">{error}</p>}<div className="actions"><button className="button secondary" onClick={onClose}>稍後再說</button><button className="button primary" onClick={()=>{try{onAccept()}catch(e){setError((e as Error).message)}}}>我同意公開這個版本</button></div></div></dialog>
+function ConsentPrompt({
+  history,
+  requestedBy,
+  onClose,
+  onAccept,
+}: {
+  history: State["history"][number];
+  requestedBy: string;
+  onClose: () => void;
+  onAccept: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    dialog.current?.showModal();
+  }, []);
+  return (
+    <dialog
+      ref={dialog}
+      className="modal"
+      onCancel={onClose}
+      aria-labelledby="consent-title"
+    >
+      <header>
+        <div>
+          <span className="eyebrow">YOUR PRIVACY, YOUR CHOICE</span>
+          <h2 id="consent-title">同意公開這筆歷史？</h2>
+        </div>
+        <button
+          className="icon-button"
+          onClick={onClose}
+          aria-label="關閉同意視窗"
+        >
+          ×
+        </button>
+      </header>
+      <div className="form">
+        <p>請求者：{requestedBy}。只有以下這一筆指定版本經歷會變更。</p>
+        <div className="info-note">
+          {history.callNameSnapshot} · {clubName(history.clubId)}
+          <br />
+          {history.startsOn} — {history.endsOn}
+        </div>
+        <p className="field-hint">
+          公開欄位：社團、類型、起迄期間與狀態。依歷史公開投影呈現，不包含電話、Email、內部原因或核身證據。
+        </p>
+        {error && (
+          <p role="alert" className="notice error">
+            {error}
+          </p>
+        )}
+        <div className="actions">
+          <button className="button secondary" onClick={onClose}>
+            稍後再說
+          </button>
+          <button
+            className="button primary"
+            onClick={() => {
+              try {
+                onAccept();
+              } catch (e) {
+                setError((e as Error).message);
+              }
+            }}
+          >
+            我同意公開這個版本
+          </button>
+        </div>
+      </div>
+    </dialog>
+  );
 }
