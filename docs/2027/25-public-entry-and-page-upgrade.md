@@ -120,3 +120,9 @@ flowchart TD
 - [ ] 真實社員與管理者任務研究、無障礙、實機及效能檢查。
 
 全部資料仍為合成、記憶體狀態，重整即還原；示範登入與角色切換不提供正式安全保證。公開地圖、活動、核身、稽核及資料認領仍不是正式服務。本輪沒有新增付款、活動報名或平台通用超級管理權，原[需求基準](13-requirements-baseline.md)與[角色矩陣](14-role-matrix.md)維持有效。
+
+## 6. 發布紀錄
+
+提交 `382f79f` 已推送 main。[GitHub Actions 38683821703](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38683821703) 的 build／deploy 均成功。GitHub runner實際執行41項單元測試及打包後的入口／全頁瀏覽器檢查，日誌回報根入口沒有App請求、註冊接續、草稿取消、密碼切換，以及30組角色／頁面組合通過。
+
+**公開首頁：<https://xk2022.github.io/codex-xk-rotaract/>**。這個網址不包含 `#/demo`；該片段僅供使用者明確選擇後台假資料體驗。發布證據為Actions部署結果及同次正式產物檢查，未另在外網實機宣稱完整驗收。
