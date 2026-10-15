@@ -24,3 +24,8 @@ __pycache__/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# TypeScript incremental metadata and browser test output.
+*.tsbuildinfo
+playwright-report/
+test-results/
