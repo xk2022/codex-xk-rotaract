@@ -37,3 +37,7 @@
 - [ ] 整合後驗收、效能、備份還原及上線演練。
 
 所有資料只存在記憶體，重整即重設；登入固定使用 `DemoPass2026!`，不儲存密碼。身分切換、地區選擇與情境控制是展示工具，不能視為安全邊界。扶輪社操作整合保留；活動、商家地圖、付費廣告與優惠屬後續階段。
+
+## 發布紀錄
+
+程式提交 `664ebca` 已推送 main。[GitHub Actions 38674655223](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38674655223) 的建置與部署成功；[線上雛形](https://xk2022.github.io/codex-xk-rotaract/) 已由 Pages 發布。此證據為 Actions 部署結果，未另以外網瀏覽器驗收公開網址。
