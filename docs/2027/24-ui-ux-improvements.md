@@ -109,3 +109,7 @@
 本輪持續使用合成資料、固定示範密碼及記憶體狀態，未加入正式後端、Session、資料庫、MFA、郵件、地理服務或資料移轉。畫面中的權限與身分切換工具不是安全邊界。
 
 本輪沒有新增真實地圖搜尋、活動報名、付款、AI 助理或平台超級管理員，也未以 UI 更新宣稱其他階段完成。[需求基準](13-requirements-baseline.md)及[角色矩陣](14-role-matrix.md)仍是正式業務邊界；後續串接待辦見 [UI／UX 規格](21-ui-ux-spec.md)。
+
+## 發布紀錄
+
+提交 `96140a1` 已推送 main；[GitHub Actions 38682107185](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38682107185) 的 build／deploy 均成功。新版 [公開首頁](https://xk2022.github.io/codex-xk-rotaract/) 與 [管理體驗](https://xk2022.github.io/codex-xk-rotaract/#/demo?view=overview) 已發布。此為 Actions 部署證據，未另以外網實機驗收公開網址。
