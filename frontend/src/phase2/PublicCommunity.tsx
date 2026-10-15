@@ -1,3 +1,4 @@
+import { EventSaveShare } from "./EventSaveShare";
 import { authHref } from "../engagement/authContinuation";
 import { useState } from "react";
 import {
@@ -297,6 +298,7 @@ export function PublicCommunity({
             )}
             <h2>關於這場活動</h2>
             <p className="pc-prose">{event.description}</p>
+            <EventSaveShare key={`${event.id}-${event.version}`} event={event} />
             <h2>參與提醒</h2>
             <p>
               此頁提供公開活動資訊。本階段未提供站內報名、簽到或付款，參與方式請以主辦單位公告為準。

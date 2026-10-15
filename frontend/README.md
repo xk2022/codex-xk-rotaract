@@ -300,3 +300,5 @@ BASE_URL=http://127.0.0.1:5173/ CHROMIUM_PATH=/usr/bin/chromium npm run test:bro
 `#/demo?view=invitations` 提供公司共同維護邀請，與商家維護及待辦共用假資料。接受僅提供維護權，不授予社籍或優惠權限。`npm run test:browser:invitations` 驗證完整邀請與撤權流程；[交付說明](../docs/2027/37-company-maintainer-invitations.md)。
 
 公開登入／註冊保留白名單原頁目標；社團註冊可預填入社，不自動送出。限假資料模式，live模式待整合。`npm run test:browser:auth-continuation` 驗證；[接續流程與限制](../docs/2027/38-auth-continuation-ui-ux.md)。
+
+公開活動詳情提供ICS下載、複製連結與系統分享，皆有手動備援；單次下載不自動同步。`npm run test:browser:event-sharing` 驗證下載及分享分支；[交付與限制](../docs/2027/39-event-calendar-and-sharing.md)。
