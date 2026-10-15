@@ -27,7 +27,8 @@
     "test:browser:invitations": "node scripts/browser-invitations.mjs",
     "test:browser:auth-continuation": "node scripts/browser-auth-continuation.mjs",
     "test:browser:event-sharing": "node scripts/browser-event-sharing.mjs",
-    "test:browser:favorites": "node scripts/browser-favorites.mjs"
+    "test:browser:favorites": "node scripts/browser-favorites.mjs",
+    "test:browser:handover": "node scripts/browser-handover.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.0",

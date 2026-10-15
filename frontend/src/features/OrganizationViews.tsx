@@ -409,7 +409,7 @@ function ClubEditor({
 export function RolesView({ actor, organization, members }: Props) {
   const scope = useScope(actor, organization);
   const feedback = useFeedback();
-  const [clubId, setClubId] = useState("");
+  const [clubId, setClubId] = useState(() => new URLSearchParams(window.location.hash.split("?")[1]).get("club") ?? "");
   const [memberId, setMemberId] = useState("");
   const [office, setOffice] = useState<"president" | "secretary" | "manager">(
     "manager",
@@ -439,7 +439,7 @@ export function RolesView({ actor, organization, members }: Props) {
         <label>
           社團
           <select
-            value={c?.id ?? ""}
+            aria-label="授權社團" value={c?.id ?? ""}
             onChange={(e) => setClubId(e.target.value)}
           >
             {options.map((x) => (
@@ -555,7 +555,7 @@ export function RolesView({ actor, organization, members }: Props) {
           <label>
             社員
             <select
-              value={memberId}
+              aria-label="授權社員" value={memberId}
               onChange={(e) => setMemberId(e.target.value)}
             >
               <option value="">請選擇</option>
@@ -569,7 +569,7 @@ export function RolesView({ actor, organization, members }: Props) {
           <label>
             角色
             <select
-              value={office}
+              aria-label="授權角色" value={office}
               onChange={(e) => setOffice(e.target.value as typeof office)}
             >
               <option value="president">社長</option>

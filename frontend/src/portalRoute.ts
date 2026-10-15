@@ -61,6 +61,7 @@ export const workspacePages = [
   "confirmations",
   "invitations",
   "favorites",
+  "handover",
 ] as const;
 export function readWorkspacePage(
   hash = window.location.hash,

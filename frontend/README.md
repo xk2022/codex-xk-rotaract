@@ -304,3 +304,5 @@ BASE_URL=http://127.0.0.1:5173/ CHROMIUM_PATH=/usr/bin/chromium npm run test:bro
 公開活動詳情提供ICS下載、複製連結與系統分享，皆有手動備援；單次下載不自動同步。`npm run test:browser:event-sharing` 驗證下載及分享分支；[交付與限制](../docs/2027/39-event-calendar-and-sharing.md)。
 
 `#/demo?view=favorites` 顯示本人商家／社團／活動收藏，公開詳情可加入或取消；僅記憶體假資料，失效內容不顯示原名稱或連結。`npm run test:browser:favorites` 驗證；[交付說明](../docs/2027/40-favorites-ui-ux.md)。
+
+`#/demo?view=handover` 提供本社／轄內年度交接總覽，連接既有年度確認與角色指定頁，不改動授權規則。`npm run test:browser:handover` 驗證；[指標與限制](../docs/2027/41-annual-handover-overview.md)。
