@@ -236,14 +236,16 @@ npm run test:browser
 
 部署網址以 GitHub Actions 的 github-pages environment 輸出為準。預期專案路徑為 `https://xk2022.github.io/codex-xk-rotaract/`，首次部署成功前不視為已上線。
 
-私人儲存庫需 GitHub 方案支援 Pages；儲存庫保留 private。首次執行已確認 GitHub 拒絕 Actions 權杖建立 Pages（Resource not accessible by integration）。管理者需在 Settings → Pages 將 Source 設為 GitHub Actions；若頁面要求升級，需先有支援私人儲存庫 Pages 的方案。完成後重跑失敗的部署工作即可。不要為了部署直接將儲存庫改為公開。
+使用者已於 2026-10-15 將儲存庫改為 public，已確認解除私人方案限制。Actions 權杖仍無首次建立 Pages 的權限（Resource not accessible by integration）；管理者須在 Settings → Pages → Build and deployment 將 Source 設為 GitHub Actions，再重跑失敗的 deploy 工作。
 
 Pages 僅提供前端靜態雛形，沒有真實登入／密碼驗證或永久保存；請只填合成資料。網址中的頁面切換不使用伺服器路由，不需要 SPA 404 重導。
 
 ### 本次發布狀態
 
-前端來源及部署工作流程已推送 main，本地與 GitHub 的 build／14項測試均通過。首次部署因 Pages 尚未啟用、Actions 權杖無首次建立權而停止；未變更私人儲存庫可見性。最新工作流程將 upload-pages-artifact 放在 build 結束，Pages 檢查放在 deploy；啟用後可重跑失敗工作，不用重新提交前端。
+前端來源及部署工作流程已推送 main，本地與 GitHub 的 build／14項測試均通過。首次部署因 Pages 尚未啟用、Actions 權杖無首次建立權而停止；儲存庫可見性後由使用者自行改為 public。最新工作流程將 upload-pages-artifact 放在 build 結束，Pages 檢查放在 deploy；啟用後可重跑失敗工作，不用重新提交前端。
 
 - 設定頁：https://github.com/xk2022/codex-xk-rotaract/settings/pages
 - 工作流程：https://github.com/xk2022/codex-xk-rotaract/actions/workflows/deploy-frontend.yml
 - 預期網站（尚未確認可用）：https://xk2022.github.io/codex-xk-rotaract/
+
+最新嘗試：[38671512410](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38671512410)，commit b67e87e。build、14 項測試與產物上傳成功；deploy 因 Pages 尚未首次啟用而失敗，尚無上線網址可確認。
