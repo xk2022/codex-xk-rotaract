@@ -41,3 +41,7 @@ npm --prefix frontend run test:browser:ux
 - [ ] 後端整合後的真正403／409、斷線、重送、Session失效與交易競爭。
 - [ ] 跨頁離開前的未儲存提示與草稿策略，目前只保證同頁情境切換／重試保留，不保證換頁、登出或重新整理保留。
 - [ ] 真實舊資料、圖片服務、郵件與效能樣本驗證。
+
+## 發布
+
+程式與文件提交 `c6c5e61` 已推送 main；[GitHub Actions 38678551729](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38678551729) 的 build／deploy 均成功。修補已發布至 [GitHub Pages](https://xk2022.github.io/codex-xk-rotaract/)。此為部署工作結果，不代表已在使用者的裝置重現或排除先前未明首頁異常。
