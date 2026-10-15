@@ -2,6 +2,8 @@
 
 更新：2026-10-15。依使用者指示，暫停新增後端，先交付活動、共同行事曆與社團公開頁。全部使用合成資料，不代表活動後端、正式登入授權或SEO已完成。
 
+本輪使用預設展示模式，執行`npm run dev`即可查看，不需啟動API。請勿設定`VITE_API_MODE=live`查看活動管理示範；既有live模式維持帳號／入社的串接範圍。
+
 ## 畫面與入口
 
 | 畫面 | Hash路徑 | 使用情境 |
@@ -81,3 +83,11 @@
 - [ ] 第二階段API、權限、持久化與整合驗收；本輪不修改後端或新增活動API契約。
 
 報名、名額、簽到與付款不在本輪交付範圍。第一階段未完成的後端待辦繼續保留，沒有因這次切換前端工作而視為完成。
+
+## 部署紀錄
+
+來源提交：`c73fb49`。本輪未修改`backend/`、API契約或核心API workflow。
+
+- [前端CI與Pages部署成功](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38691831154)：68項測試、正式建置、33組角色／頁面及第二階段完整假資料流程通過。
+- [既有核心流程CI回歸成功](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38691831185)：保留既有驗證，不代表新增活動後端。
+- 線上入口：[公開首頁](https://xk2022.github.io/codex-xk-rotaract/)／[共同行事曆](https://xk2022.github.io/codex-xk-rotaract/#/calendar)／[探索社團](https://xk2022.github.io/codex-xk-rotaract/#/clubs)／[活動管理示範](https://xk2022.github.io/codex-xk-rotaract/#/demo?view=events)。
