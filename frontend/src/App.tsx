@@ -88,6 +88,7 @@ import {
   readPortalRoute,
   readWorkspacePage,
   goToWorkspacePage,
+  workspaceHref,
   isPublicPortalRoute,
 } from "./portalRoute";
 
@@ -1572,7 +1573,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
                     run={run}
                   />
                 )}
-                {page === "tasks" && <TaskCenter items={tasks} businessMemberId={reminderMemberId} onBusinessMemberChange={setReminderMemberId} onOpen={item => { if (item.view === "invitations") window.location.hash = `/demo?view=invitations&businessMember=${encodeURIComponent(reminderMemberId)}`; else if (item.companyId) window.location.hash = `/demo?view=businesses&company=${encodeURIComponent(item.companyId)}&businessMember=${encodeURIComponent(reminderMemberId)}`; else navigate(item.view); }} />}
+                {page === "tasks" && <TaskCenter items={tasks} businessMemberId={reminderMemberId} onBusinessMemberChange={setReminderMemberId} onOpen={item => { if (item.view === "invitations") window.location.hash = workspaceHref("invitations", { businessMember: reminderMemberId }); else if (item.companyId) window.location.hash = workspaceHref("businesses", { company: item.companyId, businessMember: reminderMemberId }); else navigate(item.view); }} />}
                 {page === "handover" && <HandoverOverview state={state} organizations={organization.state} actor={actor} district={organization.district} onOpen={(target, clubId) => { if (target === "roles") window.location.hash = `/${readPortalRoute() === "demo" ? "demo" : "workspace"}?view=roles&club=${encodeURIComponent(clubId)}`; else navigate("annual"); }} />}
                 {page === "favorites" && <Favorites />}
                 {page === "invitations" && <CompanyInvitations />}

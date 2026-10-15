@@ -71,7 +71,11 @@ export function readWorkspacePage(
     ? (value as (typeof workspacePages)[number])
     : "overview";
 }
+export function workspaceHref(page: (typeof workspacePages)[number], params: Record<string, string> = {}, hash = window.location.hash) {
+  const root = readPortalRoute(hash) === "demo" ? "demo" : "workspace";
+  const query = new URLSearchParams({ ...params, view: page });
+  return `#/${root}?${query}`;
+}
 export function goToWorkspacePage(page: (typeof workspacePages)[number]) {
-  const root = readPortalRoute() === "demo" ? "demo" : "workspace";
-  window.location.hash = `/${root}?view=${page}`;
+  window.location.hash = workspaceHref(page);
 }

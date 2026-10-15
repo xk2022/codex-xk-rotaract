@@ -1,5 +1,5 @@
 import { describe,it,expect } from 'vitest';
-import { initialState } from '../domain';
+import { initialState, transition } from '../domain';
 import { demoBusinessCompanies,demoBusinessMembers,demoExposureGrants } from '../phase3/businessModel';
 import { demoClubs } from '../phase2/model';
 import { exposureTasks,membershipTasks } from './taskModel';
@@ -9,4 +9,5 @@ describe('統一待辦投影',()=>{
  it('補件不露別人的案件內容',()=>{const c={id:'c',memberId:'m5',kind:'claim' as const,message:'private',status:'supplement' as const,reply:'private reply'};expect(membershipTasks(initialState(),'member',[c])).toEqual([]);expect(JSON.stringify(membershipTasks(initialState(),'platform',[c]))).not.toContain('private');expect(membershipTasks(initialState(),'platform',[{...c,status:'pending'}])[0].priority).toBe('action');});
  it('商家無身分不載入，只有本人或已接受維護者可見',()=>{expect(exposureTasks(demoBusinessCompanies,'',demoBusinessMembers,demoClubs,demoExposureGrants,'2026-10-15')).toEqual([]);expect(exposureTasks(demoBusinessCompanies,'peer-1',demoBusinessMembers,demoClubs,demoExposureGrants,'2026-10-15')).toEqual([]);});
  it('三日曝光倒數及精確到期轉為處理資格，不延長曝光',()=>{const c=structuredClone(demoBusinessCompanies[0]);c.ownerId='m7';c.acceptedMemberIds=[];c.acceptedMaintainerIds=[];c.firstPublishedAt='2026-10-12T04:00:00Z';const before=exposureTasks([c],'m7',demoBusinessMembers,demoClubs,[],'2026-10-15T03:59:59Z');expect(before[0].priority).toBe('reminder');expect(before[0].companyId).toBe(c.id);const end=exposureTasks([c],'m7',demoBusinessMembers,demoClubs,[],'2026-10-15T04:00:00Z');expect(end[0].priority).toBe('action');expect(end[0].detail).toContain('不會重啟');expect(exposureTasks([c],'m7',demoBusinessMembers,demoClubs,[],'bad')).toEqual([]);});
+ it('其他社團年度狀態尚舊時提醒先套用本社切換，不直接變更他社社員',()=>{const s=transition(initialState(),'taipei',{type:'annualBoundary',year:2027},'2027-08-01');const before=JSON.stringify(s);const tasks=membershipTasks(s,'taichung',[]);expect(tasks.find(t=>t.id==='annual-boundary')?.view).toBe('annual');expect(tasks.find(t=>t.id==='annual-boundary')?.title).toContain('先切換本社');expect(JSON.stringify(s)).toBe(before);expect(membershipTasks(s,'district',[]).some(t=>t.id==='annual-boundary')).toBe(false);});
 });

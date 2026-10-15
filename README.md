@@ -9,6 +9,13 @@ GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rota
 下一步：[API 交接與分階段串接安排](docs/2027/43-api-handoff-and-integration-plan.md)，包含前端模型差異與第一個驗收工作項目。
 
 [年度交接總覽](docs/2027/41-annual-handover-overview.md)：社員確認、任期及接任進度。八項建議前端初版已補齊，新增後端待辦見交付差異。
+最新：[流程1工程代跑結果](docs/2027/45-acceptance-flow1-engineering-result.md)：註冊接續、跨社隔離、核准與名冊／本人資料一致性通過，使用者驗收待回報。
+
+[使用者驗收操作包](docs/2027/43-user-acceptance-walkthrough.md)與[回饋變更登錄](docs/2027/44-feedback-and-change-register.md)：三條主流程、公開工具加驗與待回報結果。
+
+[八項前端整體驗收與待辦](docs/2027/42-frontend-acceptance-and-change-backlog.md)：完整回歸、工作區角色接續與跨社年度提醒修正。
+
+[年度交接總覽](docs/2027/41-annual-handover-overview.md)：社員確認、任期及接任進度。八項建議前端初版已補齊，正式後端待辦保留。
 
 [商家、社團與活動收藏清單](docs/2027/40-favorites-ui-ux.md)：三類收藏、本人隔離與失效提示。
 

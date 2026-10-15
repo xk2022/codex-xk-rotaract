@@ -13,6 +13,7 @@ export function membershipTasks(state: State, actor: Actor, cases: SupportCase[]
   else if (own && t.memberId === state.currentMemberId) items.push({id:`transfer-${t.id}`,title:t.status==='ready'?'轉社待本人最終確認':'轉社等待兩社核可',detail:'完成本人最終確認後才變更社籍。',view:'transfers',priority:t.status==='ready'?'action':'waiting'});
  }
  if (manager) { const count=state.members.filter(m=>m.clubId===club && m.status==='unconfirmed').length; if(count) items.push({id:'annual',title:`${count} 位社員待年度確認`,detail:'確認當年度社員狀態，避免影響曝光資格。',view:'annual',priority:'action'}); }
+ if (manager) { const year=state.demoYear??2026; const stale=state.members.filter(m=>m.clubId===club && m.status==='confirmed' && (m.annualConfirmedYear??2026)<year).length; if(stale) items.push({id:'annual-boundary',title:`${stale} 位社員需先切換本社名冊年度`,detail:`確認紀錄早於 ${year} 年度。請先到年度名冊套用本社年度切換，再處理待確認社員；不會變更其他社團。`,view:'annual',priority:'action'}); }
  if (own && state.members.find(m=>m.id===state.currentMemberId)?.status==='unconfirmed') items.push({id:'annual-own',title:'等待社團確認當年度社籍',detail:'請聯絡社團管理者；可查看目前社籍狀態。',view:'profile',priority:'waiting'});
  for(const c of cases) if((actor==='platform' && ['pending','supplement'].includes(c.status)) || (own && c.memberId===state.currentMemberId && c.status==='supplement')) items.push({id:`support-${c.id}`,title:actor==='platform'?(c.status==='pending'?'帳號案件待人工核身':'核身案件等待補件'):'帳號案件需要補件',detail:actor==='platform'?'查看案件進度。':'查看補件需求並回覆。',view:'support',priority:actor==='platform' && c.status==='supplement'?'waiting':'action'});
  return items;
