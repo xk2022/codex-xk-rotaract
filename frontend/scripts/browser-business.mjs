@@ -8,8 +8,8 @@ const hash=async h=>{await page.evaluate(h=>{location.hash=h;},h);await page.wai
 const confirm=async()=>{await page.getByRole('dialog',{name:'確認商家狀態變更'}).getByRole('button',{name:'確認',exact:true}).click();};
 try {
  await page.goto(`${base}#/map`);await page.getByLabel('搜尋商家',{exact:true}).waitFor();
- assert.equal(await page.locator('.ph-business-card').count(),4);
- assert.equal(await page.locator('.bp-pin').count(),3);
+ assert.equal(await page.locator('.ph-business-card').count(),5);
+ assert.equal(await page.locator('.bp-pin').count(),4);
  assert.doesNotMatch(await page.locator('body').innerText(),/private-business@example.invalid|未公開聯絡公司|待審核示範公司|無曝光資格示範|廣告已到期示範/);
  await page.getByLabel('搜尋商家',{exact:true}).fill('Sunny');
  assert.equal(await page.locator('.ph-business-card').count(),2);
@@ -38,11 +38,7 @@ try {
  assert.match(new URL(page.url()).hash,/view=businesses/);
  assert.equal(await workspace.getByLabel('公司名稱（必填，上限 200 字）',{exact:true}).inputValue(),title);
  await workspace.getByRole('button',{name:'儲存草稿',exact:true}).click();
- await workspace.getByRole('button',{name:'送交審核',exact:true}).click();await confirm();
- await workspace.getByLabel('商家示範身分').selectOption('2');
- await workspace.locator('.bw-company').filter({hasText:title}).click();
- await workspace.getByRole('button',{name:'核准此版本',exact:true}).click();await confirm();
- assert.equal(await workspace.locator('input').evaluateAll(els=>els.some(el=>el.value==='private-business@example.invalid')),false);
+ await workspace.getByRole('button',{name:'發布公司',exact:true}).click();await confirm();
  await hash('/map');await page.getByLabel('搜尋商家',{exact:true}).fill(title);
  assert.equal(await page.locator('.ph-business-card').count(),1);
  assert.equal(await page.locator('.bp-pin').count(),1);
@@ -65,5 +61,5 @@ try {
  await page.getByRole('button',{name:'清除商家篩選',exact:true}).click();
  for(const width of [320,768,1440]) {await page.setViewportSize({width,height:1000});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
  assert.deepEqual(errors,[]);
- console.log('PASS business: public allowlist/deep links, 4 list/3 map, linked pin, draft→submit→approve→public, dirty guard, conflict, approved edit withdraws, error retry, 320/768/1440; mock only');
+ console.log('PASS business: public allowlist/deep links, 5 list/4 map, linked pin, draft→self publish→public, dirty guard, conflict, approved edit withdraws, error retry, 320/768/1440; mock only');
 }finally{await browser.close();}

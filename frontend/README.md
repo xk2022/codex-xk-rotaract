@@ -286,3 +286,5 @@ BASE_URL=http://127.0.0.1:5173/ CHROMIUM_PATH=/usr/bin/chromium npm run test:bro
 ## 第三階段商家前端
 
 `#/map` 瀏覽名錄與分布示意，`#/business?id=coffee` 為獨立詳情，`#/demo?view=businesses` 體驗草稿與審核。全部是假資料，沒有Google Maps key、真實地圖、付款或核銷；曝光日期為可切換的示範情境。見[交付範圍](../docs/2027/33-phase3-business-ui-ux.md)。驗證使用 `npm run test:browser:business`，原公開檢查已改驗商家詳情路由。
+
+最新商家規則改為自行發布、首次72小時暫時曝光、有效社籍／廣告資格與六位社友確認，取代前置送審。見[需求變更](../docs/2027/34-business-exposure-and-community-confirmation.md)，新流程測試 `npm run test:browser:business-exposure`。

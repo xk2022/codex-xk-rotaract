@@ -11,13 +11,13 @@ const BusinessContext = createContext<BusinessState | null>(null);
 export function BusinessProvider({ children }: { children: ReactNode }) {
     const { clubs } = useCommunityDemo();
     const [companies, setCompanies] = useState(() => structuredClone(demoBusinessCompanies));
-    const [asOf, setAsOf] = useState('2026-10-15');
+    const [asOf, setAsOf] = useState('2026-10-15T12:00:00+08:00');
     const latest = useRef(companies);
     const members = demoBusinessMembers;
     const grants = demoExposureGrants;
     function commit(next: BusinessCompany[]) { latest.current = next; setCompanies(next); }
     function dispatch(action: BusinessAction): BusinessResult {
-        const result = applyBusinessAction(latest.current, action);
+        const result = applyBusinessAction(latest.current, action, { members, clubs, grants, asOf });
         if (result.ok) commit(action.type === 'create' ? [...latest.current, result.company] : latest.current.map(c => c.id === result.company.id ? result.company : c));
         return result;
     }
@@ -25,7 +25,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         const projection = projectBusiness(company, members, clubs, grants, asOf);
         return projection ? [projection] : [];
     }), [companies, members, clubs, grants, asOf]);
-    return <BusinessContext.Provider value={{ companies, members, grants, asOf, setAsOf, publicBusinesses, dispatch, reset: () => { commit(structuredClone(demoBusinessCompanies)); setAsOf('2026-10-15'); } }}>{children}</BusinessContext.Provider>;
+    return <BusinessContext.Provider value={{ companies, members, grants, asOf, setAsOf, publicBusinesses, dispatch, reset: () => { commit(structuredClone(demoBusinessCompanies)); setAsOf('2026-10-15T12:00:00+08:00'); } }}>{children}</BusinessContext.Provider>;
 }
 export function useBusinessDemo(): BusinessState {
     const value = useContext(BusinessContext);

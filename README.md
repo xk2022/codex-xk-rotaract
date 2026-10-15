@@ -4,7 +4,9 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：[第三階段公司名錄／商家詳情／會員維護 UI／UX](docs/2027/33-phase3-business-ui-ux.md)已完成假資料初版。
+最新：[三日暫時曝光與社友確認](docs/2027/34-business-exposure-and-community-confirmation.md)，商家改為自行發布，取代前置審核。
+
+[第三階段公司名錄／商家詳情／會員維護 UI／UX](docs/2027/33-phase3-business-ui-ux.md)已完成假資料初版。
 
 [公開頁手機與無障礙操作改善](docs/2027/32-public-mobile-accessibility.md)。
 

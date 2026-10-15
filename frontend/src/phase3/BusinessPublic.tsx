@@ -19,8 +19,32 @@ function IndustryNames({ ids }: { ids: string[] }) { return <>{ids.map(id => ind
 function ContactNames({ business }: { business: PublicBusiness }) {
   return <>{business.contacts.map((contact, index) => <span key={`${contact.clubId}-${contact.callName}-${index}`}>{contact.callName} ｜ {contact.clubName}</span>)}</>;
 }
+function taipeiTime(value: string): string {
+  const instant = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00+08:00` : value);
+  return Number.isFinite(instant.getTime()) ? `${new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(instant)}（台北時間）` : '時間尚未設定';
+}
 function Exposure({ business }: { business: PublicBusiness }) {
-  return <span className={`bp-badge ${business.exposure === 'advertisement' ? 'bp-ad' : ''}`}>{business.exposure === 'advertisement' ? '廣告' : '社友商家'}</span>;
+  return <span className="bp-badges"><span className={`bp-badge ${business.exposure === 'advertisement' ? 'bp-ad' : business.exposure === 'trial' ? 'bp-trial' : ''}`}>{business.exposure === 'advertisement' ? '廣告' : business.exposure === 'trial' ? '三日暫時曝光' : '社友商家'}</span>{business.communityConfirmed && <span className="bp-badge bp-confirmed">社友已確認</span>}</span>;
+}
+function CommunityConfirmation({ business }: { business: PublicBusiness }) {
+  const { companies, members, dispatch } = useBusinessDemo();
+  const [memberId, setMemberId] = useState('');
+  const [notice, setNotice] = useState('');
+  const company = companies.find(c => c.id === business.id);
+  function confirm(type: 'endorse' | 'unendorse') {
+    if (!memberId || !company) { setNotice('請先登入；此處可使用確認身分示範體驗流程。'); return; }
+    const result = dispatch({ type, actor: { memberId, role: 'member' }, id: company.id, version: company.version });
+    setNotice(result.ok ? type === 'endorse' ? '已記錄本次到訪／使用確認。' : '已撤回你的確認。' : result.error);
+  }
+  return <section className="bp-panel bp-confirmation" aria-labelledby="bp-confirm-title"><h2 id="bp-confirm-title">社友確認商家存在</h2>
+    <p>目前累計 <strong>{business.confirmationCount}</strong> 位有效社友確認，達 6 位時顯示「社友已確認」。</p>
+    {business.lastConfirmedAt && <p className="bp-note">最近確認：{taipeiTime(business.lastConfirmedAt)}</p>}
+    <p className="bp-note">確認紀錄有效一年。此標章僅表示社友曾到訪或使用服務，不是平台對合法性、品質或交易的保證，也不會延長商家曝光。</p>
+    <div className="bp-confirm-controls"><label>確認身分示範<select aria-label="確認身分示範" value={memberId} onChange={event => { setMemberId(event.target.value); setNotice(''); }}><option value="">匿名訪客</option>{members.filter(member => member.id.startsWith('peer-')).map(member => <option key={member.id} value={member.id}>{member.callName}（合成社友）</option>)}</select></label>
+    <p className="bp-note">純展示身分切換，並非真實登入或授權。商家本人及維護者不可替自己的商家計次；每位社友僅計一次，可撤回。</p>
+    {memberId ? <div className="bp-confirm-actions"><button className="bp-primary" onClick={() => confirm('endorse')}>我曾到訪／使用服務，確認商家存在</button><button className="bp-confirm-withdraw" onClick={() => confirm('unendorse')}>撤回我的確認</button></div> : <p><a href="#/login">登入後確認商家</a>，或選擇上方示範身分體驗。</p>}
+    <p role="status" aria-live="polite">{notice}</p></div>
+  </section>;
 }
 export function BusinessPublic({ page }: { page: 'map' | 'business' }) {
   const { publicBusinesses, asOf } = useBusinessDemo();
@@ -49,6 +73,7 @@ export function BusinessPublic({ page }: { page: 'map' | 'business' }) {
     <a className="bp-back" href="#/map"><ChevronLeft size={18} /> 返回商家地圖與名錄</a>
     {!business ? <div className="bp-empty"><h1>找不到公開商家</h1><p>這間商家目前沒有公開資料，或連結已失效。</p><a href="#/map">瀏覽公開商家</a></div> : <>
       <header className="bp-detail-hero"><div className="bp-detail-art" aria-hidden="true"><Building2 size={80} strokeWidth={1} /><span>ROTARACT / BUSINESS</span></div><div><Exposure business={business} /><p className="bp-kicker">{business.city} · <IndustryNames ids={business.industryIds} /></p><h1>{business.name}</h1><div className="bp-contacts"><ContactNames business={business} /></div></div></header>
+      {business.exposure === 'trial' && business.trialEndsAt && <p className="bp-trial-note">首次自行發布的三日暫時曝光，將於 {taipeiTime(business.trialEndsAt)} 到期；期滿須符合當年度社籍免費資格或持有有效廣告，才會繼續公開。</p>}
       <div className="bp-detail-grid"><article className="bp-panel"><h2>關於商家</h2><p className="bp-description">{business.description || '商家尚未提供介紹。'}</p><h2>社友連結</h2><div className="bp-detail-clubs">{business.contacts.map((contact, index) => <p key={`${contact.clubId}-${index}`}><strong>{contact.callName}</strong><br />{clubs.some(c => c.id === contact.clubId && c.enabled && c.public) ? <a href={`#/club?id=${encodeURIComponent(contact.clubId)}`}>{contact.clubName} <ArrowRight size={14} /></a> : <span>{contact.clubName}</span>}</p>)}</div></article>
       <aside className="bp-panel"><h2>營業聯絡方式</h2><dl className="bp-contact-list">
         {business.phone && <><dt>電話</dt><dd><a href={`tel:${business.phone.replace(/[^+\d]/g, '')}`}>{business.phone}</a></dd></>}
@@ -56,7 +81,8 @@ export function BusinessPublic({ page }: { page: 'map' | 'business' }) {
         {business.website && safeBusinessWebsite(business.website) && <><dt>網站</dt><dd><a href={safeBusinessWebsite(business.website)} target="_blank" rel="noopener noreferrer">商家網站 <ExternalLink size={14} /><span className="bp-sr">（另開視窗）</span></a></dd></>}
         {business.address && <><dt>營業地址</dt><dd>{business.address}</dd></>}
       </dl><p className="bp-note">僅顯示商家同意公開的營業聯絡資訊。</p>{!business.mapVisible && <p className="bp-note">此商家提供名錄查詢，暫無公開地圖位置。</p>}</aside></div>
-      <p className="bp-demo-note">本頁為合成資料展示。曝光資格示範日期：{asOf}。商家優惠與兌換流程將於後續階段提供。</p>
+      <CommunityConfirmation key={business.id} business={business} />
+      <p className="bp-demo-note">本頁為合成資料展示。曝光資格示範時間：{taipeiTime(asOf)}。商家優惠與兌換流程將於後續階段提供。</p>
     </>}
   </section>;
   return <section className="bp-page ph-container">
@@ -76,6 +102,6 @@ export function BusinessPublic({ page }: { page: 'map' | 'business' }) {
         <div className="bp-business-list">{filtered.map(b => <a id={`business-card-${b.id}`} key={b.id} href={detailUrl(b.id)} className={`ph-business-card bp-business-card ${selected === b.id ? 'is-selected' : ''}`}><div className={`bp-card-art ${b.exposure === 'advertisement' ? 'bp-card-ad' : ''}`} aria-hidden="true"><Building2 size={36} strokeWidth={1.2} /><span>{b.city}</span></div><div className="bp-card-body"><Exposure business={b} /><p className="bp-kicker">{b.city} · <IndustryNames ids={b.industryIds} /></p><h2>{b.name}</h2><div className="bp-contacts"><ContactNames business={b} /></div><p className="bp-card-description">{b.description}</p>{!b.mapVisible && <small className="bp-note">僅名錄 · 無公開地圖位置</small>}<span className="bp-more">查看商家詳情 <ArrowRight size={16} /></span></div></a>)}</div>
       </div>}
     </>}
-    <p className="bp-demo-note">曝光資格示範日期：{asOf}。營業資訊由商家提供；本次為合成資料展示，請勿輸入真實個資。會員資料查詢請先<a href="#/login">登入</a>。</p>
+    <p className="bp-demo-note">曝光資格示範時間：{taipeiTime(asOf)}。營業資訊由商家提供；本次為合成資料展示，請勿輸入真實個資。會員資料查詢請先<a href="#/login">登入</a>。</p>
   </section>;
 }
