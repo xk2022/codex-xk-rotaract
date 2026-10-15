@@ -64,3 +64,9 @@
 - [名錄與分布示意](../previews/p3-business-map-desktop.png)
 - [商家詳情桌機](../previews/p3-business-detail-desktop.png)／[手機](../previews/p3-business-detail-mobile.png)
 - [會員商家維護手機](../previews/p3-business-workspace-mobile.png)
+
+## 部署紀錄
+
+來源提交 `dfb45fe` 已由 [GitHub Actions 38699466360](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38699466360) 完成97項測試、正式建置、完整瀏覽器流程及Pages部署，結論success。
+
+[商家名錄](https://xk2022.github.io/codex-xk-rotaract/#/map) · [商家詳情](https://xk2022.github.io/codex-xk-rotaract/#/business?id=coffee) · [商家維護示範](https://xk2022.github.io/codex-xk-rotaract/#/demo?view=businesses)。
