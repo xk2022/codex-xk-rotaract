@@ -267,3 +267,18 @@ BASE_URL=https://localhost:5173/ CHROMIUM_PATH=/usr/bin/chromium npm run test:br
 ```
 
 此流程建立隨機 `.test` 帳號，驗證資料／隱私保存、草稿離頁取消、錯密碼保留登入、Email／電話變更後 Session 輪替與新識別登入、舊 Email／代號失效、一次性代號限制及 360px 版面。聯絡方式仍採目前密碼驗證；電話／信箱驗證碼保留後續可選整合，並未在本次加入。頭像因尚無資產服務不提供上傳。
+## 第二階段前端入口補充
+
+依本輪優先順序暫停新增後端，活動與公開社團先使用共享記憶體假資料：
+
+- `#/clubs`：社團搜尋；`#/club?id=taipei`：社團公開頁。
+- `#/calendar`：月曆／列表；`#/event?id=city-walk`：活動深連結詳情。
+- `#/demo?view=events`：活動管理示範。一般管理者只能草稿；社長／秘書／備援可發布，地區管理者限自己地區活動。切換「會員本人」可看唯讀活動列表。
+
+同一次瀏覽，發布／取消／封存會反映到公開畫面；重新整理重設，沒有跨裝置同步或正式授權。已發布活動目前不提供原筆編輯，組織停復用示範也尚未與本輪共用資料連動。詳見[第二階段UI／UX文件](../docs/2027/28-phase2-frontend-ui-ux.md)。
+
+```sh
+BASE_URL=http://127.0.0.1:5173/ CHROMIUM_PATH=/usr/bin/chromium npm run test:browser:phase2
+```
+
+未設定`CHROMIUM_PATH`時使用Playwright安裝的瀏覽器。`WRITE_PREVIEWS=1`可更新`docs/previews/p2-*`畫面；測試使用假資料，不呼叫活動後端。

@@ -2,16 +2,19 @@ import { Component, lazy, Suspense, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Flower2, ArrowLeft, RefreshCw } from "lucide-react";
 import { PublicHome } from "./features/PublicHome";
-import { goToPortal, readPortalRoute } from "./portalRoute";
-import type { PortalRoute } from "./portalRoute";
+import {
+  goToPortal,
+  readPortalRoute,
+  isPublicPortalRoute,
+} from "./portalRoute";
+import type { PublicPortalRoute } from "./portalRoute";
 import "./portal.css";
 
 // The public React entry does not import the management application eagerly.
 const Workspace = lazy(() => import("./App"));
 const LiveWorkspace = lazy(() => import("./live/LiveWorkspace"));
 const liveMode = import.meta.env.VITE_API_MODE === "live";
-const isPublic = (route: PortalRoute) =>
-  ["home", "map", "calendar"].includes(route);
+const isPublic = isPublicPortalRoute;
 
 class ScreenBoundary extends Component<
   { children: ReactNode },
@@ -65,6 +68,7 @@ function OpeningWorkspace() {
 }
 export default function Portal() {
   const [route, setRoute] = useState(readPortalRoute);
+  const [locationHash, setLocationHash] = useState(window.location.hash);
   const [workspaceStarted, setWorkspaceStarted] = useState(
     () => !isPublic(readPortalRoute()),
   );
@@ -79,6 +83,7 @@ export default function Portal() {
         const next = readPortalRoute();
         if (!isPublic(next)) setWorkspaceStarted(true);
         setRoute(next);
+        setLocationHash(window.location.hash);
       }, 0);
     };
     window.addEventListener("hashchange", sync);
@@ -89,17 +94,25 @@ export default function Portal() {
   }, []);
   useEffect(() => {
     if (!isPublic(route)) return;
-    document.title = `${route === "home" ? "玩轉你的扶青年代" : route === "map" ? "扶青產業地圖" : "共同行事曆"} · Rotaract 萬花筒`;
+    const titles: Record<PublicPortalRoute, string> = {
+      home: "玩轉你的扶青年代",
+      map: "扶青產業地圖",
+      calendar: "共同行事曆",
+      clubs: "探索社團",
+      club: "社團公開頁",
+      event: "活動詳情",
+    };
+    document.title = `${titles[route]} · Rotaract 萬花筒`;
     document.getElementById("public-main")?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
-  }, [route]);
+  }, [route, locationHash]);
   const publicPage = isPublic(route);
   return (
     <>
       {publicPage && (
-        <ScreenBoundary key={`public-${route}`}>
+        <ScreenBoundary key={`public-${route}-${locationHash}`}>
           <PublicHome
-            page={route as "home" | "map" | "calendar"}
+            page={route as PublicPortalRoute}
             onNavigate={(page) => {
               goToPortal(page);
               window.scrollTo(0, 0);

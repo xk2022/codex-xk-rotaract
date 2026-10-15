@@ -8,7 +8,7 @@ import {
   passwordValidation,
 } from "./api";
 import type { Club, Join, Me, Member, Page } from "./api";
-import { goToPortal, readPortalRoute } from "../portalRoute";
+import { goToPortal, readPortalRoute, isPublicPortalRoute } from "../portalRoute";
 import "./live.css";
 import AccountSettings from "./AccountSettings";
 export default function LiveWorkspace() {
@@ -182,7 +182,7 @@ export default function LiveWorkspace() {
     setMe(await api.me());
     setRevision((v) => v + 1);
   }
-  if (["home", "map", "calendar"].includes(route)) return null;
+  if (isPublicPortalRoute(route)) return null;
   return (
     <main className="live-main">
       <header className="live-header">

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { readPortalRoute, readWorkspacePage } from "./portalRoute";
+import {
+  readPortalRoute,
+  readWorkspacePage,
+  isPublicPortalRoute,
+} from "./portalRoute";
 describe("safe workspace deep links", () => {
   it("keeps base routes and legacy aliases independent of the view query", () => {
     expect(readPortalRoute("#/demo?view=annual")).toBe("demo");
@@ -15,5 +19,16 @@ describe("safe workspace deep links", () => {
     expect(readWorkspacePage("#/demo?view=roles")).toBe("roles");
     expect(readWorkspacePage("#/workspace?view=history")).toBe("history");
     expect(readWorkspacePage("#/workspace?member=m1")).toBe("overview");
+  });
+  it("keeps public community detail links separate from the activity workspace", () => {
+    for (const route of ["calendar", "clubs", "club", "event"]) {
+      const parsed = readPortalRoute(`#/${route}?id=city-walk`);
+      expect(parsed).toBe(route);
+      expect(isPublicPortalRoute(parsed)).toBe(true);
+    }
+    expect(readWorkspacePage("#/demo?view=events")).toBe("events");
+    expect(isPublicPortalRoute(readPortalRoute("#/demo?view=events"))).toBe(
+      false,
+    );
   });
 });

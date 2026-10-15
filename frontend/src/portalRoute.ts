@@ -1,12 +1,7 @@
+export type PublicPortalRoute =
+  "home" | "map" | "calendar" | "clubs" | "club" | "event";
 export type PortalRoute =
-  | "home"
-  | "map"
-  | "calendar"
-  | "login"
-  | "register"
-  | "admin"
-  | "workspace"
-  | "demo";
+  PublicPortalRoute | "login" | "register" | "admin" | "workspace" | "demo";
 
 // Hash paths keep direct links and refresh working under the GitHub Pages subpath.
 export function readPortalRoute(hash = window.location.hash): PortalRoute {
@@ -19,6 +14,9 @@ export function readPortalRoute(hash = window.location.hash): PortalRoute {
   return [
     "map",
     "calendar",
+    "clubs",
+    "club",
+    "event",
     "login",
     "register",
     "admin",
@@ -27,6 +25,12 @@ export function readPortalRoute(hash = window.location.hash): PortalRoute {
   ].includes(path)
     ? (path as PortalRoute)
     : "home";
+}
+
+export function isPublicPortalRoute(
+  route: PortalRoute,
+): route is PublicPortalRoute {
+  return ["home", "map", "calendar", "clubs", "club", "event"].includes(route);
 }
 
 export function goToPortal(route: PortalRoute) {
@@ -48,6 +52,7 @@ export const workspacePages = [
   "audit",
   "support",
   "district",
+  "events",
 ] as const;
 export function readWorkspacePage(
   hash = window.location.hash,

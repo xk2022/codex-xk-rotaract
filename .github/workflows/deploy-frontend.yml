@@ -51,6 +51,7 @@ jobs:
           trap 'kill "$portal_preview_pid"' EXIT
           curl --retry 10 --retry-connrefused --retry-delay 1 --fail --silent --output /dev/null http://127.0.0.1:4173/codex-xk-rotaract/
           BASE_URL=http://127.0.0.1:4173/codex-xk-rotaract/ npm run test:browser:all
+          BASE_URL=http://127.0.0.1:4173/codex-xk-rotaract/ npm run test:browser:phase2
       - name: Upload frontend only
         uses: actions/upload-pages-artifact@v3
         with:

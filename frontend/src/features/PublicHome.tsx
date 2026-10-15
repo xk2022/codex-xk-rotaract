@@ -4,7 +4,6 @@ import {
   ArrowRight,
   CalendarDays,
   ChevronLeft,
-  ChevronRight,
   Coffee,
   ExternalLink,
   MapPin,
@@ -15,8 +14,13 @@ import {
   X,
 } from "lucide-react";
 import "./public-home.css";
+import {
+  PublicCommunity,
+  CommunityHighlights,
+} from "../phase2/PublicCommunity";
 
-export type PublicPage = "home" | "map" | "calendar";
+export type PublicPage =
+  "home" | "map" | "calendar" | "clubs" | "club" | "event";
 type Props = {
   page: PublicPage;
   onNavigate: (page: PublicPage) => void;
@@ -61,38 +65,6 @@ const businesses = [
     description: "用步行認識一座城市，探索巷弄裡的故事與人情。",
     x: 31,
     y: 76,
-  },
-];
-const events = [
-  {
-    day: 18,
-    month: "10",
-    title: "城市散步・一起認識在地",
-    club: "台北示範扶青社",
-    city: "台北",
-    type: "交流",
-    time: "10:00–12:00",
-    description: "一場開放的城市散步，透過街區觀察與分享，遇見不同的生活視角。",
-  },
-  {
-    day: 24,
-    month: "10",
-    title: "週末淨灘・為海洋留白",
-    club: "台中示範扶青社",
-    city: "台中",
-    type: "服務",
-    time: "09:00–11:30",
-    description: "邀請大家一起走向海邊，用簡單的行動照顧我們生活的環境。",
-  },
-  {
-    day: 31,
-    month: "10",
-    title: "青年的下一站・職涯分享",
-    club: "高雄示範扶青社",
-    city: "高雄",
-    type: "成長",
-    time: "14:00–16:00",
-    description: "來自不同領域的青年分享工作與生活的選擇，讓交流成為新的靈感。",
   },
 ];
 function CommunityArt() {
@@ -259,28 +231,16 @@ export function PublicHome({
   const [city, setCity] = useState("全部地區");
   const [query, setQuery] = useState("");
   const [industry, setIndustry] = useState("全部產業");
-  const [eventCity, setEventCity] = useState("全部地區");
-  const [eventType, setEventType] = useState("全部類型");
-  const [calendarView, setCalendarView] = useState<"calendar" | "list">(() =>
-    window.matchMedia("(max-width: 560px)").matches ? "list" : "calendar",
-  );
   const clearBusinesses = () => {
     setQuery("");
     setCity("全部地區");
     setIndustry("全部產業");
   };
-  const clearEvents = () => {
-    setEventCity("全部地區");
-    setEventType("全部類型");
-  };
   const [businessId, setBusinessId] = useState<string | null>(null);
-  const [eventIndex, setEventIndex] = useState<number | null>(null);
-  const [monthOffset, setMonthOffset] = useState(0);
   const detailTrigger = useRef<HTMLElement | null>(null);
-  const hasDetail = businessId !== null || eventIndex !== null;
+  const hasDetail = businessId !== null;
   useEffect(() => {
     setBusinessId(null);
-    setEventIndex(null);
     setMenu(false);
   }, [page]);
   useEffect(() => {
@@ -297,18 +257,10 @@ export function PublicHome({
         : null;
     setBusinessId(id);
   };
-  const openEvent = (index: number) => {
-    detailTrigger.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-    setEventIndex(index);
-  };
   const navigate = (value: PublicPage) => {
     onNavigate(value);
     setMenu(false);
     setBusinessId(null);
-    setEventIndex(null);
   };
   const filtered = businesses.filter(
     (b) =>
@@ -319,18 +271,6 @@ export function PublicHome({
         .includes(query.toLowerCase()),
   );
   const selectedBusiness = businesses.find((b) => b.id === businessId);
-  const selectedEvent = eventIndex === null ? null : events[eventIndex];
-  const monthDate = new Date(2026, 9 + monthOffset, 1);
-  const daysInMonth = new Date(
-    monthDate.getFullYear(),
-    monthDate.getMonth() + 1,
-    0,
-  ).getDate();
-  const monthEvents = (monthOffset === 0 ? events : []).filter(
-    (event) =>
-      (eventCity === "全部地區" || event.city === eventCity) &&
-      (eventType === "全部類型" || event.type === eventType),
-  );
   return (
     <div className="ph-site">
       <a
@@ -393,6 +333,14 @@ export function PublicHome({
               onClick={() => navigate("calendar")}
             >
               社團行事曆
+            </button>
+            <button
+              aria-current={
+                page === "clubs" || page === "club" ? "page" : undefined
+              }
+              onClick={() => navigate("clubs")}
+            >
+              探索社團
             </button>
             <a
               href="https://www.instagram.com/mdiorit/"
@@ -533,6 +481,7 @@ export function PublicHome({
                 </div>
               </div>
             </section>
+            <CommunityHighlights />
             <section className="ph-join ph-container">
               <div>
                 <p className="ph-eyebrow">加入會員，找到你的社群</p>
@@ -546,6 +495,8 @@ export function PublicHome({
               </button>
             </section>
           </>
+        ) : page !== "map" ? (
+          <PublicCommunity page={page} />
         ) : (
           <section className="ph-directory ph-container">
             <button className="ph-back" onClick={() => navigate("home")}>
@@ -713,179 +664,7 @@ export function PublicHome({
                   </button>
                 </p>
               </>
-            ) : (
-              <>
-                <div className="ph-calendar-toolbar">
-                  <div className="ph-calendar-controls">
-                    <button
-                      aria-label="上一個月"
-                      onClick={() => setMonthOffset(monthOffset - 1)}
-                    >
-                      <ChevronLeft size={19} />
-                    </button>
-                    <h2>
-                      {monthDate.getFullYear()} 年 {monthDate.getMonth() + 1} 月
-                    </h2>
-                    <button
-                      aria-label="下一個月"
-                      onClick={() => setMonthOffset(monthOffset + 1)}
-                    >
-                      <ChevronRight size={19} />
-                    </button>
-                  </div>
-                  <button
-                    className="ph-text-button"
-                    onClick={() => setMonthOffset(0)}
-                  >
-                    回到示範月份
-                  </button>
-                  <span role="status" aria-live="polite">
-                    公開活動 · {monthEvents.length} 場
-                  </span>
-                </div>
-                <div className="ph-event-filters">
-                  <label className="ph-city-filter">
-                    活動地區
-                    <select
-                      aria-label="活動地區"
-                      value={eventCity}
-                      onChange={(e) => setEventCity(e.target.value)}
-                    >
-                      {["全部地區", "台北", "台中", "高雄"].map((value) => (
-                        <option key={value}>{value}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="ph-city-filter">
-                    活動類型
-                    <select
-                      aria-label="活動類型"
-                      value={eventType}
-                      onChange={(e) => setEventType(e.target.value)}
-                    >
-                      {["全部類型", "交流", "服務", "成長"].map((value) => (
-                        <option key={value}>{value}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <button
-                    className="ph-clear-filter"
-                    onClick={clearEvents}
-                    disabled={
-                      eventCity === "全部地區" && eventType === "全部類型"
-                    }
-                  >
-                    清除活動篩選
-                  </button>
-                  <div
-                    className="ph-view-switch"
-                    role="group"
-                    aria-label="活動顯示方式"
-                  >
-                    <button
-                      aria-pressed={calendarView === "calendar"}
-                      onClick={() => setCalendarView("calendar")}
-                    >
-                      <CalendarDays size={16} />
-                      月曆
-                    </button>
-                    <button
-                      aria-pressed={calendarView === "list"}
-                      onClick={() => setCalendarView("list")}
-                    >
-                      活動列表
-                    </button>
-                  </div>
-                </div>
-                <div
-                  className={`ph-calendar-layout ph-calendar-view-${calendarView}`}
-                >
-                  <div
-                    className="ph-calendar-grid"
-                    hidden={calendarView === "list"}
-                  >
-                    {["日", "一", "二", "三", "四", "五", "六"].map((d) => (
-                      <div className="ph-weekday" key={d}>
-                        {d}
-                      </div>
-                    ))}
-                    {Array.from({ length: monthDate.getDay() }, (_, i) => (
-                      <div className="ph-day ph-day-empty" key={`empty-${i}`} />
-                    ))}
-                    {Array.from({ length: daysInMonth }, (_, i) => {
-                      const day = i + 1;
-                      const event = monthEvents.find((e) => e.day === day);
-                      return (
-                        <div
-                          key={day}
-                          className={`ph-day ${event ? "has-event" : ""}`}
-                        >
-                          <span>{day}</span>
-                          {event && (
-                            <button
-                              onClick={() => openEvent(events.indexOf(event))}
-                              aria-label={`10月${day}日 ${event.title}`}
-                            >
-                              <span>{event.type}</span>
-                              <span>{event.title}</span>
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="ph-event-list">
-                    <h3>這個月，一起參與</h3>
-                    {monthEvents.length ? (
-                      monthEvents.map((event) => (
-                        <button
-                          className="ph-event-card"
-                          key={event.day}
-                          onClick={() => openEvent(events.indexOf(event))}
-                        >
-                          <span className="ph-event-date">
-                            <small>10 月</small>
-                            <strong>{event.day}</strong>
-                          </span>
-                          <span>
-                            <small>
-                              {event.city} · {event.type}
-                            </small>
-                            <strong>{event.title}</strong>
-                            <span>{event.club}</span>
-                            <span>{event.time}</span>
-                          </span>
-                          <ArrowRight size={16} />
-                        </button>
-                      ))
-                    ) : (
-                      <div className="ph-empty">
-                        <CalendarDays size={30} />
-                        <h3>
-                          {monthOffset === 0
-                            ? "沒有符合篩選的活動"
-                            : "這個月尚無示範活動"}
-                        </h3>
-                        <p>
-                          {monthOffset === 0
-                            ? "調整地區或活動類型，看看其他公開活動。"
-                            : "可回到 2026 年 10 月查看活動預覽。"}
-                        </p>
-                        <button
-                          className="ph-text-button"
-                          onClick={() => {
-                            setMonthOffset(0);
-                            clearEvents();
-                          }}
-                        >
-                          查看全部示範活動 <ArrowRight size={14} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
+            ) : null}
           </section>
         )}
       </main>
@@ -913,13 +692,12 @@ export function PublicHome({
           <span>畫面預覽・內容為示範資料</span>
         </div>
       </footer>
-      {(selectedBusiness || selectedEvent) && (
+      {selectedBusiness && (
         <div
           className="ph-modal-overlay"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setBusinessId(null);
-              setEventIndex(null);
             }
           }}
         >
@@ -931,7 +709,6 @@ export function PublicHome({
             onKeyDown={(e) => {
               if (e.key === "Escape") {
                 setBusinessId(null);
-                setEventIndex(null);
               }
               if (e.key === "Tab") {
                 const controls =
@@ -954,12 +731,11 @@ export function PublicHome({
               aria-label="關閉詳情"
               onClick={() => {
                 setBusinessId(null);
-                setEventIndex(null);
               }}
             >
               <X size={20} />
             </button>
-            {selectedBusiness ? (
+            {selectedBusiness && (
               <>
                 <p className="ph-eyebrow">
                   {selectedBusiness.city} / {selectedBusiness.category}
@@ -981,33 +757,6 @@ export function PublicHome({
                   </div>
                 </dl>
               </>
-            ) : (
-              selectedEvent && (
-                <>
-                  <p className="ph-eyebrow">
-                    2026 / 10 / {selectedEvent.day} · {selectedEvent.type}
-                  </p>
-                  <h2 id="ph-detail-title">{selectedEvent.title}</h2>
-                  <p>{selectedEvent.description}</p>
-                  <dl>
-                    <div>
-                      <dt>主辦社團</dt>
-                      <dd>{selectedEvent.club}</dd>
-                    </div>
-                    <div>
-                      <dt>活動地區</dt>
-                      <dd>{selectedEvent.city}</dd>
-                    </div>
-                    <div>
-                      <dt>活動時間</dt>
-                      <dd>{selectedEvent.time}</dd>
-                    </div>
-                  </dl>
-                  <p className="ph-modal-note">
-                    此為公開活動示範，尚未開放活動報名。
-                  </p>
-                </>
-              )
             )}
           </div>
         </div>

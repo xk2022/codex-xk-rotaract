@@ -111,8 +111,12 @@ try {
   );
   await page.getByRole("button", { name: "回到示範月份" }).click();
   await page.locator(".ph-event-card").first().click();
-  await page.getByRole("dialog").waitFor();
-  await page.keyboard.press("Escape");
+  await page.waitForURL(/#\/event\?id=/);
+  await page.getByRole("heading", { level: 1 }).waitFor();
+  await noPrivateData();
+  await page.reload();
+  await page.getByRole("heading", { level: 1 }).waitFor();
+  await noPrivateData();
   await page.goto(`${base}#/login`);
   await page.getByRole("heading", { name: "歡迎回來" }).waitFor();
   await page.screenshot({

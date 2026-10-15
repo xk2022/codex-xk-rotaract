@@ -67,11 +67,14 @@ import {
 } from "./features/HistorySupportViews";
 import { AnnualView, MembershipView } from "./features/MemberOperations";
 import { PublicHome } from "./features/PublicHome";
+import { EventWorkspace } from "./phase2/EventWorkspace";
+import type { EventActor } from "./phase2/model";
 import {
   goToPortal,
   readPortalRoute,
   readWorkspacePage,
   goToWorkspacePage,
+  isPublicPortalRoute,
 } from "./portalRoute";
 
 type Page =
@@ -88,7 +91,8 @@ type Page =
   | "history"
   | "audit"
   | "support"
-  | "district";
+  | "district"
+  | "events";
 type Modal = "register" | "join" | "transfer" | null;
 const demoToday = "2026-10-15";
 const actorLabels: Record<Actor, string> = {
@@ -106,6 +110,7 @@ const nav: { page: Page; label: string; icon: typeof Users }[] = [
   { page: "transfers", label: "轉社作業", icon: ArrowDownLeft },
   { page: "membership", label: "退社與 OB", icon: FileClock },
   { page: "annual", label: "年度名冊", icon: CalendarDays },
+  { page: "events", label: "活動與行事曆", icon: CalendarDays },
   { page: "club", label: "社團資料", icon: Building2 },
   { page: "roles", label: "角色與交接", icon: ShieldCheck },
   { page: "profile", label: "個人資料", icon: Settings2 },
@@ -273,6 +278,9 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
       home: "玩轉你的扶青年代",
       map: "扶青產業地圖",
       calendar: "共同行事曆",
+      clubs: "探索社團",
+      club: "社團公開頁",
+      event: "活動詳情",
       login: "會員登入",
       register: "會員註冊",
       admin: "管理後台登入",
@@ -312,6 +320,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
               "district",
               "history",
               "audit",
+              "events",
             ].includes(n.page)
           : actor === "member"
             ? !["club", "roles", "annual", "district"].includes(n.page)
@@ -937,11 +946,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
     </ModalShell>
   );
 
-  if (
-    portalRoute === "home" ||
-    portalRoute === "map" ||
-    portalRoute === "calendar"
-  ) {
+  if (isPublicPortalRoute(portalRoute)) {
     if (embedded) return null;
     return (
       <PublicHome
@@ -1091,6 +1096,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
               ],
             },
             { title: "組織與授權", pages: ["club", "roles", "district"] },
+            { title: "活動與交流", pages: ["events"] },
             { title: "我的帳號", pages: ["profile", "account"] },
             { title: "紀錄與協助", pages: ["history", "audit", "support"] },
           ].map((group) => {
@@ -1303,6 +1309,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
                             audit: "依操作紀錄查找異動，掌握變更的來由。",
                             support: "追蹤帳號協助案件，確認補件與處理進度。",
                             district: "在授權地區內維護社團與組織狀態。",
+                            events: "從一個想法開始，讓服務與交流被更多人看見。",
                           }[page] ?? "讓每個操作都有清楚的下一步。")}
               </p>
             </div>
@@ -1460,6 +1467,18 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
                     state={state}
                     actor={actor}
                     run={run}
+                  />
+                )}
+                {page === "events" && (
+                  <EventWorkspace
+                    key={`${actor}-${organization.district}`}
+                    actor={(
+                      actor === "district"
+                        ? { role: "district_manager", districtId: organization.district.toLowerCase() }
+                        : isManager(actor)
+                          ? { role: actor === "taichung" ? "club_secretary" : "club_president", clubId: actorClub(actor) }
+                          : { role: actor === "member" ? "member" : "guest", clubId: current.clubId ?? undefined }
+                    ) satisfies EventActor}
                   />
                 )}
                 {page === "membership" && (
