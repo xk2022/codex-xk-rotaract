@@ -9,7 +9,7 @@ try {
 const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, deviceScaleFactor: 1 });
 await page.emulateMedia({ reducedMotion: 'reduce' });
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
-await page.goto(process.env.BASE_URL || 'http://127.0.0.1:5173/');
+await page.goto(`${process.env.BASE_URL || 'http://127.0.0.1:5173/'}#/demo`);
 await page.getByRole('heading',{name:'管理總覽.'}).waitFor();
 await page.screenshot({path:`${screenshotDir}/phase1-desktop.png`,fullPage:true});
 const actor=async role=>{await page.getByLabel('體驗身分').selectOption(role);};

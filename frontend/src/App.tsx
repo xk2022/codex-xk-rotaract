@@ -66,6 +66,8 @@ import {
   useCaseDemo,
 } from "./features/HistorySupportViews";
 import { AnnualView, MembershipView } from "./features/MemberOperations";
+import { PublicHome } from "./features/PublicHome";
+import { goToPortal, readPortalRoute } from "./portalRoute";
 
 type Page =
   | "overview"
@@ -176,13 +178,16 @@ function ModalShell({
   );
 }
 export default function App() {
+  const [portalRoute, setPortalRoute] = useState(readPortalRoute);
   const [state, setRawState] = useState<State>(initialState);
   const stateRef = useRef(state);
   const setState = (next: State) => {
     stateRef.current = next;
     setRawState(next);
   };
-  const [actor, setActor] = useState<Actor>("taipei");
+  const [actor, setActor] = useState<Actor>(() =>
+    readPortalRoute() === "demo" ? "taipei" : "visitor",
+  );
   const [page, setPage] = useState<Page>("overview");
   const [sidebar, setSidebar] = useState(false);
   const [query, setQuery] = useState("");
@@ -198,10 +203,49 @@ export default function App() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selected, setSelected] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState("基本資料");
-  const [modal, setModal] = useState<Modal>(null);
+  const [modal, setModal] = useState<Modal>(() =>
+    readPortalRoute() === "register" ? "register" : null,
+  );
   const [historyMemberId, setHistoryMemberId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  useEffect(() => {
+    const onRouteChange = () => {
+      const next = readPortalRoute();
+      setPortalRoute(next);
+      setModal(next === "register" ? "register" : null);
+      setSelected(null);
+      setHistoryMemberId(null);
+      setSidebar(false);
+      setMessage("");
+      setError("");
+      setFeedbackMode("normal");
+      if (["login", "register", "admin"].includes(next)) {
+        setActor("visitor");
+        setAuthMode("login");
+      }
+      if (next === "demo") {
+        setActor("taipei");
+        setPage("overview");
+      }
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener("hashchange", onRouteChange);
+    return () => window.removeEventListener("hashchange", onRouteChange);
+  }, []);
+  useEffect(() => {
+    const titles = {
+      home: "玩轉你的扶青年代",
+      map: "扶青產業地圖",
+      calendar: "共同行事曆",
+      login: "會員登入",
+      register: "會員註冊",
+      admin: "管理後台登入",
+      workspace: "會員與社團工作區",
+      demo: "管理後台示範",
+    };
+    document.title = `${titles[portalRoute]} · Rotaract 萬花筒`;
+  }, [portalRoute]);
   const addAudit = (message: string) => {
     const now = stateRef.current;
     const targetMember =
@@ -209,13 +253,11 @@ export default function App() {
       (actor === "member" ? now.currentMemberId : "none");
     const targetClub =
       message.match(/\[社團:([^\]]+)\]/)?.[1] ??
-      (isManager(actor)
-        ? actorClub(actor)
-        : "none");
+      (isManager(actor) ? actorClub(actor) : "none");
     setState({
       ...now,
       audit: [
-        `[member:${targetMember}][club:${targetClub}] ${demoToday} · ${(actorLabels[actor] ?? `${organization.state.clubs.find(c => c.id === actorClub(actor))?.name ?? "社團"} · 管理者`)} · ${message}`,
+        `[member:${targetMember}][club:${targetClub}] ${demoToday} · ${actorLabels[actor] ?? `${organization.state.clubs.find((c) => c.id === actorClub(actor))?.name ?? "社團"} · 管理者`} · ${message}`,
         ...now.audit,
       ],
     });
@@ -270,7 +312,9 @@ export default function App() {
   const current = state.members.find((m) => m.id === state.currentMemberId)!;
   const managedClub =
     actor === "district"
-      ? organization.state.clubs.find(c => c.district === organization.district)?.id ?? "none"
+      ? (organization.state.clubs.find(
+          (c) => c.district === organization.district,
+        )?.id ?? "none")
       : isManager(actor)
         ? actorClub(actor)
         : (current.clubId ?? "taipei");
@@ -290,7 +334,14 @@ export default function App() {
       ? t.fromClub === actorClub(actor) || t.toClub === actorClub(actor)
       : t.memberId === current.id,
   );
-  const members = listedMembers(state, actor, includeNonRegular, query, organization.state.clubs, organization.district)
+  const members = listedMembers(
+    state,
+    actor,
+    includeNonRegular,
+    query,
+    organization.state.clubs,
+    organization.district,
+  )
     .filter(
       (m) =>
         (statusFilter === "all" || m.status === statusFilter) &&
@@ -311,9 +362,14 @@ export default function App() {
   const canSeeSelected =
     selectedMember &&
     ((actor === "member" && selectedMember.id === current.id) ||
-      listedMembers(state, actor, true, "", organization.state.clubs, organization.district).some(
-        (m) => m.id === selectedMember.id,
-      ));
+      listedMembers(
+        state,
+        actor,
+        true,
+        "",
+        organization.state.clubs,
+        organization.district,
+      ).some((m) => m.id === selectedMember.id));
   const activeTransfer = state.transfers.find(
     (t) => t.memberId === current.id && ["pending", "ready"].includes(t.status),
   );
@@ -376,7 +432,13 @@ export default function App() {
         )
       )
         throw new Error("涉及停用社團，無法核准或執行。");
-      const result = transition(stateRef.current, actor, command, demoToday, organization.state.clubs);
+      const result = transition(
+        stateRef.current,
+        actor,
+        command,
+        demoToday,
+        organization.state.clubs,
+      );
       setState(result);
       setMessage(success);
       setError("");
@@ -425,6 +487,7 @@ export default function App() {
     );
     if (ok) {
       setActor("member");
+      goToPortal("workspace");
       setModal(null);
       setPage("profile");
     }
@@ -478,7 +541,11 @@ export default function App() {
                   <span className="club-cell">
                     {getClubName(m.clubId)}
                     <small>
-                      扶青社 · {organization.state.clubs.find((c) => c.id === m.clubId)?.district}
+                      扶青社 ·{" "}
+                      {
+                        organization.state.clubs.find((c) => c.id === m.clubId)
+                          ?.district
+                      }
                     </small>
                   </span>
                 </td>
@@ -533,6 +600,7 @@ export default function App() {
           const next = { ...stateRef.current, currentMemberId: id };
           setState(next);
           switchActor("member");
+          goToPortal("workspace");
           setPage("overview");
           setMessage("已以合成帳號登入，所有驗證僅為操作示範。");
         }}
@@ -551,15 +619,275 @@ export default function App() {
       : actor === "member"
         ? entry.includes(`[member:${current.id}]`)
         : actor === "district"
-          ? organization.state.clubs.some(c => c.district === organization.district && entry.includes(`[club:${c.id}]`))
+          ? organization.state.clubs.some(
+              (c) =>
+                c.district === organization.district &&
+                entry.includes(`[club:${c.id}]`),
+            )
           : entry.includes(`[club:${actorClub(actor)}]`),
   );
   const getClubName = (id: string | null) =>
     organization.state.clubs.find((c) => c.id === id)?.name ?? clubName(id);
 
+  const modalView = modal && (
+    <ModalShell
+      title={
+        modal === "register"
+          ? "開啟你的扶青旅程"
+          : modal === "join"
+            ? "申請加入社團"
+            : "申請轉社"
+      }
+      onClose={() => {
+        setModal(null);
+        setError("");
+      }}
+    >
+      {error && (
+        <div className="notice error" role="alert">
+          {error}
+        </div>
+      )}
+      {modal === "register" ? (
+        <form className="form" onSubmit={register}>
+          <p className="muted">
+            僅供體驗，請使用合成資料與示範密碼。密碼不會保存，也不會建立真實帳號。
+          </p>
+          <div className="two-fields">
+            <label>
+              姓名
+              <input
+                name="name"
+                required
+                maxLength={100}
+                placeholder="例如：林曉晴"
+                autoComplete="off"
+              />
+            </label>
+            <label>
+              Call name
+              <input
+                name="callName"
+                required
+                maxLength={100}
+                placeholder="例如：Nova"
+                autoComplete="off"
+              />
+            </label>
+          </div>
+          <label>
+            Email
+            <input
+              name="email"
+              type="email"
+              required
+              maxLength={254}
+              placeholder="nova@example.test"
+              autoComplete="off"
+            />
+          </label>
+          <label>
+            電話 <span className="muted">選填</span>
+            <input
+              name="phone"
+              type="tel"
+              placeholder="+886912345678"
+              autoComplete="off"
+            />
+          </label>
+          <label>
+            示範密碼
+            <input
+              name="password"
+              aria-label="示範密碼"
+              type="password"
+              minLength={12}
+              maxLength={128}
+              required
+              autoComplete="new-password"
+            />
+            <small>至少 12 字元，請勿填入真實密碼。</small>
+          </label>
+          <button className="button primary wide" type="submit">
+            建立示範會員 <ArrowRight size={16} />
+          </button>
+        </form>
+      ) : modal === "join" ? (
+        <form className="form" onSubmit={submitJoin}>
+          <p className="muted">由該社管理者核准後，才建立社籍並列入名冊。</p>
+          <label>
+            選擇社團
+            <select name="clubId">
+              {organization.state.clubs
+                .filter(
+                  (c) =>
+                    organization.state.clubs.find((o) => o.id === c.id)
+                      ?.enabled !== false,
+                )
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} · {c.district}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <label>
+            入社說明
+            <textarea
+              name="message"
+              required
+              maxLength={2000}
+              rows={4}
+              placeholder="簡單介紹自己，以及想參與的服務。"
+            />
+          </label>
+          <button className="button primary wide" type="submit">
+            送出入社申請 <ArrowRight size={16} />
+          </button>
+        </form>
+      ) : (
+        <form
+          className="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const data = new FormData(e.currentTarget);
+            if (
+              run(
+                {
+                  type: "transfer",
+                  id: crypto.randomUUID(),
+                  toClub: String(data.get("toClub")),
+                },
+                "轉社申請已送出，請切換兩社管理者分別核准。",
+              )
+            ) {
+              setModal(null);
+              setPage("transfers");
+            }
+          }}
+        >
+          <p className="muted">
+            目前社團：{getClubName(current.clubId)}。申請期間保留原社籍。
+          </p>
+          <label>
+            目標社團
+            <select name="toClub">
+              {organization.state.clubs
+                .filter(
+                  (c) =>
+                    c.id !== current.clubId &&
+                    organization.state.clubs.find((o) => o.id === c.id)
+                      ?.enabled !== false,
+                )
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <div className="info-note">
+            <ShieldCheck size={18} />
+            雙方核准後，仍需你本人最終確認才會生效。
+          </div>
+          <button className="button primary wide" type="submit">
+            送出轉社申請 <ArrowRight size={16} />
+          </button>
+        </form>
+      )}
+    </ModalShell>
+  );
+
+  if (
+    portalRoute === "home" ||
+    portalRoute === "map" ||
+    portalRoute === "calendar"
+  ) {
+    return (
+      <PublicHome
+        page={portalRoute}
+        onNavigate={goToPortal}
+        onLogin={() => goToPortal("login")}
+        onRegister={() => goToPortal("register")}
+        onAdmin={() => goToPortal("admin")}
+      />
+    );
+  }
+  if (actor === "visitor" && portalRoute !== "demo") {
+    return (
+      <div className="public-auth-shell">
+        <a
+          className="skip-link"
+          href="#auth-main"
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById("auth-main")?.focus();
+            document.getElementById("auth-main")?.scrollIntoView();
+          }}
+        >
+          跳至主要內容
+        </a>
+        <header className="public-auth-header">
+          <a href="#/" className="public-auth-brand">
+            <Flower2 size={28} />
+            <span>
+              <b>Rotaract 萬花筒</b>
+              <small>KALEIDOSCOPE</small>
+            </span>
+          </a>
+          <a href="#/" className="button secondary">
+            <ArrowLeft size={16} />
+            返回首頁
+          </a>
+        </header>
+        <main id="auth-main" tabIndex={-1} className="public-auth-main">
+          <div className="public-auth-intro">
+            <span>YOUR ROTARACT JOURNEY</span>
+            <h1>
+              {portalRoute === "admin"
+                ? "管理後台登入"
+                : "讓連結，從這裡開始。"}
+            </h1>
+            <p>
+              {portalRoute === "admin"
+                ? "社團與地區管理者共用帳號登入入口。"
+                : "登入或建立帳號，整理你的扶青旅程。"}
+            </p>
+          </div>
+          {visitorGate}
+          {portalRoute === "admin" && (
+            <section className="public-auth-demo">
+              <ShieldCheck size={24} />
+              <div>
+                <h2>先看看管理工作區</h2>
+                <p>使用假資料體驗社團、地區與平台管理畫面。</p>
+              </div>
+              <a className="button secondary" href="#/demo">
+                體驗管理後台（假資料）
+                <ArrowRight size={16} />
+              </a>
+            </section>
+          )}
+        </main>
+        <footer className="public-auth-footer">
+          Rotaract 萬花筒 · 畫面預覽，請只輸入示範資料。
+        </footer>
+        {modalView}
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
-      <a className="skip-link" href="#main">
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById("main")?.focus();
+          document.getElementById("main")?.scrollIntoView();
+        }}
+      >
         跳至主要內容
       </a>
       {sidebar && (
@@ -591,7 +919,9 @@ export default function App() {
           <span>
             <strong>
               {manager
-                ? organization.state.clubs.find((c) => c.id === actorClub(actor))?.short
+                ? organization.state.clubs.find(
+                    (c) => c.id === actorClub(actor),
+                  )?.short
                 : "我的扶青旅程"}
             </strong>
             <small>{manager ? "社團管理工作區" : "會員工作區"}</small>
@@ -631,7 +961,7 @@ export default function App() {
             <RotateCcw size={15} /> 重設示範資料
           </button>
           <div className="sidebar-footer">
-            <Flower2 size={16} /> ROTARACT KALEIDOSCOPE <span>v0.2</span>
+            <Flower2 size={16} /> ROTARACT KALEIDOSCOPE <span>v0.3</span>
           </div>
         </div>
       </aside>
@@ -656,6 +986,9 @@ export default function App() {
             </span>
           </div>
           <div className="topbar-actions">
+            <a className="text-button" href="#/">
+              公開首頁
+            </a>
             <span className="year-chip">
               <CalendarDays size={14} /> 2026 — 2027
             </span>
@@ -673,6 +1006,7 @@ export default function App() {
                 className="text-button"
                 onClick={() => {
                   switchActor("visitor");
+                  goToPortal("login");
                   setPage("overview");
                   setAuthMode("login");
                 }}
@@ -693,7 +1027,20 @@ export default function App() {
           <span>
             <Sparkles size={14} /> UI／UX 初版 · 全部使用假資料，重新整理即重設
           </span>
-          {actor === "district" && <label>目前授權地區<select aria-label="目前授權地區" value={organization.district} onChange={e => organization.setDistrict(e.target.value)}><option>D3481</option><option>D3462</option></select></label>}<label className="feedback-select">
+          {actor === "district" && (
+            <label>
+              目前授權地區
+              <select
+                aria-label="目前授權地區"
+                value={organization.district}
+                onChange={(e) => organization.setDistrict(e.target.value)}
+              >
+                <option>D3481</option>
+                <option>D3462</option>
+              </select>
+            </label>
+          )}
+          <label className="feedback-select">
             畫面情境{" "}
             <select
               aria-label="畫面情境"
@@ -715,7 +1062,12 @@ export default function App() {
               value={actor}
               onChange={(e) => switchActor(e.target.value as Actor)}
             >
-              {[...Object.entries(actorLabels), ...organization.state.clubs.filter(c => !["taipei","taichung"].includes(c.id)).map(c => [`club:${c.id}`,`${c.name} · 管理者`])].map(([key, label]) => (
+              {[
+                ...Object.entries(actorLabels),
+                ...organization.state.clubs
+                  .filter((c) => !["taipei", "taichung"].includes(c.id))
+                  .map((c) => [`club:${c.id}`, `${c.name} · 管理者`]),
+              ].map(([key, label]) => (
                 <option key={key} value={key}>
                   {key === "member" ? `${current.callName} · ${label}` : label}
                 </option>
@@ -896,8 +1248,10 @@ export default function App() {
                 />
               )}
               {page === "history" && (
-                <HistoryView key={`${actor}-${current.id}`}
-                  catalog={organization.state.clubs} district={organization.district}
+                <HistoryView
+                  key={`${actor}-${current.id}`}
+                  catalog={organization.state.clubs}
+                  district={organization.district}
                   state={state}
                   actor={actor}
                   onChangeState={setState}
@@ -1816,7 +2170,10 @@ export default function App() {
             僅呈現本社結束社籍的快照，不包含會員現有聯絡方式或其他社團資料。
           </p>
           {state.history
-            .filter((h) => h.memberId === historyMemberId && h.clubId === actorClub(actor))
+            .filter(
+              (h) =>
+                h.memberId === historyMemberId && h.clubId === actorClub(actor),
+            )
             .map((h, index) => (
               <div className="history-card" key={index}>
                 <FileClock size={22} />
@@ -1834,176 +2191,7 @@ export default function App() {
             ))}
         </ModalShell>
       )}
-      {modal && (
-        <ModalShell
-          title={
-            modal === "register"
-              ? "開啟你的扶青旅程"
-              : modal === "join"
-                ? "申請加入社團"
-                : "申請轉社"
-          }
-          onClose={() => {
-            setModal(null);
-            setError("");
-          }}
-        >
-          {error && (
-            <div className="notice error" role="alert">
-              {error}
-            </div>
-          )}
-          {modal === "register" ? (
-            <form className="form" onSubmit={register}>
-              <p className="muted">
-                僅供體驗，請使用合成資料與示範密碼。密碼不會保存，也不會建立真實帳號。
-              </p>
-              <div className="two-fields">
-                <label>
-                  姓名
-                  <input
-                    name="name"
-                    required
-                    maxLength={100}
-                    placeholder="例如：林曉晴"
-                    autoComplete="off"
-                  />
-                </label>
-                <label>
-                  Call name
-                  <input
-                    name="callName"
-                    required
-                    maxLength={100}
-                    placeholder="例如：Nova"
-                    autoComplete="off"
-                  />
-                </label>
-              </div>
-              <label>
-                Email
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  maxLength={254}
-                  placeholder="nova@example.test"
-                  autoComplete="off"
-                />
-              </label>
-              <label>
-                電話 <span className="muted">選填</span>
-                <input
-                  name="phone"
-                  type="tel"
-                  placeholder="+886912345678"
-                  autoComplete="off"
-                />
-              </label>
-              <label>
-                示範密碼
-                <input
-                  name="password"
-                  aria-label="示範密碼"
-                  type="password"
-                  minLength={12}
-                  maxLength={128}
-                  required
-                  autoComplete="new-password"
-                />
-                <small>至少 12 字元，請勿填入真實密碼。</small>
-              </label>
-              <button className="button primary wide" type="submit">
-                建立示範會員 <ArrowRight size={16} />
-              </button>
-            </form>
-          ) : modal === "join" ? (
-            <form className="form" onSubmit={submitJoin}>
-              <p className="muted">
-                由該社管理者核准後，才建立社籍並列入名冊。
-              </p>
-              <label>
-                選擇社團
-                <select name="clubId">
-                  {organization.state.clubs
-                    .filter(
-                      (c) =>
-                        organization.state.clubs.find((o) => o.id === c.id)
-                          ?.enabled !== false,
-                    )
-                    .map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} · {c.district}
-                      </option>
-                    ))}
-                </select>
-              </label>
-              <label>
-                入社說明
-                <textarea
-                  name="message"
-                  required
-                  maxLength={2000}
-                  rows={4}
-                  placeholder="簡單介紹自己，以及想參與的服務。"
-                />
-              </label>
-              <button className="button primary wide" type="submit">
-                送出入社申請 <ArrowRight size={16} />
-              </button>
-            </form>
-          ) : (
-            <form
-              className="form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const data = new FormData(e.currentTarget);
-                if (
-                  run(
-                    {
-                      type: "transfer",
-                      id: crypto.randomUUID(),
-                      toClub: String(data.get("toClub")),
-                    },
-                    "轉社申請已送出，請切換兩社管理者分別核准。",
-                  )
-                ) {
-                  setModal(null);
-                  setPage("transfers");
-                }
-              }}
-            >
-              <p className="muted">
-                目前社團：{getClubName(current.clubId)}。申請期間保留原社籍。
-              </p>
-              <label>
-                目標社團
-                <select name="toClub">
-                  {organization.state.clubs
-                    .filter(
-                      (c) =>
-                        c.id !== current.clubId &&
-                        organization.state.clubs.find((o) => o.id === c.id)
-                          ?.enabled !== false,
-                    )
-                    .map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                </select>
-              </label>
-              <div className="info-note">
-                <ShieldCheck size={18} />
-                雙方核准後，仍需你本人最終確認才會生效。
-              </div>
-              <button className="button primary wide" type="submit">
-                送出轉社申請 <ArrowRight size={16} />
-              </button>
-            </form>
-          )}
-        </ModalShell>
-      )}
+      {modalView}
     </div>
   );
 }
@@ -2017,7 +2205,7 @@ function ApplicationCard({
   onExpire,
 }: {
   application: Application;
-  getClubName?: (id:string|null)=>string;
+  getClubName?: (id: string | null) => string;
   member: Member;
   manager: boolean;
   onReview: (approve: boolean, reason: string, startsOn: string) => boolean;
@@ -2120,7 +2308,7 @@ function TransferCard({
   onExpire,
 }: {
   transfer: Transfer;
-  getClubName?: (id:string|null)=>string;
+  getClubName?: (id: string | null) => string;
   member: Member;
   actor: Actor;
   onApprove: () => void;

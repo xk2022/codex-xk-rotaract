@@ -12,7 +12,7 @@ try{
  const form=title=>page.locator('form').filter({has:page.getByRole('heading',{name:title,exact:true})});
  const reset=async()=>{if(await page.getByRole('button',{name:'開啟選單',exact:true}).isVisible())await page.getByRole('button',{name:'開啟選單',exact:true}).click();await page.getByRole('button',{name:'重設示範資料'}).click()};
  const noOverflow=async()=>assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
- await page.goto(process.env.BASE_URL||'http://127.0.0.1:5173/');
+ await page.goto(`${process.env.BASE_URL||'http://127.0.0.1:5173/'}#/demo`);
  // Auth/reset: resend invalidates older tickets, reset survives changing mode, login works.
  await page.getByRole('button',{name:'登出',exact:true}).click();
  await page.getByRole('button',{name:'忘記密碼',exact:true}).click();
@@ -101,7 +101,7 @@ try{
  // New clubs flow into join options and each dynamic management persona can review.
  await reset();await actor('district');
  const add=form('新增轄內社團');await add.getByLabel('名稱',{exact:true}).fill('測試新社');await add.getByRole('button',{name:'建立社團'}).click();
- await actor('visitor');await page.getByRole('button',{name:'註冊體驗',exact:true}).click();
+ await actor('visitor');await page.getByRole('button',{name:'建立會員帳號',exact:true}).click();
  const dlg=page.getByRole('dialog');await dlg.getByLabel('姓名',{exact:true}).fill('合成新社友');await dlg.getByLabel('Call name',{exact:true}).fill('Aster');await dlg.getByLabel('Email',{exact:true}).fill('aster@example.test');await dlg.getByLabel('示範密碼',{exact:true}).fill('DemoPass2026!');await dlg.getByRole('button',{name:'建立示範會員'}).click();
  await page.getByRole('button',{name:'申請加入社團',exact:true}).first().click();
  const newClub=await page.getByLabel('選擇社團').locator('option').filter({hasText:'測試新社'}).getAttribute('value'); await page.getByLabel('選擇社團').selectOption(newClub);

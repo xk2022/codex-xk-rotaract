@@ -1,4 +1,4 @@
-# 前端操作雛形 v0.2
+# 前端操作雛形 v0.3
 
 React 19 + TypeScript + Vite + Tailwind。保留品牌與配色、使用自有元件。本版以假資料補齊第一階段 UI／UX 初版；不是正式後端或安全驗收。
 
@@ -13,11 +13,18 @@ React 19 + TypeScript + Vite + Tailwind。保留品牌與配色、使用自有�
 ```sh
 npm run test:browser
 npm run test:browser:v2
+npm run test:browser:public
 ```
 
 有系統 Chromium 可加 `CHROMIUM_PATH=/usr/bin/chromium`，`BASE_URL` 可指定網址。截圖位於 docs/previews/。
 
+## 公開入口
+
+網址預設開啟公開首頁，沿用舊版「玩轉你的扶青年代」及產業地圖／資訊／行事曆入口。登入與註冊有獨立入口；管理者從「管理後台」進入登入頁，或選擇清楚標示的假資料體驗。原管理雛形可直接開啟 `#/demo`。詳見[公開首頁交付說明](../docs/2027/20-public-index.md)。
+
 ## 操作方式
+
+以下為管理工作區（`#/demo`）的體驗方式。
 
 - 頂部可切換會員、社團、地區與平台示範身分；這是展示控制，不是真實授權。
 - 登出可體驗登入、註冊、忘記密碼與補件。所有帳號固定使用示範密碼 `DemoPass2026!`；密碼不保存，重設亦不會改變此示範值。

@@ -2559,3 +2559,112 @@ input[type="checkbox"] {
     margin-top: 8px;
   }
 }
+
+/* Public sign-in has its own entry, independent of the management sidebar. */
+.public-auth-shell {
+  min-height: 100vh;
+  background: #faf8f6;
+}
+.public-auth-header {
+  max-width: 1200px;
+  margin: auto;
+  padding: 26px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.public-auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--brand);
+}
+.public-auth-brand b,
+.public-auth-brand small {
+  display: block;
+}
+.public-auth-brand b {
+  font-size: 20px;
+}
+.public-auth-brand small {
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+.public-auth-main {
+  max-width: 1120px;
+  margin: auto;
+  padding: 30px 32px 64px;
+}
+.public-auth-intro {
+  margin: 10px 0 32px;
+}
+.public-auth-intro > span {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--brand);
+  font-weight: 700;
+}
+.public-auth-intro h1 {
+  font-size: 32px;
+  letter-spacing: -1px;
+  margin: 12px 0;
+}
+.public-auth-intro p,
+.public-auth-demo p {
+  color: #6e7480;
+  line-height: 1.8;
+}
+.public-auth-demo {
+  margin-top: 24px;
+  padding: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.public-auth-demo > svg {
+  color: var(--brand);
+}
+.public-auth-demo > div {
+  flex: 1;
+  min-width: 180px;
+}
+.public-auth-demo h2 {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+.public-auth-footer {
+  padding: 24px;
+  text-align: center;
+  color: #7b8395;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .public-auth-header {
+    padding: 20px 16px;
+  }
+  .public-auth-brand b {
+    font-size: 16px;
+  }
+  .public-auth-header > .button {
+    padding: 9px;
+    font-size: 12px;
+  }
+  .public-auth-main {
+    padding: 16px 16px 40px;
+  }
+  .public-auth-intro h1 {
+    font-size: 27px;
+  }
+  .public-auth-demo {
+    padding: 18px;
+  }
+  .public-auth-demo > .button {
+    width: 100%;
+  }
+}

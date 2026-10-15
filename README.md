@@ -38,4 +38,4 @@ npm run dev
 
 ## 線上雛形
 
-[開啟 Rotaract 萬花筒](https://xk2022.github.io/codex-xk-rotaract/) · [部署紀錄](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38671615647)。僅為合成資料操作雛形，尚未接上後端，重新整理會重設資料。完整發布狀態見[Pages交付紀錄](docs/2027/18-pages-deployment.md)。
+[公開首頁](https://xk2022.github.io/codex-xk-rotaract/) · [管理入口](https://xk2022.github.io/codex-xk-rotaract/#/admin) · [公開首頁交付說明](docs/2027/20-public-index.md)。僅為合成資料操作雛形，尚未接上後端，重新整理會重設資料。完整發布狀態見[Pages交付紀錄](docs/2027/18-pages-deployment.md)。
