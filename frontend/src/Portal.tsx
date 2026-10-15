@@ -1,3 +1,4 @@
+import { authHref } from "./engagement/authContinuation";
 import { Component, lazy, Suspense, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Flower2, ArrowLeft, RefreshCw } from "lucide-react";
@@ -118,8 +119,8 @@ export default function Portal() {
               goToPortal(page);
               window.scrollTo(0, 0);
             }}
-            onLogin={() => goToPortal("login")}
-            onRegister={() => goToPortal("register")}
+            onLogin={() => { window.location.hash = authHref("login"); }}
+            onRegister={() => { window.location.hash = authHref("register"); }}
             onAdmin={() => goToPortal("admin")}
           />
         </ScreenBoundary>

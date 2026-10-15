@@ -1,3 +1,4 @@
+import { authHref } from "../engagement/authContinuation";
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Building2, ChevronLeft, ExternalLink, MapPin, Search } from 'lucide-react';
 import { useCommunityDemo } from '../phase2/store';
@@ -43,7 +44,7 @@ function CommunityConfirmation({ business }: { business: PublicBusiness }) {
     <p className="bp-note">確認紀錄有效一年。此標章僅表示社友曾到訪或使用服務，不是平台對合法性、品質或交易的保證，也不會延長商家曝光。</p>
     <div className="bp-confirm-controls"><label>確認身分示範<select aria-label="確認身分示範" value={memberId} onChange={event => { setMemberId(event.target.value); setNotice(''); }}><option value="">匿名訪客</option>{members.filter(member => member.id.startsWith('peer-')).map(member => <option key={member.id} value={member.id}>{member.callName}（合成社友）</option>)}</select></label>
     <p className="bp-note">純展示身分切換，並非真實登入或授權。商家本人及維護者不可替自己的商家計次；每位社友僅計一次，可撤回。</p>
-    {memberId ? <div className="bp-confirm-actions"><button className="bp-primary" onClick={() => confirm('endorse')}>我曾到訪／使用服務，確認商家存在</button><button className="bp-confirm-withdraw" onClick={() => confirm('unendorse')}>撤回我的確認</button></div> : <p><a href="#/login">登入後確認商家</a>，或選擇上方示範身分體驗。</p>}
+    {memberId ? <div className="bp-confirm-actions"><button className="bp-primary" onClick={() => confirm('endorse')}>我曾到訪／使用服務，確認商家存在</button><button className="bp-confirm-withdraw" onClick={() => confirm('unendorse')}>撤回我的確認</button></div> : <p><a href={authHref("login")}>登入後確認商家</a>，或選擇上方示範身分體驗。</p>}
     <p><a href="#/demo?view=confirmations">查看／撤回我的商家確認（假資料）</a></p><p role="status" aria-live="polite">{notice}</p></div>
   </section>;
 }
@@ -84,7 +85,7 @@ export function BusinessPublic({ page }: { page: 'map' | 'business' }) {
       </dl><p className="bp-note">僅顯示商家同意公開的營業聯絡資訊。</p>{!business.mapVisible && <p className="bp-note">此商家提供名錄查詢，暫無公開地圖位置。</p>}</aside></div>
       <section className="bp-panel bp-coupon-entry" aria-label="商家會員優惠">
         <h2>會員專屬優惠</h2><p>登入且具當年度正常社籍，可領取優惠兌換碼；使用條件以各項優惠說明為準。</p>
-        <a className="bp-primary" href="#/login">登入使用會員優惠</a>
+        <a className="bp-primary" href={authHref("login")}>登入使用會員優惠</a>
         <p className="bp-note"><a href={`#/demo?view=coupons&company=${encodeURIComponent(business.id)}`}>體驗此商家優惠（假資料）</a></p>
       </section>
       <CommunityConfirmation key={business.id} business={business} />
@@ -109,6 +110,6 @@ export function BusinessPublic({ page }: { page: 'map' | 'business' }) {
         <div className="bp-business-list">{filtered.map(b => <a id={`business-card-${b.id}`} key={b.id} href={detailUrl(b.id)} className={`ph-business-card bp-business-card ${selected === b.id ? 'is-selected' : ''}`}><div className={`bp-card-art ${b.exposure === 'advertisement' ? 'bp-card-ad' : ''}`} aria-hidden="true"><Building2 size={36} strokeWidth={1.2} /><span>{b.city}</span></div><div className="bp-card-body"><Exposure business={b} /><p className="bp-kicker">{b.city} · <IndustryNames ids={b.industryIds} /></p><h2>{b.name}</h2><div className="bp-contacts"><ContactNames business={b} /></div><p className="bp-card-description">{b.description}</p>{!b.mapVisible && <small className="bp-note">僅名錄 · 無公開地圖位置</small>}<span className="bp-more">查看商家詳情 <ArrowRight size={16} /></span></div></a>)}</div>
       </div>}
     </>}
-    <p className="bp-demo-note">曝光資格示範時間：{taipeiTime(asOf)}。營業資訊由商家提供；本次為合成資料展示，請勿輸入真實個資。會員資料查詢請先<a href="#/login">登入</a>。</p>
+    <p className="bp-demo-note">曝光資格示範時間：{taipeiTime(asOf)}。營業資訊由商家提供；本次為合成資料展示，請勿輸入真實個資。會員資料查詢請先<a href={authHref("login")}>登入</a>。</p>
   </section>;
 }

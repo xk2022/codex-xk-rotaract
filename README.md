@@ -4,7 +4,9 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：[公司共同維護邀請](docs/2027/37-company-maintainer-invitations.md)：邀請、回覆、取消與撤權前端完成。
+最新：[登入／註冊後接續原操作](docs/2027/38-auth-continuation-ui-ux.md)：公開頁返回與社團入社預填。
+
+[公司共同維護邀請](docs/2027/37-company-maintainer-invitations.md)：邀請、回覆、取消與撤權前端完成。
 
 [全站銜接工具與八項實作安排](docs/2027/36-engagement-roadmap-and-ui-ux.md)：待辦提醒、商家回報與本人確認紀錄。
 

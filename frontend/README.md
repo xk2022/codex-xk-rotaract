@@ -298,3 +298,5 @@ BASE_URL=http://127.0.0.1:5173/ CHROMIUM_PATH=/usr/bin/chromium npm run test:bro
 `#/demo?view=tasks` 整合待辦與曝光提醒；`#/demo?view=reports` 回報追蹤；`#/demo?view=confirmations` 查看及撤回本人商家確認（即使公司已隱藏）。均為記憶體假資料，示範身分明確分開。`npm run test:browser:engagement` 驗證跨頁流程；[八項安排與交付](../docs/2027/36-engagement-roadmap-and-ui-ux.md)。
 
 `#/demo?view=invitations` 提供公司共同維護邀請，與商家維護及待辦共用假資料。接受僅提供維護權，不授予社籍或優惠權限。`npm run test:browser:invitations` 驗證完整邀請與撤權流程；[交付說明](../docs/2027/37-company-maintainer-invitations.md)。
+
+公開登入／註冊保留白名單原頁目標；社團註冊可預填入社，不自動送出。限假資料模式，live模式待整合。`npm run test:browser:auth-continuation` 驗證；[接續流程與限制](../docs/2027/38-auth-continuation-ui-ux.md)。

@@ -1,3 +1,4 @@
+import { readAuthContinuation } from "./engagement/authContinuation";
 import { useEffect, useRef, useState } from "react";
 import "./workspace-polish.css";
 import type { FormEvent, ReactNode } from "react";
@@ -190,7 +191,7 @@ function ModalShell({
     <dialog
       ref={ref}
       className="modal"
-      onCancel={onClose}
+      onCancel={event => { event.preventDefault(); onClose(); }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -214,6 +215,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
   const lastHash = useRef(window.location.hash);
   const lastRoot = useRef(readPortalRoute());
   const skipDraftGuard = useRef(false);
+  const authResumeNotice = useRef("");
   const confirmDraftLeave = () =>
     !document.querySelector('[data-unsaved="true"]') ||
     window.confirm("你有尚未儲存的變更。離開將放棄這些內容，確定離開嗎？");
@@ -226,6 +228,8 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
   const [actor, setActor] = useState<Actor>(() =>
     readPortalRoute() === "demo" ? "taipei" : "visitor",
   );
+  const actorRef = useRef(actor);
+  actorRef.current = actor;
   const [page, setPage] = useState<Page>(readWorkspacePage);
   const [sidebar, setSidebar] = useState(false);
   useEffect(() => {
@@ -255,6 +259,9 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selected, setSelected] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState("基本資料");
+  const [joinDirty, setJoinDirty] = useState(false);
+  const [joinClubId, setJoinClubId] = useState("");
+  const continuation = readAuthContinuation();
   const [modal, setModal] = useState<Modal>(() =>
     readPortalRoute() === "register" ? "register" : null,
   );
@@ -278,11 +285,16 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
       lastHash.current = window.location.hash;
       setPortalRoute(next);
       if (next === "workspace" || next === "demo") setPage(readWorkspacePage());
-      setModal(next === "register" ? "register" : null);
+      const requestedClub = new URLSearchParams(window.location.hash.split("?")[1] ?? "").get("joinClub");
+      const validJoin = actorRef.current !== "visitor" && next === "workspace" && !!requestedClub && organizationRef.current.some(c => c.id === requestedClub && c.enabled) && publicClubsRef.current.some(c => c.id === requestedClub && c.enabled && c.public);
+      setJoinDirty(false);
+      setJoinClubId(validJoin ? requestedClub! : "");
+      setModal(next === "register" ? "register" : validJoin ? "join" : null);
       setSelected(null);
       setHistoryMemberId(null);
       setSidebar(false);
-      setMessage("");
+      setMessage(authResumeNotice.current);
+      authResumeNotice.current = "";
       setError("");
       setFeedbackMode("normal");
       if (["login", "register", "admin"].includes(next)) {
@@ -329,11 +341,15 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
     });
   };
   const organization = useOrganizationDemo(addAudit);
+  const organizationRef = useRef(organization.state.clubs);
+  organizationRef.current = organization.state.clubs;
   const businessDemo = useBusinessDemo();
   const couponDemo = useCouponDemo();
   const reportDemo = useReportDemo();
   const cases = useCaseDemo();
   const communityTasks = useCommunityDemo();
+  const publicClubsRef = useRef(communityTasks.clubs);
+  publicClubsRef.current = communityTasks.clubs;
   const [reminderMemberId, setReminderMemberId] = useState("");
   const tasks = taskCenterItems(state, actor, cases.cases, businessDemo, communityTasks.clubs, reminderMemberId);
   const visibleNav = nav.filter((n) =>
@@ -636,6 +652,17 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
     setModal(null);
     setMessage("已重設合成資料，可以重新體驗流程。");
   };
+  function finishAuthentication(fallback: "profile" | "overview") {
+    const resume = readAuthContinuation();
+    if (resume?.joinClubId) {
+      const club = organization.state.clubs.find(c => c.id === resume.joinClubId && c.enabled && communityTasks.clubs.some(p => p.id === c.id && p.enabled && p.public));
+      if (club) { setPage("applications"); window.location.hash = `/workspace?view=applications&joinClub=${encodeURIComponent(club.id)}`; return; }
+      authResumeNotice.current = "原社團目前不可申請，請重新選擇社團。";
+      goToWorkspacePage("applications"); setPage("applications"); return;
+    }
+    if (resume) { window.location.hash = resume.target; return; }
+    goToWorkspacePage(fallback); setPage(fallback);
+  }
   function register(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
@@ -657,9 +684,8 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
     );
     if (ok) {
       setActor("member");
-      goToWorkspacePage("profile");
       setModal(null);
-      setPage("profile");
+      finishAuthentication("profile");
     }
   }
   function submitJoin(e: FormEvent<HTMLFormElement>) {
@@ -676,6 +702,8 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
         "入社申請已送出，請切換該社管理者體驗審核。",
       )
     ) {
+      setJoinDirty(false);
+      clearJoinContext();
       setModal(null);
       setPage("applications");
     }
@@ -763,6 +791,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
     );
   const visitorGate = (
     <div className="auth-layout">
+      {continuation && <aside className="workflow-summary" aria-label="登入後接續操作"><strong>{continuation.joinClubId ? "登入後接續社團入社申請" : "登入後返回原瀏覽頁面"}</strong><p>{continuation.joinClubId ? "完成登入後會帶入原社團；仍須由你送出申請，並等待管理者核准。" : "成功登入後返回原社團、活動或商家頁面。"}</p><a href={continuation.target}>返回原頁面</a></aside>}
       <AuthView
         mode={authMode}
         members={state.members}
@@ -770,8 +799,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
           const next = { ...stateRef.current, currentMemberId: id };
           setState(next);
           switchActor("member");
-          goToPortal("workspace");
-          setPage("overview");
+          finishAuthentication("overview");
           setMessage("已以合成帳號登入，所有驗證僅為操作示範。");
         }}
         onRegister={() => {
@@ -799,6 +827,15 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
   const getClubName = (id: string | null) =>
     organization.state.clubs.find((c) => c.id === id)?.name ?? clubName(id);
 
+  function clearJoinContext() {
+    if (!joinClubId) return;
+    setJoinClubId("");
+    setJoinDirty(false);
+    const hash = `#/workspace?view=applications`;
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`);
+    lastHash.current = hash;
+  }
+  const joinBlocked = modal === "join" && (!!current.clubId && ["confirmed", "unconfirmed"].includes(current.status) || state.applications.some(a => a.memberId === current.id && a.status === "pending"));
   const modalView = modal && (
     <ModalShell
       title={
@@ -809,6 +846,9 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
             : "申請轉社"
       }
       onClose={() => {
+        if (joinDirty && !window.confirm("入社說明尚未送出，確定放棄嗎？")) return;
+        setJoinDirty(false);
+        clearJoinContext();
         setModal(null);
         setError("");
       }}
@@ -893,9 +933,12 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
             建立示範會員 <ArrowRight size={16} />
           </button>
         </form>
+      ) : modal === "join" && joinBlocked ? (
+        <div className="workflow-summary"><h3>先查看既有社籍或申請</h3><p>你已有正常／待確認社籍，或有待審的入社申請。請先查看進度；轉換社團須經原社與新社核可，再由本人最終確認。</p><button className="button primary" onClick={() => { clearJoinContext(); setModal(null); navigate("applications"); }}>查看入社與社籍狀態</button><button className="button secondary" onClick={() => { clearJoinContext(); setModal(null); navigate("transfers"); }}>查看轉社作業</button></div>
       ) : modal === "join" ? (
-        <form className="form" onSubmit={submitJoin}>
+        <form className="form" onSubmit={submitJoin} data-unsaved={joinDirty ? "true" : undefined} onChange={() => setJoinDirty(true)}>
           <div className="workflow-summary">
+            {joinClubId && <p>接續申請：{getClubName(joinClubId)} · <a href={`#/club?id=${encodeURIComponent(joinClubId)}`}>返回原社團頁</a></p>}
             <strong>
               申請人：{current.callName} · {current.name}
             </strong>
@@ -905,7 +948,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
           </div>
           <label>
             選擇社團
-            <select name="clubId">
+            <select name="clubId" aria-label="選擇社團" defaultValue={joinClubId || undefined}>
               {organization.state.clubs
                 .filter(
                   (c) =>

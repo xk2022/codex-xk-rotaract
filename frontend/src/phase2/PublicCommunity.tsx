@@ -1,3 +1,4 @@
+import { authHref } from "../engagement/authContinuation";
 import { useState } from "react";
 import {
   ArrowRight,
@@ -181,7 +182,7 @@ export function PublicCommunity({
 }: {
   page: "calendar" | "clubs" | "club" | "event";
 }) {
-  const { events, clubs } = useCommunityDemo();
+  const { events, clubs, organizations } = useCommunityDemo();
   const [keyword, setKeyword] = useState("");
   const [city, setCity] = useState("全部地區");
   const visibleClubs = publicClubs(clubs);
@@ -256,9 +257,9 @@ export function PublicCommunity({
             </dl>
             <p>社團聯絡方式依公開設定顯示；會員私人資料不在此頁提供。</p>
             <PublicContacts club={club} />
-            <a className="pc-card-link" href="#/register">
+            {organizations.clubs.some(c => c.id === club.id && c.enabled) ? <a className="pc-card-link" href={authHref("register", `#/club?id=${encodeURIComponent(club.id)}`, "join")}>
               註冊後申請加入社團 <ArrowRight size={16} />
-            </a>
+            </a> : <p className="pc-note">此社團目前未開放線上入社申請，請透過社團公開聯絡方式洽詢。</p>}
           </aside>
         </div>
       </section>

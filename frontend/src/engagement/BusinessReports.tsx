@@ -1,3 +1,4 @@
+import { authHref } from "./authContinuation";
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useBusinessDemo } from '../phase3/businessStore';
 import { useReportDemo } from './reportStore';
@@ -56,7 +57,7 @@ export function BusinessReports({ companyId }: { companyId?: string }) {
         <div className="engagement-notice">假資料體驗：與正式登入無關，重新整理即還原。請勿填寫身分證、電話等敏感資料；不會發送真實通知。</div>
         <label>回報示範身分<select aria-label="回報示範身分" value={identity} onChange={event => { if (!discard()) return; setIdentity(event.target.value); setDescription(''); setResolution(''); setSelected(null); setMessage(''); }}><option value="anonymous">訪客（不顯示私人案件）</option><option value="peer-1">Peer 1・會員</option><option value="peer-2">Peer 2・會員</option><option value="admin">內容管理員</option></select></label>
         <div role="status" aria-live="polite">{message}</div>
-        {!actor && <p>請先登入以新增或追蹤自己的案件。<a href="#/login">前往登入</a>；也可選擇上述示範會員體驗。</p>}
+        {!actor && <p>請先登入以新增或追蹤自己的案件。<a href={authHref("login")}>前往登入</a>；也可選擇上述示範會員體驗。</p>}
         {actor?.role === 'member' && <form onSubmit={event => { event.preventDefault(); const result = store.dispatch({ type: 'create', actor, companyId: companyId ?? company, reason, description }); if (!result.ok) { setMessage(result.error); return; } setDescription(''); setSelected(result.report); setMessage('回報已建立，可在下方追蹤進度。'); }}>
             <h3>新增回報</h3>
             {companyId ? <p>商家：{publicCompany?.name ?? '目前未公開'} </p> : <label>回報商家<select aria-label="回報商家" required value={company} onChange={event => setCompany(event.target.value)}><option value="">請選擇目前公開的商家</option>{business.publicBusinesses.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}

@@ -133,6 +133,9 @@ try {
     .fill("public-nova@example.test");
   await dialog.getByLabel("示範密碼", { exact: true }).fill("DemoPass2026!");
   await dialog.getByRole("button", { name: "建立示範會員" }).click();
+  await page.locator(".ph-site").waitFor();
+  assert.match(new URL(page.url()).hash, /calendar/);
+  await page.evaluate(() => { location.hash = "/workspace?view=profile"; });
   await page.getByLabel("體驗身分").waitFor();
   assert.equal(await page.getByLabel("體驗身分").inputValue(), "member");
   await page.getByRole("link", { name: "公開首頁", exact: true }).click();
@@ -160,6 +163,8 @@ try {
   );
   await screenshot("login-desktop");
   await page.getByRole("button", { name: "登入示範帳號" }).click();
+  await page.locator(".ph-site").waitFor();
+  await page.evaluate(() => { location.hash = "/workspace?view=overview"; });
   await page.getByLabel("體驗身分").waitFor();
   assert.equal(await page.getByLabel("體驗身分").inputValue(), "member");
   await nav("帳號設定");
