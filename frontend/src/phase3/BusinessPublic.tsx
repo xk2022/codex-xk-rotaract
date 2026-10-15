@@ -81,8 +81,13 @@ export function BusinessPublic({ page }: { page: 'map' | 'business' }) {
         {business.website && safeBusinessWebsite(business.website) && <><dt>網站</dt><dd><a href={safeBusinessWebsite(business.website)} target="_blank" rel="noopener noreferrer">商家網站 <ExternalLink size={14} /><span className="bp-sr">（另開視窗）</span></a></dd></>}
         {business.address && <><dt>營業地址</dt><dd>{business.address}</dd></>}
       </dl><p className="bp-note">僅顯示商家同意公開的營業聯絡資訊。</p>{!business.mapVisible && <p className="bp-note">此商家提供名錄查詢，暫無公開地圖位置。</p>}</aside></div>
+      <section className="bp-panel bp-coupon-entry" aria-label="商家會員優惠">
+        <h2>會員專屬優惠</h2><p>登入且具當年度正常社籍，可領取優惠兌換碼；使用條件以各項優惠說明為準。</p>
+        <a className="bp-primary" href="#/login">登入使用會員優惠</a>
+        <p className="bp-note"><a href={`#/demo?view=coupons&company=${encodeURIComponent(business.id)}`}>體驗此商家優惠（假資料）</a></p>
+      </section>
       <CommunityConfirmation key={business.id} business={business} />
-      <p className="bp-demo-note">本頁為合成資料展示。曝光資格示範時間：{taipeiTime(asOf)}。商家優惠與兌換流程將於後續階段提供。</p>
+      <p className="bp-demo-note">本頁為合成資料展示。曝光資格示範時間：{taipeiTime(asOf)}。會員優惠請由上方登入入口使用；展示操作可選擇假資料體驗。</p>
     </>}
   </section>;
   return <section className="bp-page ph-container">

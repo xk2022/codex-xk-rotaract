@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+import {fileURLToPath} from 'node:url';
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||undefined,args:['--no-sandbox']});
+const page=await browser.newPage({viewport:{width:1440,height:1000}});
+const base=process.env.BASE_URL||'http://127.0.0.1:5173/';
+await page.emulateMedia({reducedMotion:'reduce'});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(12000);
+const hash=async h=>{await page.evaluate(h=>{location.hash=h;},h);await page.waitForTimeout(120);};
+try {
+ await page.goto(`${base}#/business?id=coffee`);await page.getByRole('heading',{level:1,name:'日常之間咖啡'}).waitFor();
+ assert.equal(await page.locator('.cw-ticket code').count(),0);
+ await page.getByRole('link',{name:'體驗此商家優惠（假資料）'}).click();
+ const ws=page.getByRole('region',{name:'商家優惠與兌換'});await ws.waitFor();
+ await ws.getByRole('button',{name:/社友咖啡交流禮/}).click();
+ await ws.getByRole('button',{name:'確認條件並領取',exact:true}).click();
+ await page.getByRole('dialog',{name:'確認領取優惠'}).getByRole('button',{name:'確認領取',exact:true}).click();
+ await ws.locator('.cw-ticket code').waitFor();
+ const code=await ws.locator('.cw-ticket code').innerText();assert.match(code,/^XK-/);
+ await ws.getByLabel('優惠示範身分').selectOption('1');
+ await ws.getByRole('button',{name:'我的優惠',exact:true}).click();assert.equal(await ws.locator('.cw-ticket code').count(),0);
+ await ws.getByLabel('優惠示範身分').selectOption('6');
+ await ws.getByRole('button',{name:/社友咖啡交流禮/}).click();
+ assert.equal(await ws.getByRole('button',{name:'確認條件並領取',exact:true}).count(),0);
+ await ws.getByLabel('優惠示範身分').selectOption('2');await ws.getByRole('button',{name:/社友咖啡交流禮/}).click();
+ assert.match(await ws.innerText(),/僅當年度已確認正常社員可領取/);
+ await ws.getByLabel('優惠示範身分').selectOption('4');await ws.getByRole('button',{name:'商家核銷',exact:true}).click();
+ await ws.getByLabel('會員出示的兌換碼').fill(code);await ws.getByRole('button',{name:'檢查兌換碼',exact:true}).click();assert.match(await ws.innerText(),/查無本公司可檢查的兌換碼/);
+ await ws.getByLabel('優惠示範身分').selectOption('3');await ws.getByRole('button',{name:'商家核銷',exact:true}).click();
+ await ws.getByLabel('會員出示的兌換碼').fill(code);await ws.getByRole('button',{name:'檢查兌換碼',exact:true}).click();
+ await ws.getByRole('button',{name:'確認核銷',exact:true}).click();
+ await page.getByRole('dialog',{name:'確認核銷優惠'}).getByRole('button',{name:'取消',exact:true}).click();
+ await ws.getByRole('button',{name:'確認核銷',exact:true}).click();await page.getByRole('dialog',{name:'確認核銷優惠'}).getByRole('button',{name:'確定核銷',exact:true}).click();
+ assert.match(await ws.innerText(),/核銷完成/);
+ await ws.getByLabel('會員出示的兌換碼').fill(code);await ws.getByRole('button',{name:'檢查兌換碼',exact:true}).click();assert.equal(await ws.getByRole('button',{name:'確認核銷',exact:true}).isDisabled(),true);
+ await ws.getByRole('button',{name:'優惠維護',exact:true}).click();await ws.getByRole('button',{name:'新增優惠',exact:true}).click();
+ const title=`社友優惠測試${Date.now()}`;
+ await ws.getByLabel('優惠名稱',{exact:true}).fill(title);await ws.getByLabel('優惠內容',{exact:true}).fill('到店提供社友飲品優惠（合成）');await ws.getByLabel('使用條件',{exact:true}).fill('每碼限用一次，優惠依現場服務提供。');
+ await ws.getByLabel('開始時間（台北）',{exact:true}).fill('2026-10-15T10:00');await ws.getByLabel('結束時間（台北，不含）',{exact:true}).fill('2026-10-31T20:00');await ws.getByLabel('總名額',{exact:true}).fill('2');
+ page.once('dialog',d=>d.dismiss());await hash('/map');assert.match(new URL(page.url()).hash,/view=coupons/);assert.equal(await ws.getByLabel('優惠名稱',{exact:true}).inputValue(),title);
+ await ws.getByRole('button',{name:'儲存優惠草稿',exact:true}).click();await ws.getByRole('button',{name:'送交內容審核',exact:true}).click();await page.getByRole('dialog',{name:'確認優惠狀態變更'}).getByRole('button',{name:'確認執行',exact:true}).click();
+ await ws.getByLabel('優惠示範身分').selectOption('5');await ws.getByRole('button',{name:'內容審核',exact:true}).click();await ws.locator('.cw-card').filter({hasText:title}).click();
+ assert.equal(await ws.locator('.cw-ticket code').count(),0);
+ await ws.getByRole('button',{name:'核准優惠',exact:true}).click();const review=page.getByRole('dialog',{name:'確認優惠狀態變更'});await review.getByLabel('處理原因').fill('確認合成優惠內容與效期');await review.getByRole('button',{name:'確認執行',exact:true}).click();
+ await ws.getByLabel('優惠示範身分').selectOption('1');await ws.locator('.cw-card').filter({hasText:title}).click();await ws.getByRole('button',{name:'確認條件並領取',exact:true}).click();await page.getByRole('dialog',{name:'確認領取優惠'}).getByRole('button',{name:'確認領取',exact:true}).click();
+ await ws.getByRole('button',{name:'作廢此優惠',exact:true}).click();const voidDialog=page.getByRole('dialog',{name:'確認作廢優惠'});await voidDialog.getByLabel('處理原因').fill('取消使用');await voidDialog.getByRole('button',{name:'確認執行',exact:true}).click();assert.match(await ws.innerText(),/已作廢/);
+ await ws.getByRole('button',{name:'探索優惠',exact:true}).click();await ws.locator('.cw-card').filter({hasText:title}).click();await ws.getByRole('button',{name:'確認條件並領取',exact:true}).click();await page.getByRole('dialog',{name:'確認領取優惠'}).getByRole('button',{name:'確認領取',exact:true}).click();assert.match(await page.getByRole('dialog').innerText(),/已達每人領取上限/);await page.getByRole('dialog').getByRole('button',{name:'取消',exact:true}).click();
+ for(const width of [320,768,1440]) {await page.setViewportSize({width,height:900});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`coupon overflow ${width}`);}
+ if(process.env.WRITE_PREVIEWS==='1') {await page.setViewportSize({width:360,height:900});await page.screenshot({path:fileURLToPath(new URL('../../docs/previews/p4-coupon-mobile.png',import.meta.url)),fullPage:true,animations:'disabled'});}
+ assert.deepEqual(errors,[]);console.log('PASS coupons: private wallet, anonymous/unconfirmed refusal, cross-company refusal, confirm/redeem once, owner draft→review→approve→member claim, void limit retained, dirty guard and 320/768/1440px; mock only');
+}finally{await browser.close();}

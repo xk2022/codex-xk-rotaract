@@ -27,6 +27,7 @@ describe("safe workspace deep links", () => {
       expect(isPublicPortalRoute(parsed)).toBe(true);
     }
     expect(readWorkspacePage("#/demo?view=events")).toBe("events");
+    expect(readWorkspacePage("#/demo?view=coupons")).toBe("coupons");
     expect(isPublicPortalRoute(readPortalRoute("#/demo?view=events"))).toBe(
       false,
     );

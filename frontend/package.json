@@ -21,7 +21,8 @@
     "test:browser:organization-sync": "node scripts/browser-organization-sync.mjs",
     "test:browser:public-accessibility": "node scripts/browser-public-accessibility.mjs",
     "test:browser:business": "node scripts/browser-business.mjs",
-    "test:browser:business-exposure": "node scripts/browser-business-exposure.mjs"
+    "test:browser:business-exposure": "node scripts/browser-business-exposure.mjs",
+    "test:browser:coupons": "node scripts/browser-coupons.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.0",

@@ -288,3 +288,7 @@ BASE_URL=http://127.0.0.1:5173/ CHROMIUM_PATH=/usr/bin/chromium npm run test:bro
 `#/map` 瀏覽名錄與分布示意，`#/business?id=coffee` 為獨立詳情，`#/demo?view=businesses` 體驗草稿與審核。全部是假資料，沒有Google Maps key、真實地圖、付款或核銷；曝光日期為可切換的示範情境。見[交付範圍](../docs/2027/33-phase3-business-ui-ux.md)。驗證使用 `npm run test:browser:business`，原公開檢查已改驗商家詳情路由。
 
 最新商家規則改為自行發布、首次72小時暫時曝光、有效社籍／廣告資格與六位社友確認，取代前置送審。見[需求變更](../docs/2027/34-business-exposure-and-community-confirmation.md)，新流程測試 `npm run test:browser:business-exposure`。
+
+## 第四階段優惠假資料
+
+`#/demo?view=coupons` 可切會員、商家owner、內容管理員體驗優惠審核、領碼、作廢及核銷。商家公開詳情只提供登入與明確的假資料體驗入口，不顯示會員券碼。測試 `npm run test:browser:coupons`；[交付與限制](../docs/2027/35-coupon-redemption-ui-ux.md)。重新整理重設，不可用於真實交易。
