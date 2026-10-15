@@ -1,0 +1,499 @@
+import { useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
+import type { Member } from "../domain";
+import {
+  codePatch,
+  consumeReset,
+  contactPatch,
+  demoLogin,
+  DEMO_PASSWORD,
+  profilePatch,
+  resetUsable,
+  type ResetTicket,
+} from "./accountModel";
+
+type Mode = "login" | "forgot" | "reset";
+type AuthProps = {
+  mode: Mode;
+  members: Member[];
+  onLogin: (id: string) => void;
+  onRegister: () => void;
+  onMode: (mode: Mode) => void;
+};
+
+export function AuthView({
+  mode,
+  members,
+  onLogin,
+  onRegister,
+  onMode,
+}: AuthProps) {
+  const [identity, setIdentity] = useState("cora@example.test");
+  const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [ticket, setTicket] = useState<ResetTicket | null>(null);
+  const [previousTicket, setPreviousTicket] = useState<ResetTicket | null>(
+    null,
+  );
+  const [openedTicket, setOpenedTicket] = useState<ResetTicket | null>(null);
+  const [clockOffset, setClockOffset] = useState(0);
+  const [notice, setNotice] = useState("");
+  const now = () => Date.now() + clockOffset;
+
+  const switchMode = (next: Mode) => {
+    setPassword("");
+    setConfirmation("");
+    setNotice("");
+    onMode(next);
+  };
+  const openLink = (selected: ResetTicket | null) => {
+    setPassword("");
+    setConfirmation("");
+    if (!resetUsable(selected, ticket, now())) {
+      setNotice("此連結已失效：可能已重送、使用或超過 30 分鐘。請重新申請。");
+      return;
+    }
+    setOpenedTicket(selected);
+    switchMode("reset");
+  };
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    try {
+      if (mode === "login") {
+        const id = demoLogin(members, identity, password);
+        if (!id) throw new Error("登入識別或示範密碼不正確。");
+        setPassword("");
+        onLogin(id);
+      } else if (mode === "forgot") {
+        const member = members.find(
+          (m) => m.email.toLowerCase() === identity.trim().toLowerCase(),
+        );
+        setPreviousTicket(ticket);
+        setTicket(
+          member ? { memberId: member.id, issuedAt: now(), used: false } : null,
+        );
+        setNotice("若此 Email 已登錄，將產生模擬重設信件；沒有實際寄信。");
+      } else {
+        if (!resetUsable(openedTicket, ticket, now()))
+          throw new Error("連結已失效，請重新申請。");
+        setTicket(consumeReset(openedTicket, now(), password, confirmation));
+        setOpenedTicket(null);
+        switchMode("login");
+        setNotice("模擬重設完成。新密碼未保存；請使用公開示範密碼登入。");
+      }
+    } catch (error) {
+      setNotice((error as Error).message);
+    }
+  }
+  return (
+    <section className="panel">
+      <div className="feature-header">
+        <h2>
+          {mode === "login"
+            ? "歡迎回來"
+            : mode === "forgot"
+              ? "找回帳號密碼"
+              : "設定新的示範密碼"}
+        </h2>
+        <p>合成資料體驗，不會寄信或保存真實密碼。請勿輸入真實密碼。</p>
+      </div>
+      <div className="detail-body section-stack">
+        <p className="notice">所有示範帳號密碼：{DEMO_PASSWORD}</p>
+        {notice && (
+          <p role="status" className="notice">
+            {notice}
+          </p>
+        )}
+        <form className="form" onSubmit={submit}>
+          {mode !== "reset" && (
+            <label>
+              {mode === "login" ? "Email、國碼電話或帳號代號" : "已登錄 Email"}
+              <input
+                required
+                type={mode === "forgot" ? "email" : "text"}
+                value={identity}
+                onChange={(e) => setIdentity(e.target.value)}
+                autoComplete="username"
+              />
+            </label>
+          )}
+          {mode !== "forgot" && (
+            <label>
+              {mode === "login" ? "示範密碼" : "新示範密碼（12～128 字元）"}
+              <input
+                required
+                type="password"
+                maxLength={256}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete={
+                  mode === "login" ? "current-password" : "new-password"
+                }
+              />
+            </label>
+          )}
+          {mode === "reset" && (
+            <label>
+              再次輸入新示範密碼
+              <input
+                required
+                type="password"
+                maxLength={256}
+                value={confirmation}
+                onChange={(e) => setConfirmation(e.target.value)}
+                autoComplete="new-password"
+              />
+            </label>
+          )}
+          <button className="button primary">
+            {mode === "login"
+              ? "登入示範帳號"
+              : mode === "forgot"
+                ? "產生／重送模擬信件"
+                : "完成模擬重設"}
+          </button>
+        </form>
+        {mode === "forgot" && ticket && (
+          <div className="notice">
+            <strong>模擬信件預覽</strong>
+            <p>
+              收件人：{members.find((m) => m.id === ticket.memberId)?.email}
+              。連結一次性、30 分鐘有效；重送後舊連結失效。
+            </p>
+            <div className="two-fields">
+              <button
+                className="button secondary"
+                onClick={() => openLink(ticket)}
+              >
+                開啟這次重設連結
+              </button>
+              {previousTicket && (
+                <button
+                  className="button secondary"
+                  onClick={() => openLink(previousTicket)}
+                >
+                  測試上一封失效連結
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        {(mode === "forgot" || mode === "reset") && ticket && (
+          <button
+            className="button secondary"
+            onClick={() => {
+              setClockOffset((offset) => offset + 31 * 60_000);
+              setNotice(
+                "已將示範時間推進 31 分鐘；開啟連結或提交重設，可體驗過期處理。",
+              );
+            }}
+          >
+            模擬經過 31 分鐘
+          </button>
+        )}
+        <div className="two-fields">
+          {mode === "login" ? (
+            <>
+              <button
+                className="button secondary"
+                onClick={() => switchMode("forgot")}
+              >
+                忘記密碼
+              </button>
+              <button className="button secondary" onClick={onRegister}>
+                建立會員帳號
+              </button>
+            </>
+          ) : (
+            <button
+              className="button secondary"
+              onClick={() => switchMode("login")}
+            >
+              返回登入
+            </button>
+          )}
+          {mode === "reset" && (
+            <button
+              className="button secondary"
+              onClick={() => switchMode("forgot")}
+            >
+              重新申請連結
+            </button>
+          )}
+        </div>
+        <p className="field-hint">
+          無法使用原
+          Email？正式系統將由平台管理者協助人工復原；此雛形不收取身分證明。
+        </p>
+      </div>
+    </section>
+  );
+}
+
+type AccountProps = {
+  member: Member;
+  members: Member[];
+  onUpdate: (patch: Partial<Member>) => void;
+  onAudit: (message: string) => void;
+};
+
+export function AccountView({
+  member,
+  members,
+  onUpdate,
+  onAudit,
+}: AccountProps) {
+  const [name, setName] = useState(member.name);
+  const [callName, setCallName] = useState(member.callName);
+  const [kind, setKind] = useState<"phone" | "email">("phone");
+  const [contact, setContact] = useState("");
+  const [password, setPassword] = useState("");
+  const [codePassword, setCodePassword] = useState("");
+  const [code, setCode] = useState("");
+  const [notice, setNotice] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const alive = useRef(true);
+  const uploadVersion = useRef(0);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      uploadVersion.current += 1;
+    };
+  }, []);
+
+  const apply = (action: () => Partial<Member>, message: string) => {
+    try {
+      onUpdate(action());
+      onAudit(message);
+      setNotice(message);
+      setPassword("");
+      setCodePassword("");
+    } catch (error) {
+      setNotice((error as Error).message);
+    }
+  };
+  async function uploadAvatar(file: File) {
+    const version = ++uploadVersion.current;
+    if (
+      !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
+      file.size > 2 * 1024 * 1024
+    ) {
+      setNotice("請使用 2 MiB 內的 PNG、JPEG 或 WebP 圖片。");
+      return;
+    }
+    setUploading(true);
+    let image: ImageBitmap | undefined;
+    try {
+      image = await createImageBitmap(file);
+      if (
+        image.width > 4096 ||
+        image.height > 4096 ||
+        image.width < 1 ||
+        image.height < 1
+      ) {
+        throw new Error("圖片尺寸須介於 1～4096 像素，請縮小後重試。");
+      }
+      const canvas = document.createElement("canvas");
+      const scale = Math.min(1, 512 / Math.max(image.width, image.height));
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("無法處理圖片，請換一張圖片重試。");
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const avatarUrl = canvas.toDataURL("image/png");
+      if (alive.current && uploadVersion.current === version) {
+        apply(() => ({ avatarUrl }), "已更新頭像預覽，僅保留於本次體驗。");
+      }
+    } catch (error) {
+      if (alive.current && uploadVersion.current === version) {
+        setNotice(
+          error instanceof Error && error.message.startsWith("圖片尺寸")
+            ? error.message
+            : "圖片無法解碼或處理，請使用有效的 PNG、JPEG 或 WebP 圖片。",
+        );
+      }
+    } finally {
+      image?.close();
+      if (alive.current && uploadVersion.current === version)
+        setUploading(false);
+    }
+  }
+  const codeLocked = (member.codeChanges ?? 0) >= 1;
+  return (
+    <section className="panel">
+      <div className="feature-header">
+        <h2>我的帳號設定</h2>
+        <p>電話、Email 與帳號代號，皆對應你的同一份會員資料。</p>
+      </div>
+      <div className="detail-body section-stack">
+        {notice && (
+          <p role="status" className="notice">
+            {notice}
+          </p>
+        )}
+        <form
+          className="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            apply(() => profilePatch(name, callName), "已更新本人基本資料。");
+          }}
+        >
+          <h3>基本資料</h3>
+          <div className="two-fields">
+            <label>
+              姓名
+              <input
+                required
+                maxLength={100}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </label>
+            <label>
+              Call name
+              <input
+                required
+                maxLength={100}
+                value={callName}
+                onChange={(e) => setCallName(e.target.value)}
+              />
+            </label>
+          </div>
+          <p className="field-hint">
+            本階段姓名可自行修改；後續金流身分驗證另行擴充。
+          </p>
+          <button className="button primary">儲存基本資料</button>
+        </form>
+        <div className="form">
+          <h3>會員頭像</h3>
+          {member.avatarUrl && (
+            <img
+              src={member.avatarUrl}
+              alt="本人頭像預覽"
+              width="88"
+              height="88"
+            />
+          )}
+          <label>
+            上傳頭像（PNG／JPEG／WebP，最多 2 MiB、4096 × 4096 像素）
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              disabled={uploading}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void uploadAvatar(file);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {uploading && <p role="status">正在檢查並處理圖片…</p>}
+          <p className="field-hint">
+            圖片將重新編碼並縮放至最多 512 像素，只保存本次示範預覽。
+          </p>
+        </div>
+        <form
+          className="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            apply(
+              () => contactPatch(member, members, kind, contact, password),
+              `已更新本人${kind === "phone" ? "電話" : "Email"}。`,
+            );
+          }}
+        >
+          <h3>變更登入聯絡資料</h3>
+          <p>
+            目前電話：{member.phone || "未填寫"}
+            <br />
+            目前 Email：{member.email}
+          </p>
+          <label>
+            本次變更項目
+            <select
+              value={kind}
+              onChange={(e) => {
+                setKind(e.target.value as "phone" | "email");
+                setContact("");
+                setPassword("");
+              }}
+            >
+              <option value="phone">電話</option>
+              <option value="email">Email</option>
+            </select>
+          </label>
+          <label>
+            新的{kind === "phone" ? "電話（含國碼）" : "Email"}
+            <input
+              required
+              type={kind === "email" ? "email" : "tel"}
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+            />
+          </label>
+          <label>
+            輸入目前示範密碼，確認本人
+            <input
+              required
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+            />
+          </label>
+          <p className="field-hint">
+            一次只變更一項。示範密碼：{DEMO_PASSWORD}。後續可選擇加入電話／Email
+            驗證。
+          </p>
+          <button className="button primary">驗證並更新單項資料</button>
+        </form>
+        <form
+          className="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            apply(
+              () => codePatch(member, members, code, codePassword),
+              "已修改帳號代號；舊代號保留且無法登入。",
+            );
+          }}
+        >
+          <h3>帳號代號</h3>
+          <p>
+            目前：{member.code} · 剩餘修改次數：{codeLocked ? "0" : "1"}
+          </p>
+          <label>
+            新代號
+            <input
+              required
+              disabled={codeLocked}
+              minLength={6}
+              maxLength={20}
+              pattern="[A-Za-z0-9_]+"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+            />
+          </label>
+          <label>
+            輸入目前示範密碼，確認本人
+            <input
+              required
+              type="password"
+              disabled={codeLocked}
+              value={codePassword}
+              onChange={(e) => setCodePassword(e.target.value)}
+              autoComplete="current-password"
+            />
+          </label>
+          <p className="field-hint">
+            6～20
+            字元英文字母、數字與底線，不分大小寫。全平台唯一，舊代號永久保留。
+          </p>
+          <button className="button primary" disabled={codeLocked}>
+            確認使用唯一一次修改
+          </button>
+        </form>
+      </div>
+    </section>
+  );
+}

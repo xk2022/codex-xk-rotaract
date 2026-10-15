@@ -1,51 +1,39 @@
-# 前端操作雛形
+# 前端操作雛形 v0.2
 
-React 19 + TypeScript 5 + Vite 7 + Tailwind 4。本地合成資料雛形，沒有後端驗證、永久保存或真實帳號；重新整理或「重設示範資料」會回到初始狀態。品牌與版面依[需求基準 B08](../docs/2027/13-requirements-baseline.md#b08-ui-與前端)製作自有元件，未使用未取得授權的 Metronic 模板。
+React 19 + TypeScript + Vite + Tailwind。保留品牌與配色、使用自有元件。本版以假資料補齊第一階段 UI／UX 初版；不是正式後端或安全驗收。
+
+[線上體驗](https://xk2022.github.io/codex-xk-rotaract/) · [完整交付清單](../docs/2027/19-phase1-ui-delivery.md)
 
 ## 啟動與驗證
 
-需 Node.js 24 LTS、npm；版本由 package-lock.json 鎖定。
+需 Node.js 24 LTS。執行 `npm ci`、`npm run dev`；正式輸出使用 `npm run build`，單元測試使用 `npm test`。
+
+瀏覽器測試需先啟動 dev server、安裝 Playwright Chromium（`npx playwright install chromium`），再執行：
 
 ```sh
-cd frontend
-npm ci
-npm run dev
-```
-
-預設開啟本機 http://localhost:5173；遠端工作區需平台提供連接埠轉送，不能把遠端 loopback 當成本機已可存取。
-
-```sh
-npm run build
-npm test
-```
-
-瀏覽器驗證需先在另一個終端啟動 dev server，再執行：
-
-```sh
-npx playwright install chromium
 npm run test:browser
+npm run test:browser:v2
 ```
 
-若系統已提供 Chromium，可不下載，改用 `CHROMIUM_PATH=/usr/bin/chromium npm run test:browser`；`BASE_URL` 可指定測試網址。測試截圖寫入 docs/previews/。正式建置輸出在 frontend/dist，未發布。
+有系統 Chromium 可加 `CHROMIUM_PATH=/usr/bin/chromium`，`BASE_URL` 可指定網址。截圖位於 docs/previews/。
 
-## 體驗流程
+## 操作方式
 
-- 預設台北星光社長：查看總覽／名冊、審核 Nina 的入社申請，或勾選非正常社員後為 Mia 補年度確認。
-- 切換「未登入訪客」註冊合成會員，填合成資料與示範密碼，申請入社後切回該社管理者核准。密碼只在表單檢查長度，不保存、不代表正式驗證。
-- 切換「會員本人」查看／修改姓名及 call name、勾選電話／Email 可見性；管理者也遵守隱私設定。
-- 初始會員 Cora 可申請轉到台中山海；兩社管理者分別核准後，原社籍仍保留，最後切回本人按確認才完成。
-- 轉社後原社可在已完成卡片查看僅本社歷史快照；本人可逐筆勾選歷史公開，預設隱藏。
-- 手機側欄收合、名冊改卡片，彈窗支援 Escape／焦點限制，詳情分頁支援方向鍵。
+- 頂部可切換會員、社團、地區與平台示範身分；這是展示控制，不是真實授權。
+- 登出可體驗登入、註冊、忘記密碼與補件。所有帳號固定使用示範密碼 `DemoPass2026!`；密碼不保存，重設亦不會改變此示範值。
+- 帳號設定可單項變更電話／Email、修改一次帳號代號、設定頭像；個人資料可調整姓名、call name、隱私。
+- 社團管理、角色與交接、年度確認、入社、三段轉社、退社／OB、歷史同意、支援案件與異動紀錄均有假資料互動。
+- 地區管理可新增／停復用社團與示範雙地區核准跨區。新增社團會出現在入社、名冊及管理者情境中。
+- 名冊可搜尋、篩選、排序與分頁；可載入分頁示範資料。畫面情境可檢視載入、離線、衝突、無權限與登入逾時。
+- 所有資料只存在記憶體；重新整理或重設示範資料即還原。業務日固定 2026-10-15；年度頁可模擬年度邊界。
 
-所有狀態操作固定使用合成業務日 2026-10-15，避免展示資料隨宿主時間漂移；這不是年度排程實作。身分切換只為操作示範，不是登入或安全邊界。
+## 尚待正式開發
 
-## 本次尚未實作
+後端登入／密碼驗證、Session、資料庫、郵件、檔案儲存、排程、伺服器授權與稽核、舊資料實際合併及移轉皆未串接。扶輪社整合保留資料模型，操作頁以扶青社為主；活動、公司地圖、付款與優惠屬後續階段。請只輸入假資料。
 
-真實登入／密碼與聯絡資料變更、資料庫、郵件、一次性帳號代號修改、正式伺服器權限、角色／任期／停復用、年度排程、歷史同意請求／admin、活動、公司地圖、付款及優惠。社團資料頁本次為唯讀。已完成契約見[OpenAPI](../docs/api/openapi.json)，不得將前端合成流程當成後端已驗收。
+## GitHub Pages 部署
 
-## 驗證證據
-
-見[本次交付紀錄](../docs/2027/17-prototype-delivery.md)與[桌機預覽](../docs/previews/phase1-desktop.png)、[手機預覽](../docs/previews/phase1-mobile.png)。
+main 的 frontend 變更會由 `.github/workflows/deploy-frontend.yml` 執行測試與建置，再發布 frontend/dist。Pages 已啟用 GitHub Actions Source；歷史啟用紀錄見[部署文件](../docs/2027/18-pages-deployment.md)。
 
 ## 先前討論紀錄
 
@@ -229,23 +217,3 @@ npm run test:browser
 - 停用社團保留社員、社籍及歷史資料，停止新入社申請及新增活動；不因停用刪除會員帳號或覆寫社籍歷史。
 - 停用社團不再提供免費地圖曝光資格；會員若另有符合條件的有效社籍，或其商家具有有效付費廣告，則依該資格顯示。停用不能撤銷獨立有效的付費曝光期間。
 - 社團停用／恢復的授權者、既有待審申請與已發布活動的處理仍待確認。
-
-## GitHub Pages 部署
-
-`.github/workflows/deploy-frontend.yml` 在 main 的前端變更或手動執行時，使用 Node 24、npm ci、單元測試、TypeScript／Vite 建置，僅將 frontend/dist 部署至 Pages。相對資產路徑支援儲存庫子路徑與自訂網域；不發布規格文件、OpenAPI或測試截圖。
-
-部署網址以 GitHub Actions 的 github-pages environment 輸出為準。預期專案路徑為 `https://xk2022.github.io/codex-xk-rotaract/`，首次部署成功前不視為已上線。
-
-使用者已於 2026-10-15 將儲存庫改為 public，已確認解除私人方案限制。Actions 權杖仍無首次建立 Pages 的權限（Resource not accessible by integration）；管理者須在 Settings → Pages → Build and deployment 將 Source 設為 GitHub Actions，再重跑失敗的 deploy 工作。
-
-Pages 僅提供前端靜態雛形，沒有真實登入／密碼驗證或永久保存；請只填合成資料。網址中的頁面切換不使用伺服器路由，不需要 SPA 404 重導。
-
-### 本次發布狀態
-
-前端來源及部署工作流程已推送 main，本地與 GitHub 的 build／14項測試均通過。首次部署因 Pages 尚未啟用、Actions 權杖無首次建立權而停止；儲存庫可見性後由使用者自行改為 public。最新工作流程將 upload-pages-artifact 放在 build 結束，Pages 檢查放在 deploy；啟用後可重跑失敗工作，不用重新提交前端。
-
-- 設定頁：https://github.com/xk2022/codex-xk-rotaract/settings/pages
-- 工作流程：https://github.com/xk2022/codex-xk-rotaract/actions/workflows/deploy-frontend.yml
-- 預期網站（尚未確認可用）：https://xk2022.github.io/codex-xk-rotaract/
-
-最新嘗試：[38671512410](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38671512410)，commit b67e87e。build、14 項測試與產物上傳成功；deploy 因 Pages 尚未首次啟用而失敗，尚無上線網址可確認。

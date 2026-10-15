@@ -50,8 +50,8 @@ assert.equal(await page.getByRole('dialog').getByText('cora@example.test',{exact
 await page.getByRole('button',{name:'關閉視窗'}).click();
 // Visitor registration, application, approval round trip.
 await actor('visitor');await page.getByRole('button',{name:'註冊體驗',exact:true}).click();
-await page.getByLabel('姓名',{exact:true}).fill('合成新會員');await page.getByLabel('Call name',{exact:true}).fill('Nova');
-await page.getByLabel('Email',{exact:true}).fill('nova@example.test');await page.getByLabel('示範密碼',{exact:true}).fill('only demo password');
+await page.getByRole('dialog').getByLabel('姓名',{exact:true}).fill('合成新會員');await page.getByRole('dialog').getByLabel('Call name',{exact:true}).fill('Nova');
+await page.getByRole('dialog').getByLabel('Email',{exact:true}).fill('nova@example.test');await page.getByRole('dialog').getByLabel('示範密碼',{exact:true}).fill('only demo password');
 await page.getByRole('button',{name:'建立示範會員'}).click();
 await page.getByRole('button',{name:'申請加入社團',exact:true}).first().click();
 await page.getByLabel('入社說明').fill('合成資料：期待一起服務。');
