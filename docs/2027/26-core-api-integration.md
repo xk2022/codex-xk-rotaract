@@ -37,6 +37,14 @@ API 環境變數、初始化資料與啟動命令見[後端說明](../../backend
 - `python3 docs/api/validate_contract.py`：59 operations／84封閉DTO／626範例靜態檢查通過。此項不替代上述後端、資料庫與瀏覽器證據。
 - 新增核心CI，使用相互獨立的PostgreSQL測試／瀏覽器資料庫，執行Maven驗證及HTTPS真實流程；未部署後端。
 
+### GitHub驗證與部署
+
+來源提交：`8789419`。
+
+- [核心API CI成功](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38687402749)：PostgreSQL 17測試與真實HTTPS瀏覽器入社流程均通過。
+- [前端建置及Pages部署成功](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38687402723)：單元測試、正式建置及公開入口／30組角色頁面檢查通過。
+- [線上公開首頁](https://xk2022.github.io/codex-xk-rotaract/)仍為預設展示模式；後端沒有對外部署，真實流程目前依本文件在本地啟動。
+
 加密修正後已重跑HTTPS瀏覽器及獨立HTTP驗證；另實際篡改專用測試紀錄的密文，確認回503且不回個資，還原合法密文則正常重送。資料庫抽查16筆回放紀錄全部為加密格式，未找到明文測試個資。V3僅清除首次發布前本地試跑留下的明文回放暫存，不刪除帳號、申請或社籍。
 
 ### 本輪修正
