@@ -268,8 +268,10 @@ export function applyEventAction(events: CommunityEvent[], clubs: CommunityClub[
         return { ok: true, event: { ...rest, id: newId, title: `${event.title.slice(0, 194)}（副本）`, status: 'draft', version: 0 } };
     }
     if (action.type === 'update') {
-        if (event.status !== 'draft')
-            return { ok: false, error: '只有草稿可以編輯；已發布活動請複製成新草稿。' };
+        if (event.status !== 'draft' && event.status !== 'published')
+            return { ok: false, error: '已取消或封存的活動不能編輯；請複製成新草稿。' };
+        if (event.status === 'published' && !canPublishEvent(action.actor, event, clubs))
+            return { ok: false, error: '只有對此主辦單位有發布權的管理者可更正已發布內容。' };
         if (!canManageEvent(action.actor, action.input, clubs) || action.input.organizerId !== event.organizerId || action.input.organizerType !== event.organizerType)
             return { ok: false, error: '不能在編輯時變更主辦單位。' };
         const fieldErrors = validateEventInput(action.input, clubs);

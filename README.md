@@ -4,7 +4,9 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：公開行事曆依[舊版資訊架構重做](docs/2027/29-legacy-calendar-react.md)，保留地區、扶輪年度、社團及日期導覽。
+最新：[已發布活動內容更正](docs/2027/30-published-event-corrections.md)補齊第二階段前端維護流程。
+
+公開行事曆依[舊版資訊架構重做](docs/2027/29-legacy-calendar-react.md)，保留地區、扶輪年度、社團及日期導覽。
 
 [第二階段前端UI／UX](docs/2027/28-phase2-frontend-ui-ux.md)已補齊公開活動／社團頁、行事曆、活動管理與會員閱讀的假資料初版；依使用者指示暫停新增後端。
 

@@ -241,12 +241,14 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
   const [editing, setEditing] = useState<{
     id: string | null;
     version: number;
+    status: CommunityEvent["status"];
   } | null>(null);
   const [form, setForm] = useState<EventForm>(() => formFrom(undefined, actor));
   const [savedForm, setSavedForm] = useState("");
   const [preview, setPreview] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const correctionDialog = useRef<HTMLDialogElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const dirty = editing !== null && JSON.stringify(form) !== savedForm;
   const manageable = events.filter((event) =>
@@ -278,12 +280,16 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
     setNotice("");
   }, [actor.role, actor.clubId, actor.districtId]);
   function confirmDiscard() {
-    return !dirty || window.confirm("活動草稿尚未儲存，確定捨棄這次編輯？");
+    return !dirty || window.confirm("活動變更尚未儲存，確定捨棄這次編輯？");
   }
   function openEditor(event?: CommunityEvent) {
+    if (event && event.status !== "draft" && event.status !== "published") {
+      setError("活動已取消或封存，不能再編輯；目前輸入仍保留，可複製文字後返回列表。");
+      return;
+    }
     if (!confirmDiscard()) return;
     const next = formFrom(event, effectiveActor);
-    setEditing({ id: event?.id ?? null, version: event?.version ?? 0 });
+    setEditing({ id: event?.id ?? null, version: event?.version ?? 0, status: event?.status ?? "draft" });
     setForm(next);
     setSavedForm(JSON.stringify(next));
     setPreview(false);
@@ -306,6 +312,22 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
   }
   function save(event: FormEvent) {
     event.preventDefault();
+    setError("");
+    try {
+      const input = toInput(form);
+      const fieldErrors = validateEventInput(input, clubs);
+      if (Object.keys(fieldErrors).length)
+        throw new Error(Object.values(fieldErrors).join(" "));
+      if (selectedEvent?.status === "published") {
+        correctionDialog.current?.showModal();
+        return;
+      }
+      persist();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "請檢查活動欄位。");
+    }
+  }
+  function persist() {
     if (!editing) return;
     setError("");
     try {
@@ -324,9 +346,11 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
       const next = formFrom(result, effectiveActor);
       setForm(next);
       setSavedForm(JSON.stringify(next));
-      setEditing({ id: result.id, version: result.version });
+      setEditing({ id: result.id, version: result.version, status: result.status });
       setNotice(
-        effectiveActor.role === "club_manager"
+        result.status === "published"
+          ? "活動內容已更正，維持已發布；讀者會看到最新內容。"
+          : effectiveActor.role === "club_manager"
           ? "草稿已儲存，請交由社長／秘書或備援帳號發布。"
           : "草稿已儲存；確認預覽後，再從活動列表發布。",
       );
@@ -371,6 +395,8 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
   const selectedEvent = editing?.id
     ? events.find((e) => e.id === editing.id)
     : undefined;
+  const correcting = editing?.status === "published";
+  const terminal = selectedEvent?.status === "cancelled" || selectedEvent?.status === "archived";
   const conflict = selectedEvent && selectedEvent.version !== editing?.version;
   let previewEvent: CommunityEvent | undefined;
   if (preview) {
@@ -680,6 +706,9 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
                         )}
                         {event.status === "published" && publisher && (
                           <>
+                            <button className="ew-button" onClick={() => openEditor(event)}>
+                              更正活動內容
+                            </button>
                             <ConfirmEventAction
                               title="取消活動並保留公告"
                               label="取消活動"
@@ -740,6 +769,7 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
                               setEditing({
                                 id: copied.id,
                                 version: copied.version,
+                                status: copied.status,
                               });
                               setForm(next);
                               setSavedForm(JSON.stringify(next));
@@ -779,12 +809,12 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
           className="ew-panel"
           ref={editorRef}
           data-unsaved={dirty ? "true" : "false"}
-          aria-label="活動草稿編輯器"
+          aria-label={correcting ? "已發布活動編輯器" : "活動草稿編輯器"}
         >
           <div className="ew-editor-head">
             <div>
-              <span className="ew-eyebrow">Event draft</span>
-              <h3>{editing.id ? "編輯活動草稿" : "建立活動草稿"}</h3>
+              <span className="ew-eyebrow">{correcting ? "Published event correction" : "Event draft"}</span>
+              <h3>{correcting ? "更正已發布活動" : editing.id ? "編輯活動草稿" : "建立活動草稿"}</h3>
             </div>
             <button
               className="ew-button"
@@ -796,20 +826,22 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
               <X size={18} />
             </button>
           </div>
+          {terminal && <div className="ew-error" role="alert">活動已取消或封存，不能儲存更正；目前輸入仍保留，可複製文字後返回列表。</div>}
           {conflict && (
             <div className="ew-error" role="alert">
               版本已更新；目前輸入仍保留。可先複製文字，再重新載入最新資料。
               <button
                 className="ew-button"
                 onClick={() => {
-                  if (selectedEvent) openEditor(selectedEvent);
+                  if (selectedEvent && !terminal) openEditor(selectedEvent);
                 }}
+                disabled={terminal}
               >
                 載入最新版本
               </button>
             </div>
           )}
-          {selectedEvent && selectedEvent.status === "draft" && !conflict && (
+          {selectedEvent && (selectedEvent.status === "draft" || correcting) && !conflict && (
             <div className="ew-local-warning">
               版本驗證示範：可模擬另一位管理者更新同一筆活動，再儲存驗證衝突時會保留輸入。
               <button
@@ -1095,7 +1127,7 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
             )}
             <footer className="ew-editor-footer">
               <span className="ew-help">
-                {dirty ? "有尚未儲存的變更" : "目前草稿無未儲存變更"} ·{" "}
+                {dirty ? "有尚未儲存的變更" : "目前無未儲存變更"} ·{" "}
                 {editing.id ? `版本 ${editing.version}` : "尚未建立"}
               </span>
               <div className="ew-actions">
@@ -1108,15 +1140,30 @@ export function EventWorkspace({ actor }: { actor: EventActor }) {
                 >
                   返回列表
                 </button>
-                <button type="submit" className="ew-button primary">
+                <button type="submit" className="ew-button primary" disabled={terminal}>
                   <Save size={16} />
-                  儲存草稿
+                  {correcting ? "儲存更正" : "儲存草稿"}
                 </button>
               </div>
             </footer>
           </form>
         </div>
       )}
+      <dialog ref={correctionDialog} className="ew-dialog" aria-label="確認更正已發布活動">
+        <form onSubmit={(event) => {
+          event.preventDefault();
+          persist();
+          correctionDialog.current?.close();
+        }}>
+          <h3>確認更正已發布活動</h3>
+          <p>將更新「{form.title}」的原筆內容，維持已發布，依新的時間與顯示範圍立即呈現。請確認地點、時間與活動說明。</p>
+          <p className="ew-note">此示範不會發送通知；更正不會建立另一場活動。</p>
+          <div className="ew-actions">
+            <button type="button" className="ew-button" onClick={() => correctionDialog.current?.close()}>返回編輯</button>
+            <button type="submit" className="ew-button primary">確認儲存更正</button>
+          </div>
+        </form>
+      </dialog>
       <p className="ew-note">
         前端互動初版 ·
         不含報名、名額、付款或簽到。正式權限與版本驗證仍須後端實作。

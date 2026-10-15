@@ -148,6 +148,31 @@ try {
   row = workspace
     .locator(".ew-card")
     .filter({ has: page.getByRole("heading", { name: title, exact: true }) });
+  await row.getByRole("button", { name: "更正活動內容", exact: true }).click();
+  const correction = page.getByLabel("已發布活動編輯器", { exact: true });
+  await correction.getByLabel("地點", { exact: true }).fill("更正後的社區交流空間");
+  await correction.getByRole("button", { name: "儲存更正", exact: true }).click();
+  const correctionConfirm = page.getByRole("dialog", { name: "確認更正已發布活動", exact: true });
+  await correctionConfirm.getByRole("button", { name: "返回編輯", exact: true }).click();
+  assert.equal(await correction.getByLabel("地點", { exact: true }).inputValue(), "更正後的社區交流空間");
+  await correction.getByRole("button", { name: "儲存更正", exact: true }).click();
+  await correctionConfirm.getByRole("button", { name: "確認儲存更正", exact: true }).click();
+  await hash(eventHash);
+  await page.getByRole("heading", { name: title, exact: true, level: 1 }).waitFor();
+  assert.match(await page.locator("body").innerText(), /更正後的社區交流空間/);
+  assert.equal(new URL(page.url()).hash, eventHash, "correction must keep the original event ID");
+  await hash("/demo?view=events");
+  await row.getByRole("button", { name: "更正活動內容", exact: true }).click();
+  await correction.getByLabel("地點", { exact: true }).fill("衝突時應保留的輸入");
+  await correction.getByRole("button", { name: "模擬其他人更新", exact: true }).click();
+  await correction.getByRole("button", { name: "儲存更正", exact: true }).click();
+  await correctionConfirm.getByRole("button", { name: "確認儲存更正", exact: true }).click();
+  assert.equal(await correction.getByLabel("地點", { exact: true }).inputValue(), "衝突時應保留的輸入");
+  assert.match(await correction.innerText(), /版本已更新/);
+  page.once("dialog", dialog => dialog.accept());
+  await correction.getByRole("button", { name: "關閉活動編輯器", exact: true }).click();
+  await row.getByRole("button", { name: "更正活動內容", exact: true }).click();
+  await correction.getByLabel("地點", { exact: true }).fill("取消時保留的更正文字");
   await row.getByRole("button", { name: "取消活動", exact: true }).click();
   const cancel = page.getByRole("dialog", {
     name: "取消活動並保留公告",
@@ -163,6 +188,11 @@ try {
     await row.getByRole("button", { name: "發布", exact: true }).count(),
     0,
   );
+  assert.match(await correction.innerText(), /活動已取消或封存/);
+  assert.equal(await correction.getByRole("button", { name: "儲存更正", exact: true }).isDisabled(), true);
+  assert.equal(await correction.getByLabel("地點", { exact: true }).inputValue(), "取消時保留的更正文字");
+  page.once("dialog", dialog => dialog.accept());
+  await correction.getByRole("button", { name: "關閉活動編輯器", exact: true }).click();
   await hash(eventHash);
   assert.match(
     await page.locator("body").innerText(),
@@ -182,6 +212,7 @@ try {
       .count(),
     1,
   );
+  assert.equal(await workspace.getByRole("button", { name: "更正活動內容", exact: true }).count(), 0);
   await page.setViewportSize({ width: 360, height: 800 });
   await overflow();
   await preview("management-mobile");
@@ -221,7 +252,7 @@ try {
   }
   assert.deepEqual(errors, []);
   console.log(
-    "PASS phase 2 UI: public scope and deep links, cross-day calendar, club search, draft guard, publish→public→cancel, manager limits, 1440/360px; synthetic data only.",
+    "PASS phase 2 UI: public scope and deep links, cross-day calendar, club search, draft guard, publish→public→correct original event→cancel, correction confirmation, manager limits, 1440/360px; synthetic data only.",
   );
 } finally {
   await browser.close();

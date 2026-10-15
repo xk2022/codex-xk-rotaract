@@ -119,3 +119,49 @@ describe('phase 2 time and validation', () => {
         expect(validateEventInput({ ...input, time: { kind: 'timed', startAt: '2026-10-10T00:00:00Z', endAt: '2026-10-10T00:00:00Z', timeZone: 'Asia/Taipei' } })).toHaveProperty('time');
     });
 });
+
+describe('published event corrections', () => {
+    const source = demoEvents.find(event => event.id === 'city-walk')!;
+    it('updates the same published record for all publishers and retains the original snapshot', () => {
+        for (const role of ['club_president', 'club_secretary', 'club_backup'] as const) {
+            const result = applyEventAction(demoEvents, demoClubs, { type: 'update', actor: { ...president, role }, id: source.id, version: source.version, input: { ...input, title: '  更正活動  ', location: '新地點' } });
+            expect(result.ok).toBe(true);
+            if (!result.ok) continue;
+            expect(result.event).toMatchObject({ id: source.id, status: 'published', version: source.version + 1, title: '更正活動', location: '新地點', time: input.time });
+            expect(publicProjection([result.event], demoClubs)[0]).toMatchObject({ id: source.id, title: '更正活動' });
+            expect(source.title).not.toBe('更正活動');
+        }
+    });
+    it('withdraws a corrected public event from anonymous projection when changed to members-only', () => {
+        const result = applyEventAction(demoEvents, demoClubs, { type: 'update', actor: president, id: source.id, version: source.version, input: { ...input, visibility: 'members' } });
+        expect(result.ok).toBe(true);
+        if (!result.ok) return;
+        expect(publicProjection([result.event], demoClubs)).toHaveLength(0);
+        expect(visibleEvents([result.event], demoClubs, { role: 'member', clubId: 'taichung' }).map(event => event.id)).toEqual([source.id]);
+    });
+    it('rejects managers, members, other clubs, and district actors correcting club events', () => {
+        for (const actor of [manager, { role: 'member', clubId: 'taipei' }, { role: 'club_president', clubId: 'taichung' }, { role: 'district_manager', districtId: 'd3481' }] as EventActor[])
+            expect(applyEventAction(demoEvents, demoClubs, { type: 'update', actor, id: source.id, version: source.version, input }).ok).toBe(false);
+        const disabled = demoEvents.find(event => event.id === 'disabled-history')!;
+        expect(applyEventAction(demoEvents, demoClubs, { type: 'update', actor: { role: 'club_president', clubId: 'disabled' }, id: disabled.id, version: disabled.version, input: { ...input, organizerId: 'disabled' } }).ok).toBe(false);
+    });
+    it('allows district correction only within the original district', () => {
+        const district = demoEvents.find(event => event.id === 'district-day')!;
+        const districtInput = { ...input, organizerType: 'district' as const, organizerId: district.organizerId };
+        for (const districtId of [district.organizerId, 'd3462']) {
+            const result = applyEventAction(demoEvents, demoClubs, { type: 'update', actor: { role: 'district_manager', districtId }, id: district.id, version: district.version, input: districtInput });
+            expect(result.ok).toBe(districtId === district.organizerId);
+        }
+    });
+    it('preserves latest content on stale correction and rejects invalid or terminal edits', () => {
+        const latest = { ...source, title: '另一管理者的更正', version: source.version + 1 };
+        const snapshot = structuredClone(latest);
+        expect(applyEventAction([latest], demoClubs, { type: 'update', actor: president, id: source.id, version: source.version, input }).ok).toBe(false);
+        expect(latest).toEqual(snapshot);
+        const invalidInputs: EventInput[] = [{ ...input, title: ' ' }, { ...input, organizerId: 'taichung' }, { ...input, description: 'x'.repeat(10001) }, { ...input, time: { kind: 'timed', startAt: '2026-11-01T03:00:00Z', endAt: '2026-11-01T02:00:00Z', timeZone: 'Asia/Taipei' } }];
+        for (const invalid of invalidInputs)
+            expect(applyEventAction([source], demoClubs, { type: 'update', actor: president, id: source.id, version: source.version, input: invalid }).ok).toBe(false);
+        for (const status of ['cancelled', 'archived'] as const)
+            expect(applyEventAction([{ ...source, status }], demoClubs, { type: 'update', actor: president, id: source.id, version: source.version, input }).ok).toBe(false);
+    });
+});
