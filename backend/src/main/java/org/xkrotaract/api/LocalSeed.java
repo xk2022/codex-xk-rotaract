@@ -46,7 +46,7 @@ class LocalSeed implements ApplicationRunner {
               UUID.fromString("40000000-0000-4000-8000-000000000001"),
               account);
           core.db.update(
-              "INSERT INTO role_grants VALUES(?,?, 'club_president',?,?,?,?,'local profile"
+              "INSERT INTO role_grants(id,account_id,role,club_id,starts_at,ends_at,granted_by,reason,version) VALUES(?,?, 'club_president',?,?,?,?,'local profile"
                   + " bootstrap',0) ON CONFLICT DO NOTHING",
               UUID.fromString("50000000-0000-4000-8000-000000000001"),
               account,

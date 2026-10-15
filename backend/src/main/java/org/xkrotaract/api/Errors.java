@@ -15,6 +15,7 @@ class Errors {
 
   @ExceptionHandler({
     org.springframework.http.converter.HttpMessageNotReadableException.class,
+    org.springframework.web.multipart.MaxUploadSizeExceededException.class,
     org.springframework.web.bind.MissingServletRequestParameterException.class,
     org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
     java.time.format.DateTimeParseException.class,

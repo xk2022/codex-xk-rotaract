@@ -1,0 +1,4808 @@
+{
+  "paths": {
+    "/industries": {
+      "get": {
+        "operationId": "businessIndustries",
+        "summary": "businessIndustries",
+        "tags": [
+          "businesses"
+        ],
+        "security": [],
+        "x-authorization": "public",
+        "x-frontend-feature": "phase3/businessModel.ts: industries",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessIndustries"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "food",
+                          "name": "餐飲咖啡"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded."
+        ]
+      }
+    },
+    "/public/industries": {
+      "get": {
+        "operationId": "businessIndustriesPublic",
+        "summary": "businessIndustriesPublic",
+        "tags": [
+          "businesses"
+        ],
+        "security": [],
+        "x-authorization": "public",
+        "x-frontend-feature": "phase3/businessModel.ts: industries",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessIndustries"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "food",
+                          "name": "餐飲咖啡"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded."
+        ]
+      }
+    },
+    "/public/companies": {
+      "get": {
+        "operationId": "listPublicBusinesses",
+        "summary": "listPublicBusinesses",
+        "tags": [
+          "businesses"
+        ],
+        "security": [],
+        "x-authorization": "public",
+        "x-frontend-feature": "phase3/BusinessPublic.tsx: directory search",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "industryId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clubId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "mapOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "bounds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "south,west,north,east; west>east crosses the antimeridian"
+            }
+          },
+          {
+            "name": "south",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "west",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "north",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "east",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicBusinessesPage"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "00000000-0000-4000-8000-000000000001",
+                          "name": "合成示範商家",
+                          "description": "本資料僅供API契約展示。",
+                          "industryIds": [
+                            "food"
+                          ],
+                          "city": "台北",
+                          "phone": "02-0000-0000",
+                          "mapVisible": false,
+                          "exposure": "trial",
+                          "contacts": [],
+                          "trialEndsAt": "2026-10-18T04:00:00Z",
+                          "confirmationCount": 0,
+                          "communityConfirmed": false
+                        }
+                      ],
+                      "page": 1,
+                      "pageSize": 20,
+                      "total": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "First publication is immutable; trial is exactly 72 hours, independent of edit/login/republication. Expired trial requires current free membership or active advertisement."
+        ]
+      }
+    },
+    "/public/businesses": {
+      "get": {
+        "operationId": "listPublicBusinessesAlias",
+        "summary": "listPublicBusinessesAlias",
+        "tags": [
+          "businesses"
+        ],
+        "security": [],
+        "x-authorization": "public",
+        "x-frontend-feature": "phase3/BusinessPublic.tsx: directory search",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "industryId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clubId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "mapOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "bounds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "south,west,north,east; west>east crosses the antimeridian"
+            }
+          },
+          {
+            "name": "south",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "west",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "north",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "east",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicBusinessesPage"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "00000000-0000-4000-8000-000000000001",
+                          "name": "合成示範商家",
+                          "description": "本資料僅供API契約展示。",
+                          "industryIds": [
+                            "food"
+                          ],
+                          "city": "台北",
+                          "phone": "02-0000-0000",
+                          "mapVisible": false,
+                          "exposure": "trial",
+                          "contacts": [],
+                          "trialEndsAt": "2026-10-18T04:00:00Z",
+                          "confirmationCount": 0,
+                          "communityConfirmed": false
+                        }
+                      ],
+                      "page": 1,
+                      "pageSize": 20,
+                      "total": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "First publication is immutable; trial is exactly 72 hours, independent of edit/login/republication. Expired trial requires current free membership or active advertisement."
+        ]
+      }
+    },
+    "/public/map/companies": {
+      "get": {
+        "operationId": "listPublicBusinessMap",
+        "summary": "listPublicBusinessMap",
+        "tags": [
+          "businesses"
+        ],
+        "security": [],
+        "x-authorization": "public",
+        "x-frontend-feature": "phase3/BusinessPublic.tsx: map/list location filtering",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "industryId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clubId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "mapOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "bounds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "south,west,north,east; west>east crosses the antimeridian"
+            }
+          },
+          {
+            "name": "south",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "west",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "north",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "east",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicBusinessesPage"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "00000000-0000-4000-8000-000000000001",
+                          "name": "合成示範商家",
+                          "description": "本資料僅供API契約展示。",
+                          "industryIds": [
+                            "food"
+                          ],
+                          "city": "台北",
+                          "phone": "02-0000-0000",
+                          "mapVisible": false,
+                          "exposure": "trial",
+                          "contacts": [],
+                          "trialEndsAt": "2026-10-18T04:00:00Z",
+                          "confirmationCount": 0,
+                          "communityConfirmed": false
+                        }
+                      ],
+                      "page": 1,
+                      "pageSize": 20,
+                      "total": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "First publication is immutable; trial is exactly 72 hours, independent of edit/login/republication. Expired trial requires current free membership or active advertisement."
+        ]
+      }
+    },
+    "/public/business-map": {
+      "get": {
+        "operationId": "listPublicBusinessMapAlias",
+        "summary": "listPublicBusinessMapAlias",
+        "tags": [
+          "businesses"
+        ],
+        "security": [],
+        "x-authorization": "public",
+        "x-frontend-feature": "phase3/BusinessPublic.tsx: map/list location filtering",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "industryId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clubId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "mapOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "bounds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "south,west,north,east; west>east crosses the antimeridian"
+            }
+          },
+          {
+            "name": "south",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "west",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "north",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "east",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicBusinessesPage"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "00000000-0000-4000-8000-000000000001",
+                          "name": "合成示範商家",
+                          "description": "本資料僅供API契約展示。",
+                          "industryIds": [
+                            "food"
+                          ],
+                          "city": "台北",
+                          "phone": "02-0000-0000",
+                          "mapVisible": false,
+                          "exposure": "trial",
+                          "contacts": [],
+                          "trialEndsAt": "2026-10-18T04:00:00Z",
+                          "confirmationCount": 0,
+                          "communityConfirmed": false
+                        }
+                      ],
+                      "page": 1,
+                      "pageSize": 20,
+                      "total": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "First publication is immutable; trial is exactly 72 hours, independent of edit/login/republication. Expired trial requires current free membership or active advertisement."
+        ]
+      }
+    },
+    "/public/companies/{id}": {
+      "get": {
+        "operationId": "publicBusinessDetail",
+        "summary": "publicBusinessDetail",
+        "tags": [
+          "businesses"
+        ],
+        "security": [],
+        "x-authorization": "public",
+        "x-frontend-feature": "phase3/BusinessPublic.tsx: standalone public company detail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicBusiness"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "00000000-0000-4000-8000-000000000001",
+                      "name": "合成示範商家",
+                      "description": "本資料僅供API契約展示。",
+                      "industryIds": [
+                        "food"
+                      ],
+                      "city": "台北",
+                      "phone": "02-0000-0000",
+                      "mapVisible": false,
+                      "exposure": "trial",
+                      "contacts": [],
+                      "trialEndsAt": "2026-10-18T04:00:00Z",
+                      "confirmationCount": 0,
+                      "communityConfirmed": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded."
+        ]
+      }
+    },
+    "/public/businesses/{id}": {
+      "get": {
+        "operationId": "publicBusinessDetailAlias",
+        "summary": "publicBusinessDetailAlias",
+        "tags": [
+          "businesses"
+        ],
+        "security": [],
+        "x-authorization": "public",
+        "x-frontend-feature": "phase3/BusinessPublic.tsx: standalone public company detail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicBusiness"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "00000000-0000-4000-8000-000000000001",
+                      "name": "合成示範商家",
+                      "description": "本資料僅供API契約展示。",
+                      "industryIds": [
+                        "food"
+                      ],
+                      "city": "台北",
+                      "phone": "02-0000-0000",
+                      "mapVisible": false,
+                      "exposure": "trial",
+                      "contacts": [],
+                      "trialEndsAt": "2026-10-18T04:00:00Z",
+                      "confirmationCount": 0,
+                      "communityConfirmed": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded."
+        ]
+      }
+    },
+    "/companies": {
+      "get": {
+        "operationId": "listManagedBusinesses",
+        "summary": "listManagedBusinesses",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "company owner or accepted editor",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "suspended"
+              ]
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessCompaniesPage"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "name": "合成示範商家",
+                          "description": "本資料僅供API契約展示。",
+                          "industryIds": [
+                            "food"
+                          ],
+                          "city": "台北",
+                          "phone": "02-0000-0000",
+                          "email": "business@example.test",
+                          "website": "https://example.test",
+                          "address": "合成示範營業地址",
+                          "publicFlags": {
+                            "phone": true,
+                            "email": false,
+                            "website": false,
+                            "address": false
+                          },
+                          "locationConsent": false,
+                          "latitude": null,
+                          "longitude": null,
+                          "id": "00000000-0000-4000-8000-000000000001",
+                          "ownerId": "00000000-0000-4000-8000-000000000002",
+                          "acceptedMaintainerIds": [],
+                          "acceptedMemberIds": [],
+                          "status": "draft",
+                          "version": 0,
+                          "eligibility": {
+                            "free": false,
+                            "paid": false,
+                            "trial": false,
+                            "eligible": false
+                          },
+                          "confirmationCount": 0,
+                          "communityConfirmed": false
+                        }
+                      ],
+                      "page": 1,
+                      "pageSize": 20,
+                      "total": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded."
+        ]
+      },
+      "post": {
+        "operationId": "createBusiness",
+        "summary": "createBusiness",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "authenticated account; no membership required",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessCompany"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "name": "合成示範商家",
+                      "description": "本資料僅供API契約展示。",
+                      "industryIds": [
+                        "food"
+                      ],
+                      "city": "台北",
+                      "phone": "02-0000-0000",
+                      "email": "business@example.test",
+                      "website": "https://example.test",
+                      "address": "合成示範營業地址",
+                      "publicFlags": {
+                        "phone": true,
+                        "email": false,
+                        "website": false,
+                        "address": false
+                      },
+                      "locationConsent": false,
+                      "latitude": null,
+                      "longitude": null,
+                      "id": "00000000-0000-4000-8000-000000000001",
+                      "ownerId": "00000000-0000-4000-8000-000000000002",
+                      "acceptedMaintainerIds": [],
+                      "acceptedMemberIds": [],
+                      "status": "draft",
+                      "version": 0,
+                      "eligibility": {
+                        "free": false,
+                        "paid": false,
+                        "trial": false,
+                        "eligible": false
+                      },
+                      "confirmationCount": 0,
+                      "communityConfirmed": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessInput"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "name": "合成示範商家",
+                    "description": "本資料僅供API契約展示。",
+                    "industryIds": [
+                      "food"
+                    ],
+                    "city": "台北",
+                    "phone": "02-0000-0000",
+                    "email": "business@example.test",
+                    "website": "https://example.test",
+                    "address": "合成示範營業地址",
+                    "publicFlags": {
+                      "phone": true,
+                      "email": false,
+                      "website": false,
+                      "address": false
+                    },
+                    "locationConsent": false,
+                    "latitude": null,
+                    "longitude": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization."
+        ]
+      }
+    },
+    "/companies/{id}": {
+      "get": {
+        "operationId": "managedBusinessDetail",
+        "summary": "managedBusinessDetail",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "company owner or accepted editor",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessCompany"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "name": "合成示範商家",
+                      "description": "本資料僅供API契約展示。",
+                      "industryIds": [
+                        "food"
+                      ],
+                      "city": "台北",
+                      "phone": "02-0000-0000",
+                      "email": "business@example.test",
+                      "website": "https://example.test",
+                      "address": "合成示範營業地址",
+                      "publicFlags": {
+                        "phone": true,
+                        "email": false,
+                        "website": false,
+                        "address": false
+                      },
+                      "locationConsent": false,
+                      "latitude": null,
+                      "longitude": null,
+                      "id": "00000000-0000-4000-8000-000000000001",
+                      "ownerId": "00000000-0000-4000-8000-000000000002",
+                      "acceptedMaintainerIds": [],
+                      "acceptedMemberIds": [],
+                      "status": "draft",
+                      "version": 0,
+                      "eligibility": {
+                        "free": false,
+                        "paid": false,
+                        "trial": false,
+                        "eligible": false
+                      },
+                      "confirmationCount": 0,
+                      "communityConfirmed": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded."
+        ]
+      },
+      "patch": {
+        "operationId": "updateBusiness",
+        "summary": "updateBusiness",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "company owner or accepted editor; suspended writes denied",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessCompany"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "name": "合成示範商家",
+                      "description": "本資料僅供API契約展示。",
+                      "industryIds": [
+                        "food"
+                      ],
+                      "city": "台北",
+                      "phone": "02-0000-0000",
+                      "email": "business@example.test",
+                      "website": "https://example.test",
+                      "address": "合成示範營業地址",
+                      "publicFlags": {
+                        "phone": true,
+                        "email": false,
+                        "website": false,
+                        "address": false
+                      },
+                      "locationConsent": false,
+                      "latitude": null,
+                      "longitude": null,
+                      "id": "00000000-0000-4000-8000-000000000001",
+                      "ownerId": "00000000-0000-4000-8000-000000000002",
+                      "acceptedMaintainerIds": [],
+                      "acceptedMemberIds": [],
+                      "status": "draft",
+                      "version": 0,
+                      "eligibility": {
+                        "free": false,
+                        "paid": false,
+                        "trial": false,
+                        "eligible": false
+                      },
+                      "confirmationCount": 0,
+                      "communityConfirmed": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessUpdate"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "name": "合成示範商家",
+                    "description": "本資料僅供API契約展示。",
+                    "industryIds": [
+                      "food"
+                    ],
+                    "city": "台北",
+                    "phone": "02-0000-0000",
+                    "email": "business@example.test",
+                    "website": "https://example.test",
+                    "address": "合成示範營業地址",
+                    "publicFlags": {
+                      "phone": true,
+                      "email": false,
+                      "website": false,
+                      "address": false
+                    },
+                    "locationConsent": false,
+                    "latitude": null,
+                    "longitude": null,
+                    "version": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization."
+        ]
+      }
+    },
+    "/companies/{id}/publish": {
+      "post": {
+        "operationId": "publishBusiness",
+        "summary": "publishBusiness",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "company owner or accepted editor; suspended writes denied",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessCompany"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "name": "合成示範商家",
+                      "description": "本資料僅供API契約展示。",
+                      "industryIds": [
+                        "food"
+                      ],
+                      "city": "台北",
+                      "phone": "02-0000-0000",
+                      "email": "business@example.test",
+                      "website": "https://example.test",
+                      "address": "合成示範營業地址",
+                      "publicFlags": {
+                        "phone": true,
+                        "email": false,
+                        "website": false,
+                        "address": false
+                      },
+                      "locationConsent": false,
+                      "latitude": null,
+                      "longitude": null,
+                      "id": "00000000-0000-4000-8000-000000000001",
+                      "ownerId": "00000000-0000-4000-8000-000000000002",
+                      "acceptedMaintainerIds": [],
+                      "acceptedMemberIds": [],
+                      "status": "approved",
+                      "version": 1,
+                      "eligibility": {
+                        "free": false,
+                        "paid": false,
+                        "trial": true,
+                        "eligible": true
+                      },
+                      "confirmationCount": 0,
+                      "communityConfirmed": false,
+                      "firstPublishedAt": "2026-10-15T04:00:00Z",
+                      "trialEndsAt": "2026-10-18T04:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization.",
+          "First publication is immutable; trial is exactly 72 hours, independent of edit/login/republication. Expired trial requires current free membership or active advertisement."
+        ]
+      }
+    },
+    "/business-review/companies": {
+      "get": {
+        "operationId": "listBusinessContentReview",
+        "summary": "listBusinessContentReview",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "content_manager in content or platform scope; hidden contact fields omitted",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "suspended"
+              ]
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessCompaniesPage"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "name": "合成示範商家",
+                          "description": "本資料僅供API契約展示。",
+                          "industryIds": [
+                            "food"
+                          ],
+                          "city": "台北",
+                          "phone": "02-0000-0000",
+                          "publicFlags": {
+                            "phone": true,
+                            "email": false,
+                            "website": false,
+                            "address": false
+                          },
+                          "locationConsent": false,
+                          "id": "00000000-0000-4000-8000-000000000001",
+                          "status": "draft",
+                          "version": 0,
+                          "eligibility": {
+                            "free": false,
+                            "paid": false,
+                            "trial": false,
+                            "eligible": false
+                          },
+                          "confirmationCount": 0,
+                          "communityConfirmed": false
+                        }
+                      ],
+                      "page": 1,
+                      "pageSize": 20,
+                      "total": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Only content_manager in content/platform scope may govern content; private contact fields, coordinates without consent, and owner/member identifiers are omitted."
+        ]
+      }
+    },
+    "/business-review/companies/{id}": {
+      "get": {
+        "operationId": "businessContentReviewDetail",
+        "summary": "businessContentReviewDetail",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "content_manager in content or platform scope; hidden contact fields and owner/member IDs omitted",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessCompany"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "name": "合成示範商家",
+                      "description": "本資料僅供API契約展示。",
+                      "industryIds": [
+                        "food"
+                      ],
+                      "city": "台北",
+                      "phone": "02-0000-0000",
+                      "publicFlags": {
+                        "phone": true,
+                        "email": false,
+                        "website": false,
+                        "address": false
+                      },
+                      "locationConsent": false,
+                      "id": "00000000-0000-4000-8000-000000000001",
+                      "status": "draft",
+                      "version": 0,
+                      "eligibility": {
+                        "free": false,
+                        "paid": false,
+                        "trial": false,
+                        "eligible": false
+                      },
+                      "confirmationCount": 0,
+                      "communityConfirmed": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Only content_manager in content/platform scope may govern content; private contact fields, coordinates without consent, and owner/member identifiers are omitted."
+        ]
+      }
+    },
+    "/business-review/companies/{id}/reject": {
+      "post": {
+        "operationId": "rejectBusiness",
+        "summary": "rejectBusiness",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "content_manager in content or platform scope",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessModerationResult"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "companyId": "00000000-0000-4000-8000-000000000001",
+                      "status": "rejected",
+                      "version": 2,
+                      "reviewReason": "合成內容治理理由"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 0,
+                    "reason": "合成內容治理理由"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization.",
+          "Only content_manager in content/platform scope may govern content; private contact fields, coordinates without consent, and owner/member identifiers are omitted."
+        ]
+      }
+    },
+    "/business-review/companies/{id}/suspend": {
+      "post": {
+        "operationId": "suspendBusiness",
+        "summary": "suspendBusiness",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "content_manager in content or platform scope",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessModerationResult"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "companyId": "00000000-0000-4000-8000-000000000001",
+                      "status": "suspended",
+                      "version": 2,
+                      "reviewReason": "合成內容治理理由"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 0,
+                    "reason": "合成內容治理理由"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization.",
+          "Only content_manager in content/platform scope may govern content; private contact fields, coordinates without consent, and owner/member identifiers are omitted."
+        ]
+      }
+    },
+    "/companies/{id}/links": {
+      "get": {
+        "operationId": "listBusinessLinks",
+        "summary": "listBusinessLinks",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "company owner or accepted editor",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessLinks"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "00000000-0000-4000-8000-000000000003",
+                          "companyId": "00000000-0000-4000-8000-000000000001",
+                          "memberId": "00000000-0000-4000-8000-000000000002",
+                          "kind": "editor",
+                          "status": "pending",
+                          "version": 0,
+                          "invitedAt": "2026-10-15T04:00:00Z",
+                          "companyName": "合成示範商家",
+                          "companyVersion": 1,
+                          "ownerId": "00000000-0000-4000-8000-000000000004",
+                          "inviteeId": "00000000-0000-4000-8000-000000000002",
+                          "createdAt": "2026-10-15T04:00:00Z",
+                          "updatedAt": "2026-10-15T04:00:00Z"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Editor and associated-member links grant separate rights; explicit invitee acceptance is required and owner membership cannot be removed using a link action."
+        ]
+      },
+      "post": {
+        "operationId": "inviteBusinessMember",
+        "summary": "inviteBusinessMember",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "company owner; invitee must explicitly accept; member/editor grants independent",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessLink"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "00000000-0000-4000-8000-000000000003",
+                      "companyId": "00000000-0000-4000-8000-000000000001",
+                      "memberId": "00000000-0000-4000-8000-000000000002",
+                      "kind": "editor",
+                      "status": "pending",
+                      "version": 0,
+                      "invitedAt": "2026-10-15T04:00:00Z",
+                      "companyName": "合成示範商家",
+                      "companyVersion": 1,
+                      "ownerId": "00000000-0000-4000-8000-000000000004",
+                      "inviteeId": "00000000-0000-4000-8000-000000000002",
+                      "createdAt": "2026-10-15T04:00:00Z",
+                      "updatedAt": "2026-10-15T04:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessLinkRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 0,
+                    "memberId": "00000000-0000-4000-8000-000000000002",
+                    "kind": "editor",
+                    "companyVersion": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization.",
+          "Editor and associated-member links grant separate rights; explicit invitee acceptance is required and owner membership cannot be removed using a link action."
+        ]
+      }
+    },
+    "/me/company-invitations": {
+      "get": {
+        "operationId": "myBusinessInvitations",
+        "summary": "myBusinessInvitations",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "authenticated member; own received and own-company sent invitation history only, all statuses",
+        "x-frontend-feature": "engagement/invitationModel.ts: incoming and outgoing history",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessInvitations"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "00000000-0000-4000-8000-000000000003",
+                          "companyId": "00000000-0000-4000-8000-000000000001",
+                          "kind": "editor",
+                          "status": "pending",
+                          "version": 0,
+                          "invitedAt": "2026-10-15T04:00:00Z",
+                          "companyName": "合成示範商家",
+                          "companyVersion": 1,
+                          "ownerId": "00000000-0000-4000-8000-000000000004",
+                          "inviteeId": "00000000-0000-4000-8000-000000000002",
+                          "createdAt": "2026-10-15T04:00:00Z",
+                          "updatedAt": "2026-10-15T04:00:00Z"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Returns all statuses of invitations received by the current member or sent for their own companies. Includes current company version and necessary company/owner/invitee metadata, with no contact, location, member private name/email or unrelated invitations.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Editor and associated-member links grant separate rights; explicit invitee acceptance is required and owner membership cannot be removed using a link action."
+        ]
+      }
+    },
+    "/company-invitations/{id}/accept": {
+      "post": {
+        "operationId": "acceptBusinessInvitation",
+        "summary": "acceptBusinessInvitation",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "invited member only",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessLink"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "00000000-0000-4000-8000-000000000003",
+                      "companyId": "00000000-0000-4000-8000-000000000001",
+                      "memberId": "00000000-0000-4000-8000-000000000002",
+                      "kind": "editor",
+                      "status": "accepted",
+                      "version": 1,
+                      "invitedAt": "2026-10-15T04:00:00Z",
+                      "decidedAt": "2026-10-15T04:00:00Z",
+                      "companyName": "合成示範商家",
+                      "companyVersion": 1,
+                      "ownerId": "00000000-0000-4000-8000-000000000004",
+                      "inviteeId": "00000000-0000-4000-8000-000000000002",
+                      "createdAt": "2026-10-15T04:00:00Z",
+                      "updatedAt": "2026-10-15T04:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessInvitationDecision"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 0,
+                    "companyVersion": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization.",
+          "Editor and associated-member links grant separate rights; explicit invitee acceptance is required and owner membership cannot be removed using a link action.",
+          "Invitation version and optional legacy-compatible companyVersion are checked under company -> invitation locks; mismatches return 409. New UI supplies both version fields. Cancelled/revoked/rejected invitations remain historical records; reinvitation creates a new ID."
+        ]
+      }
+    },
+    "/company-invitations/{id}/reject": {
+      "post": {
+        "operationId": "rejectBusinessInvitation",
+        "summary": "rejectBusinessInvitation",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "invited member only",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessLink"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "00000000-0000-4000-8000-000000000003",
+                      "companyId": "00000000-0000-4000-8000-000000000001",
+                      "memberId": "00000000-0000-4000-8000-000000000002",
+                      "kind": "editor",
+                      "status": "rejected",
+                      "version": 1,
+                      "invitedAt": "2026-10-15T04:00:00Z",
+                      "decidedAt": "2026-10-15T04:00:00Z",
+                      "companyName": "合成示範商家",
+                      "companyVersion": 1,
+                      "ownerId": "00000000-0000-4000-8000-000000000004",
+                      "inviteeId": "00000000-0000-4000-8000-000000000002",
+                      "createdAt": "2026-10-15T04:00:00Z",
+                      "updatedAt": "2026-10-15T04:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessInvitationDecision"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 0,
+                    "companyVersion": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization.",
+          "Editor and associated-member links grant separate rights; explicit invitee acceptance is required and owner membership cannot be removed using a link action.",
+          "Invitation version and optional legacy-compatible companyVersion are checked under company -> invitation locks; mismatches return 409. New UI supplies both version fields. Cancelled/revoked/rejected invitations remain historical records; reinvitation creates a new ID."
+        ]
+      }
+    },
+    "/companies/{id}/links/{linkId}/remove": {
+      "post": {
+        "operationId": "removeBusinessLink",
+        "summary": "removeBusinessLink",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "company owner or linked member withdrawing own link",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "linkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessLink"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "00000000-0000-4000-8000-000000000003",
+                      "companyId": "00000000-0000-4000-8000-000000000001",
+                      "memberId": "00000000-0000-4000-8000-000000000002",
+                      "kind": "editor",
+                      "status": "revoked",
+                      "version": 2,
+                      "invitedAt": "2026-10-15T04:00:00Z",
+                      "decidedAt": "2026-10-15T04:00:00Z",
+                      "companyName": "合成示範商家",
+                      "companyVersion": 3,
+                      "ownerId": "00000000-0000-4000-8000-000000000004",
+                      "inviteeId": "00000000-0000-4000-8000-000000000002",
+                      "createdAt": "2026-10-15T04:00:00Z",
+                      "updatedAt": "2026-10-15T04:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessInvitationDecision"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 0,
+                    "companyVersion": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization.",
+          "Editor and associated-member links grant separate rights; explicit invitee acceptance is required and owner membership cannot be removed using a link action.",
+          "Invitation version and optional legacy-compatible companyVersion are checked under company -> invitation locks; mismatches return 409. New UI supplies both version fields. Cancelled/revoked/rejected invitations remain historical records; reinvitation creates a new ID."
+        ]
+      }
+    },
+    "/companies/{id}/exposure-grants": {
+      "get": {
+        "operationId": "businessExposureGrants",
+        "summary": "businessExposureGrants",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "company owner or accepted editor; readonly",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessExposureGrants"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "00000000-0000-4000-8000-000000000003",
+                          "companyId": "00000000-0000-4000-8000-000000000001",
+                          "startsOn": "2026-10-15",
+                          "endsOn": "2027-10-15",
+                          "status": "active",
+                          "version": 0
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded."
+        ]
+      }
+    },
+    "/business-review/companies/{id}/exposure-grants": {
+      "get": {
+        "operationId": "reviewBusinessExposureGrants",
+        "summary": "reviewBusinessExposureGrants",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "content_manager in content or platform scope; readonly",
+        "x-frontend-feature": "phase3/BusinessWorkspace.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessExposureGrants"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "00000000-0000-4000-8000-000000000003",
+                          "companyId": "00000000-0000-4000-8000-000000000001",
+                          "startsOn": "2026-10-15",
+                          "endsOn": "2027-10-15",
+                          "status": "active",
+                          "version": 0
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Only content_manager in content/platform scope may govern content; private contact fields, coordinates without consent, and owner/member identifiers are omitted."
+        ]
+      }
+    },
+    "/me/business-confirmations": {
+      "get": {
+        "operationId": "myBusinessConfirmations",
+        "summary": "myBusinessConfirmations",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "own confirmations only; supports withdrawal after company hidden",
+        "x-frontend-feature": "engagement/confirmationHistoryModel.ts: own confirmation management",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessConfirmations"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "companyId": "00000000-0000-4000-8000-000000000001",
+                          "companyName": "合成示範商家",
+                          "confirmedAt": "2026-10-15T04:00:00Z",
+                          "version": 2,
+                          "expiresAt": "2027-10-15T04:00:00Z",
+                          "endsAt": "2027-10-15T04:00:00Z",
+                          "counted": true,
+                          "publiclyVisible": false
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Own confirmation records only, including exclusive Taipei calendar-year expiry (expiresAt; endsAt compatibility alias), whether this individual confirmation currently counts, company public visibility and current company version. A hidden company does not hide this member-owned record or block withdrawal. No company contact/location or other confirming members are returned.",
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "One confirmation per account; at least six eligible independent members are needed. Confirmations expire after one Taipei calendar year and never confer exposure. Withdrawal remains available after membership or visibility loss."
+        ]
+      }
+    },
+    "/companies/{id}/confirmations": {
+      "post": {
+        "operationId": "confirmBusinessExists",
+        "summary": "confirmBusinessExists",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "active current confirmed/July grace member; public company; excludes owner and accepted editors; one per account",
+        "x-frontend-feature": "phase3/BusinessPublic.tsx: I visited / used this service",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessConfirmationResult"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "companyId": "00000000-0000-4000-8000-000000000001",
+                      "version": 2,
+                      "confirmationCount": 1,
+                      "communityConfirmed": false,
+                      "lastConfirmedAt": "2026-10-15T04:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization.",
+          "One confirmation per account; at least six eligible independent members are needed. Confirmations expire after one Taipei calendar year and never confer exposure. Withdrawal remains available after membership or visibility loss."
+        ]
+      }
+    },
+    "/companies/{id}/confirmations/withdraw": {
+      "post": {
+        "operationId": "withdrawBusinessConfirmation",
+        "summary": "withdrawBusinessConfirmation",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "own existing confirmation; valid membership/public exposure not required",
+        "x-frontend-feature": "phase3/BusinessPublic.tsx: withdraw own confirmation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessConfirmationResult"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "companyId": "00000000-0000-4000-8000-000000000001",
+                      "version": 2,
+                      "confirmationCount": 1,
+                      "communityConfirmed": false,
+                      "lastConfirmedAt": "2026-10-15T04:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Company visibility and eligibility are computed from server time and current records. Trial lasts exactly 72 hours from immutable first publication; advertisement uses Taipei calendar dates and one calendar year excluding end. Six current eligible independent members confer existence confirmation only, never exposure. Unauthorized resources return 404. No payment or advertisement activation is implemented.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization.",
+          "One confirmation per account; at least six eligible independent members are needed. Confirmations expire after one Taipei calendar year and never confer exposure. Withdrawal remains available after membership or visibility loss."
+        ]
+      }
+    },
+    "/company-invitations/{id}/cancel": {
+      "post": {
+        "operationId": "cancelBusinessInvitation",
+        "summary": "cancelBusinessInvitation",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "company owner only; pending invitation",
+        "x-frontend-feature": "engagement/invitationModel.ts: cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessLink"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "00000000-0000-4000-8000-000000000003",
+                      "companyId": "00000000-0000-4000-8000-000000000001",
+                      "memberId": "00000000-0000-4000-8000-000000000002",
+                      "kind": "editor",
+                      "status": "cancelled",
+                      "version": 1,
+                      "invitedAt": "2026-10-15T04:00:00Z",
+                      "decidedAt": "2026-10-15T04:00:00Z",
+                      "companyName": "合成示範商家",
+                      "companyVersion": 2,
+                      "ownerId": "00000000-0000-4000-8000-000000000004",
+                      "inviteeId": "00000000-0000-4000-8000-000000000002",
+                      "createdAt": "2026-10-15T04:00:00Z",
+                      "updatedAt": "2026-10-15T04:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Owner cancel operation locks company then invitation. Supplied companyVersion and invitation version must both match (409 on conflict). Cancellation handles pending invitations; revocation handles accepted editors and preserves independent member associations. Allowed while company is suspended; never changes company publication or exposure dates.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessInvitationDecision"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 0,
+                    "companyVersion": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization.",
+          "Editor and associated-member links grant separate rights; explicit invitee acceptance is required and owner membership cannot be removed using a link action.",
+          "Invitation version and optional legacy-compatible companyVersion are checked under company -> invitation locks; mismatches return 409. New UI supplies both version fields. Cancelled/revoked/rejected invitations remain historical records; reinvitation creates a new ID."
+        ]
+      }
+    },
+    "/company-invitations/{id}/revoke": {
+      "post": {
+        "operationId": "revokeBusinessInvitation",
+        "summary": "revokeBusinessInvitation",
+        "tags": [
+          "businesses"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "company owner only; accepted editor link; independent company member associations retained",
+        "x-frontend-feature": "engagement/invitationModel.ts: revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessLink"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "00000000-0000-4000-8000-000000000003",
+                      "companyId": "00000000-0000-4000-8000-000000000001",
+                      "memberId": "00000000-0000-4000-8000-000000000002",
+                      "kind": "editor",
+                      "status": "revoked",
+                      "version": 2,
+                      "invitedAt": "2026-10-15T04:00:00Z",
+                      "decidedAt": "2026-10-15T04:00:00Z",
+                      "companyName": "合成示範商家",
+                      "companyVersion": 3,
+                      "ownerId": "00000000-0000-4000-8000-000000000004",
+                      "inviteeId": "00000000-0000-4000-8000-000000000002",
+                      "createdAt": "2026-10-15T04:00:00Z",
+                      "updatedAt": "2026-10-15T04:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Owner revoke operation locks company then invitation. Supplied companyVersion and invitation version must both match (409 on conflict). Cancellation handles pending invitations; revocation handles accepted editors and preserves independent member associations. Allowed while company is suspended; never changes company publication or exposure dates.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessInvitationDecision"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 0,
+                    "companyVersion": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-state-safeguards": [
+          "Current server time, active sessions and current scoped authorization are evaluated on every request.",
+          "Public projections contain only explicit allowlisted company contact fields; private member identity and confirmation account IDs are excluded.",
+          "Atomic company row locks reject stale version or invalid state with 409; version is never silently overwritten.",
+          "Idempotency-Key is scoped to actor and path; a changed payload returns 409 and replay rechecks current authorization.",
+          "Editor and associated-member links grant separate rights; explicit invitee acceptance is required and owner membership cannot be removed using a link action.",
+          "Invitation version and optional legacy-compatible companyVersion are checked under company -> invitation locks; mismatches return 409. New UI supplies both version fields. Cancelled/revoked/rejected invitations remain historical records; reinvitation creates a new ID."
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BusinessPublicFlags": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "phone": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "boolean"
+          },
+          "website": {
+            "type": "boolean"
+          },
+          "address": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "phone",
+          "email",
+          "website",
+          "address"
+        ]
+      },
+      "BusinessInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "industryIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "maxItems": 30,
+            "uniqueItems": true
+          },
+          "publicFlags": {
+            "$ref": "#/components/schemas/BusinessPublicFlags"
+          },
+          "locationConsent": {
+            "type": "boolean"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180
+          }
+        },
+        "required": [
+          "name",
+          "industryIds",
+          "publicFlags",
+          "locationConsent"
+        ]
+      },
+      "BusinessUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "industryIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "maxItems": 30,
+            "uniqueItems": true
+          },
+          "publicFlags": {
+            "$ref": "#/components/schemas/BusinessPublicFlags"
+          },
+          "locationConsent": {
+            "type": "boolean"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "name",
+          "industryIds",
+          "publicFlags",
+          "locationConsent",
+          "version"
+        ]
+      },
+      "BusinessEligibility": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "free": {
+            "type": "boolean"
+          },
+          "paid": {
+            "type": "boolean"
+          },
+          "trial": {
+            "type": "boolean"
+          },
+          "eligible": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "free",
+          "paid",
+          "trial",
+          "eligible"
+        ]
+      },
+      "BusinessCompany": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "industryIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "maxItems": 30,
+            "uniqueItems": true
+          },
+          "publicFlags": {
+            "$ref": "#/components/schemas/BusinessPublicFlags"
+          },
+          "locationConsent": {
+            "type": "boolean"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "acceptedMaintainerIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "acceptedMemberIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "pending",
+              "approved",
+              "rejected",
+              "suspended"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reviewReason": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "firstPublishedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "trialEndsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "eligibility": {
+            "$ref": "#/components/schemas/BusinessEligibility"
+          },
+          "confirmationCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "communityConfirmed": {
+            "type": "boolean"
+          },
+          "lastConfirmedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "industryIds",
+          "city",
+          "status",
+          "version",
+          "publicFlags",
+          "locationConsent",
+          "eligibility",
+          "confirmationCount",
+          "communityConfirmed"
+        ]
+      },
+      "PublicBusiness": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "industryIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "maxItems": 30,
+            "uniqueItems": true
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mapVisible": {
+            "type": "boolean"
+          },
+          "exposure": {
+            "type": "string",
+            "enum": [
+              "free",
+              "advertisement",
+              "trial"
+            ]
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessPublicContact"
+            }
+          },
+          "trialEndsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confirmationCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "communityConfirmed": {
+            "type": "boolean"
+          },
+          "lastConfirmedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "industryIds",
+          "city",
+          "mapVisible",
+          "exposure",
+          "contacts",
+          "confirmationCount",
+          "communityConfirmed"
+        ]
+      },
+      "BusinessPublicContact": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "callName": {
+            "type": "string"
+          },
+          "clubId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clubName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "callName",
+          "clubId",
+          "clubName"
+        ]
+      },
+      "BusinessIndustry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "BusinessLink": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "memberId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "editor",
+              "member"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "rejected",
+              "removed",
+              "cancelled",
+              "revoked"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "invitedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "companyVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "ownerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "inviteeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "companyId",
+          "kind",
+          "status",
+          "version",
+          "invitedAt",
+          "companyName",
+          "companyVersion",
+          "ownerId",
+          "inviteeId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BusinessInvitation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "editor",
+              "member"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "rejected",
+              "removed",
+              "cancelled",
+              "revoked"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "invitedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "companyVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "ownerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "inviteeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "companyId",
+          "companyName",
+          "kind",
+          "status",
+          "version",
+          "invitedAt",
+          "companyVersion",
+          "ownerId",
+          "inviteeId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BusinessLinkRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "memberId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "editor",
+              "member"
+            ]
+          },
+          "companyVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "When supplied, must match the current company version as well as version; omitted is legacy compatibility."
+          }
+        },
+        "required": [
+          "version",
+          "memberId",
+          "kind"
+        ]
+      },
+      "BusinessModerationResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "rejected",
+              "suspended"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reviewReason": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "companyId",
+          "status",
+          "version",
+          "reviewReason"
+        ]
+      },
+      "BusinessConfirmationResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "confirmationCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "communityConfirmed": {
+            "type": "boolean"
+          },
+          "lastConfirmedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "companyId",
+          "version",
+          "confirmationCount",
+          "communityConfirmed"
+        ]
+      },
+      "BusinessConfirmationRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "confirmedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "counted": {
+            "type": "boolean"
+          },
+          "publiclyVisible": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "companyId",
+          "companyName",
+          "confirmedAt",
+          "version",
+          "expiresAt",
+          "endsAt",
+          "counted",
+          "publiclyVisible"
+        ]
+      },
+      "BusinessExposureGrant": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "endsOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "void"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "companyId",
+          "startsOn",
+          "endsOn",
+          "status",
+          "version"
+        ]
+      },
+      "BusinessCompaniesPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessCompany"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ]
+      },
+      "PublicBusinessesPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicBusiness"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ]
+      },
+      "BusinessIndustries": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessIndustry"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "BusinessLinks": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessLink"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "BusinessInvitations": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessInvitation"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "BusinessExposureGrants": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessExposureGrant"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "BusinessConfirmations": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessConfirmationRecord"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "BusinessInvitationDecision": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Invitation/link version."
+          },
+          "companyVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Current company version. New UI supplies this; old requests may omit it."
+          }
+        },
+        "required": [
+          "version"
+        ]
+      }
+    }
+  }
+}

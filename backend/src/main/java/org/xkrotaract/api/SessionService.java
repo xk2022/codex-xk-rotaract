@@ -89,7 +89,7 @@ class SessionService {
     UUID id = UUID.randomUUID();
     var now = java.sql.Timestamp.from(clock.instant());
     db.update(
-        "INSERT INTO api_sessions VALUES(?,?,?,?,?,?)",
+        "INSERT INTO api_sessions(token_hash,id,account_id,csrf_token,created_at,last_seen) VALUES(?,?,?,?,?,?)",
         hash(token),
         id,
         accountId,

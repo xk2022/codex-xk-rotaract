@@ -1,0 +1,609 @@
+{
+  "paths": {
+    "/me/mfa": {
+      "get": {
+        "operationId": "getMyMfaStatus",
+        "summary": "取得本人 MFA 設定與當次驗證狀態",
+        "tags": [
+          "Security"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "parameters": [],
+        "x-authorization": "Authenticated owner only; session and current authorization checked inside transaction before replay",
+        "x-state-safeguards": [
+          "Secrets never logged; TOTP stored authenticated-encrypted; current-password verification and throttling; TOTP code single use; version conflicts return 409; no frontend wiring."
+        ],
+        "responses": {
+          "200": {
+            "description": "取得本人 MFA 設定與當次驗證狀態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaStatus"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "enabled": true,
+                      "authenticated": true,
+                      "pendingExpiresAt": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/me/mfa/enrollments": {
+      "post": {
+        "operationId": "createMyMfaEnrollment",
+        "summary": "目前密碼確認後建立十分鐘 TOTP 設定",
+        "tags": [
+          "Security"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "x-authorization": "Authenticated owner only; session and current authorization checked inside transaction before replay",
+        "x-state-safeguards": [
+          "Secrets never logged; TOTP stored authenticated-encrypted; current-password verification and throttling; TOTP code single use; version conflicts return 409; no frontend wiring."
+        ],
+        "responses": {
+          "201": {
+            "description": "目前密碼確認後建立十分鐘 TOTP 設定",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaEnrollment"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "enrollmentId": "20000000-0000-4000-8000-000000000001",
+                      "secret": "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
+                      "otpauthUri": "otpauth://totp/XkRotaract:synthetic",
+                      "expiresAt": "2026-10-15T12:10:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaEnrollmentRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "currentPassword": "Synthetic current password"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/mfa/enrollments/confirm": {
+      "post": {
+        "operationId": "confirmMyMfaEnrollment",
+        "summary": "本人以一次性驗證碼完成 MFA 設定",
+        "tags": [
+          "Security"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "x-authorization": "Authenticated owner only; session and current authorization checked inside transaction before replay",
+        "x-state-safeguards": [
+          "Secrets never logged; TOTP stored authenticated-encrypted; current-password verification and throttling; TOTP code single use; version conflicts return 409; no frontend wiring."
+        ],
+        "responses": {
+          "200": {
+            "description": "本人以一次性驗證碼完成 MFA 設定",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaStatus"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "enabled": true,
+                      "authenticated": true,
+                      "pendingExpiresAt": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaEnrollmentConfirmation"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "enrollmentId": "20000000-0000-4000-8000-000000000001",
+                    "code": "123456"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sessions/current/mfa-verifications": {
+      "post": {
+        "operationId": "verifyCurrentSessionMfa",
+        "summary": "驗證目前工作階段的 TOTP，特權有效十五分鐘",
+        "tags": [
+          "Security"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "x-authorization": "Authenticated owner only; session and current authorization checked inside transaction before replay",
+        "x-state-safeguards": [
+          "Secrets never logged; TOTP stored authenticated-encrypted; current-password verification and throttling; TOTP code single use; version conflicts return 409; no frontend wiring."
+        ],
+        "responses": {
+          "200": {
+            "description": "驗證目前工作階段的 TOTP，特權有效十五分鐘",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaStatus"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "enabled": true,
+                      "authenticated": true,
+                      "pendingExpiresAt": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaVerification"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "code": "123456"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/assets/{id}/content": {
+      "get": {
+        "operationId": "getPublicClubLogoContent",
+        "summary": "讀取目前仍公開且已清理的社團圖像",
+        "tags": [
+          "Infrastructure"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "x-authorization": "Anonymous current public-resource projection only",
+        "x-state-safeguards": [
+          "Secrets never logged; TOTP stored authenticated-encrypted; current-password verification and throttling; TOTP code single use; version conflicts return 409; no frontend wiring."
+        ],
+        "responses": {
+          "200": {
+            "description": "讀取目前仍公開且已清理的社團圖像",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "getApiHealth",
+        "summary": "確認服務與資料庫可用",
+        "tags": [
+          "Infrastructure"
+        ],
+        "security": [],
+        "parameters": [],
+        "x-authorization": "Anonymous current public-resource projection only",
+        "x-state-safeguards": [
+          "Secrets never logged; TOTP stored authenticated-encrypted; current-password verification and throttling; TOTP code single use; version conflicts return 409; no frontend wiring."
+        ],
+        "responses": {
+          "200": {
+            "description": "確認服務與資料庫可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "status": "up"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MfaStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "authenticated": {
+            "type": "boolean"
+          },
+          "pendingExpiresAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "enabled",
+          "authenticated",
+          "pendingExpiresAt"
+        ]
+      },
+      "MfaEnrollmentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "currentPassword"
+        ]
+      },
+      "MfaEnrollment": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enrollmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "secret": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 32,
+            "pattern": "^[A-Z2-7]{32}$"
+          },
+          "otpauthUri": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "enrollmentId",
+          "secret",
+          "otpauthUri",
+          "expiresAt"
+        ]
+      },
+      "MfaEnrollmentConfirmation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enrollmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "minLength": 6,
+            "maxLength": 6,
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "enrollmentId",
+          "code"
+        ]
+      },
+      "MfaVerification": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "minLength": 6,
+            "maxLength": 6,
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "HealthStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "up"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      }
+    }
+  }
+}

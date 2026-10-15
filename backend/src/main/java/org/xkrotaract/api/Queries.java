@@ -186,7 +186,7 @@ class Queries {
         "callName",
         m.get("call_name"),
         "avatarAssetId",
-        null,
+        m.get("avatar_asset_id"),
         "clubs",
         clubs,
         "annualStatus",

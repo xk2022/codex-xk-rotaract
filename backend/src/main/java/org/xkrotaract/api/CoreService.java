@@ -96,6 +96,7 @@ class CoreService {
     return tx.execute(
         t -> {
           if (s.accountId() != null) lockAccountSession(s);
+          if (req.getAttribute("apiAuthorization") instanceof Runnable authorization) authorization.run();
           db.queryForObject(
               "SELECT pg_advisory_xact_lock(hashtextextended(?,0)) IS NULL",
               Boolean.class,
@@ -149,7 +150,15 @@ class CoreService {
   Object selfReplay(HttpServletRequest req, JsonNode original, SessionService.Session session) {
     if (Set.of("/api/v1/me/contact-changes", "/api/v1/me/account-code-changes")
         .contains(req.getRequestURI())) return me(session);
+    if (Set.of("/api/v1/me/mfa/enrollments/confirm", "/api/v1/sessions/current/mfa-verifications").contains(req.getRequestURI())) return mfaStatus(session);
     return original;
+  }
+
+  Map<String,Object> mfaStatus(SessionService.Session session) {
+    var a=one("SELECT totp_secret_ciphertext,totp_pending_expires_at FROM accounts WHERE id=?",session.accountId());
+    boolean enabled=a.get("totp_secret_ciphertext")!=null;
+    boolean authenticated=enabled && db.queryForObject("SELECT count(*) FROM api_sessions WHERE token_hash=? AND mfa_verified_at>?",Integer.class,session.hash(),java.sql.Timestamp.from(clock.instant().minus(Duration.ofMinutes(15))))==1;
+    return map("enabled",enabled,"authenticated",authenticated,"pendingExpiresAt",a.get("totp_pending_expires_at")==null?null:((java.sql.Timestamp)a.get("totp_pending_expires_at")).toInstant().toString());
   }
 
   Map<String, Object> lockAccountSession(SessionService.Session session) {
@@ -369,38 +378,12 @@ class CoreService {
   }
 
   List<Map<String, Object>> roles(UUID account) {
-    return db
-        .queryForList(
-            "SELECT r.*,c.status club_status FROM role_grants r JOIN clubs c ON c.id=r.club_id"
-                + " WHERE account_id=? AND starts_at<=? AND ends_at>? AND c.status='active'",
-            account,
-            now(),
-            now())
-        .stream()
-        .map(
-            r ->
-                map(
-                    "id",
-                    r.get("id"),
-                    "accountId",
-                    account,
-                    "role",
-                    r.get("role"),
-                    "scope",
-                    map("scopeType", "club", "scopeId", r.get("club_id")),
-                    "permissions",
-                    List.of(),
-                    "startsAt",
-                    ((java.sql.Timestamp) r.get("starts_at")).toInstant().toString(),
-                    "endsAt",
-                    ((java.sql.Timestamp) r.get("ends_at")).toInstant().toString(),
-                    "grantedBy",
-                    r.get("granted_by"),
-                    "reason",
-                    r.get("reason"),
-                    "version",
-                    r.get("version")))
-        .toList();
+    return db.queryForList("SELECT r.*,COALESCE(r.scope_id,r.club_id) effective_scope_id FROM role_grants r LEFT JOIN clubs c ON c.id=r.club_id WHERE account_id=? AND revoked_at IS NULL AND starts_at<=? AND ends_at>? AND (scope_type<>'club' OR c.status='active')", account, now(), now()).stream().map(r -> {
+      try {
+        var permissions=(java.sql.Array)r.get("permissions");
+        return map("id",r.get("id"),"accountId",account,"role",r.get("role"),"scope",map("scopeType",r.get("scope_type"),"scopeId",r.get("effective_scope_id")),"permissions",permissions==null?List.of():Arrays.asList((String[])permissions.getArray()),"startsAt",((java.sql.Timestamp)r.get("starts_at")).toInstant().toString(),"endsAt",((java.sql.Timestamp)r.get("ends_at")).toInstant().toString(),"grantedBy",r.get("granted_by"),"reason",r.get("reason"),"version",r.get("version"));
+      } catch(java.sql.SQLException e) {throw new IllegalStateException(e);}
+    }).toList();
   }
 
   Object me(SessionService.Session session) {
@@ -435,7 +418,7 @@ class CoreService {
         "csrfToken",
         session.csrf(),
         "mfaAuthenticated",
-        false);
+        mfaStatus(session).get("authenticated"));
   }
 
   Object memberSelf(Map<String, Object> m) {
@@ -449,7 +432,7 @@ class CoreService {
         "callName",
         m.get("call_name"),
         "avatarAssetId",
-        null,
+        m.get("avatar_asset_id"),
         "phoneVisible",
         m.get("phone_visible"),
         "emailVisible",
@@ -464,7 +447,7 @@ class CoreService {
             "SELECT count(*) FROM role_grants r JOIN clubs c ON c.id=r.club_id WHERE account_id=?"
                 + " AND club_id=? AND role IN"
                 + " ('club_president','club_secretary','club_manager','club_backup') AND"
-                + " starts_at<=? AND ends_at>? AND c.status='active'",
+                + " starts_at<=? AND ends_at>? AND revoked_at IS NULL AND scope_type='club' AND c.status='active'",
             Integer.class,
             account,
             club,
@@ -656,6 +639,7 @@ class CoreService {
 
   String annual(Map<String, Object> r) {
     if (!"active".equals(r.get("status"))) return "unconfirmed";
+    if (Integer.valueOf(yearStart()).equals(r.get("annual_unconfirmed_year"))) return "unconfirmed";
     int y = (Integer) r.get("confirmed_year");
     return y == yearStart()
         ? "confirmed"
@@ -679,9 +663,9 @@ class CoreService {
         "endsOn",
         r.get("ends_on") == null ? null : r.get("ends_on").toString(),
         "datePrecision",
-        "day",
+        r.getOrDefault("date_precision", "day"),
         "endReason",
-        null,
+        r.get("end_reason"),
         "nameSnapshot",
         r.get("name_snapshot"),
         "callNameSnapshot",
@@ -693,11 +677,11 @@ class CoreService {
         "annualStatus",
         annual(r),
         "visibility",
-        "hidden",
+        r.getOrDefault("visibility", "hidden"),
         "contentVersion",
-        0,
+        r.getOrDefault("content_version", 0),
         "visibilityVersion",
-        0,
+        r.getOrDefault("visibility_version", 0),
         "version",
         r.get("version"));
   }

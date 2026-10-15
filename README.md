@@ -4,7 +4,11 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：[年度交接總覽](docs/2027/41-annual-handover-overview.md)：社員確認、任期及接任進度。八項建議前端初版已補齊，正式後端待辦保留。
+最新後端：[141 項後端 API（先不串接）](docs/2027/42-backend-api-delivery.md)，API 範圍以 `bd33582` 的前端為基準。
+
+下一步：[API 交接與分階段串接安排](docs/2027/43-api-handoff-and-integration-plan.md)，包含前端模型差異與第一個驗收工作項目。
+
+[年度交接總覽](docs/2027/41-annual-handover-overview.md)：社員確認、任期及接任進度。八項建議前端初版已補齊，新增後端待辦見交付差異。
 
 [商家、社團與活動收藏清單](docs/2027/40-favorites-ui-ux.md)：三類收藏、本人隔離與失效提示。
 
@@ -30,16 +34,16 @@ GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rota
 
 公開行事曆依[舊版資訊架構重做](docs/2027/29-legacy-calendar-react.md)，保留地區、扶輪年度、社團及日期導覽。
 
-[第二階段前端UI／UX](docs/2027/28-phase2-frontend-ui-ux.md)已補齊公開活動／社團頁、行事曆、活動管理與會員閱讀的假資料初版；依使用者指示暫停新增後端。
+[第二階段前端UI／UX](docs/2027/28-phase2-frontend-ui-ux.md)已補齊公開活動／社團頁、行事曆、活動管理與會員閱讀的假資料初版；本輪已補齊對應後端，新增功能維持未串接。
 
-第一階段與後續模組的需求基準 v1.0 已完成，後續以需求變更調整。前端採 React + TypeScript + Vite，保留舊版品牌與配色並更新版面；正式供應商設定與資產仍待取得，詳見[現行規格](docs/2027/13-requirements-baseline.md)。GitHub Pages 已發布前端合成資料展示。另有 Java 21／Spring Boot／PostgreSQL 17 的本地 API 與前端串接模式，涵蓋註冊、登入、入社審核、會員查詢及本人帳號／隱私變更，已有前端單元、資料庫整合與真實HTTPS瀏覽器驗證。最新範圍、證據與限制見[帳號與隱私交付](docs/2027/27-account-and-privacy-integration.md)，前輪見[核心串接紀錄](docs/2027/26-core-api-integration.md)。第一階段整體與正式後端部署尚未完成。
+第一階段與後續模組的需求基準 v1.0 已完成，後續以需求變更調整。前端採 React + TypeScript + Vite，保留舊版品牌與配色並更新版面；正式供應商設定與資產仍待取得，詳見[現行規格](docs/2027/13-requirements-baseline.md)。GitHub Pages 已發布前端合成資料展示。另有 Java 21／Spring Boot／PostgreSQL 17 的本地 API 與前端串接模式，涵蓋註冊、登入、入社審核、會員查詢及本人帳號／隱私變更，已有前端單元、資料庫整合與真實HTTPS瀏覽器驗證。最新範圍、證據與限制見[帳號與隱私交付](docs/2027/27-account-and-privacy-integration.md)，前輪見[核心串接紀錄](docs/2027/26-core-api-integration.md)。本輪後端範圍與限制見[API交付](docs/2027/42-backend-api-delivery.md)，正式部署尚未完成。
 
 ## 目錄
 
 | 路徑 | 用途 | 目前內容 |
 | --- | --- | --- |
 | `frontend/` | 前端畫面與互動 | 公開展示、可選本地 API 串接模式與測試 |
-| `backend/` | 後端 API 與業務邏輯 | 17個 API operation、Flyway與PostgreSQL整合測試 |
+| `backend/` | 後端 API 與業務邏輯 | 141 項 API、Flyway與PostgreSQL整合測試 |
 | `docs/` | 需求、架構、API 契約與團隊規則 | 協作文件 |
 | `.github/workflows/` | GitHub Actions | 前端 Pages 部署、核心 API 與 HTTPS 流程驗證 |
 

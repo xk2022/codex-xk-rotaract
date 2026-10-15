@@ -3,6 +3,10 @@ spring:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/rotaract}
     username: ${DATABASE_USER:rotaract}
     password: ${DATABASE_PASSWORD}
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 3MB
   jackson:
     deserialization:
       fail-on-unknown-properties: true

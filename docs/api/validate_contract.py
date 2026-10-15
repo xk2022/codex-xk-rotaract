@@ -189,9 +189,12 @@ def main():
                 if status == '204':
                     check('content' not in response, label + ': 204 has body')
                     continue
-                check('application/json' in response.get('content', {}), label + ': untyped response ' + status)
-                for media in response.get('content', {}).values():
+                check(any(mime == 'application/json' or (mime == 'image/png' and media.get('schema') == {'type': 'string', 'format': 'binary'}) for mime, media in response.get('content', {}).items()), label + ': untyped response ' + status)
+                for mime, media in response.get('content', {}).items():
                     check(bool(media.get('schema')), label + ': missing response DTO')
+                    if mime == 'image/png':
+                        check(media['schema'] == {'type': 'string', 'format': 'binary'}, label + ': invalid binary image contract')
+                        continue
                     check(bool(media.get('examples')), label + ': missing response example')
                     for example in media.get('examples', {}).values():
                         examples += 1

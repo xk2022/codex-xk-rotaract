@@ -68,7 +68,7 @@ class CoreIntegrationTest {
         UUID.randomUUID(),
         reviewer);
     core.db.update(
-        "INSERT INTO role_grants VALUES(?,?,'club_manager',?,?,?,?, 'test',0)",
+        "INSERT INTO role_grants(id,account_id,role,club_id,starts_at,ends_at,granted_by,reason,version) VALUES(?,?,'club_manager',?,?,?,?, 'test',0)",
         UUID.randomUUID(),
         reviewer,
         club,
