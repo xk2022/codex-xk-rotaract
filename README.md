@@ -4,7 +4,9 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：[社團停用／恢復與公開頁同步](docs/2027/31-organization-public-sync.md)已補齊第二階段跨模組流程。
+最新：[公開頁手機與無障礙操作改善](docs/2027/32-public-mobile-accessibility.md)。
+
+[社團停用／恢復與公開頁同步](docs/2027/31-organization-public-sync.md)已補齊第二階段跨模組流程。
 
 [已發布活動內容更正](docs/2027/30-published-event-corrections.md)補齊第二階段前端維護流程。
 

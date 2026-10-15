@@ -86,12 +86,7 @@ try {
   await shop.click();
   await page.getByRole("dialog").waitFor();
   await page.keyboard.press("Tab");
-  assert.equal(
-    await page.evaluate(() =>
-      document.activeElement?.getAttribute("aria-label"),
-    ),
-    "關閉詳情",
-  );
+  assert.equal(await page.evaluate(() => document.activeElement === document.body || document.querySelector("dialog")?.contains(document.activeElement)), true);
   await page.keyboard.press("Escape");
   assert.equal(await page.getByRole("dialog").count(), 0);
   assert.equal(

@@ -6,3 +6,25 @@
 @media(prefers-reduced-motion:reduce){.lc-event{transition:none}}
 
 .lc-view-toggle{display:flex;gap:5px;margin-top:14px}.lc-view-toggle button{min-height:36px;border:1px solid #e4d9da;border-radius:7px;background:white;color:var(--lc-ink);padding:7px 14px;font-size:12px}.lc-view-toggle button[aria-pressed=true]{background:var(--lc-red);border-color:var(--lc-red);color:white}.lc-month-empty{font-size:13px;color:var(--lc-muted);padding:18px 8px;line-height:1.8}.lc-calendar .lc-event.ph-event-card{display:block;min-height:0;margin:0;background:white}.lc-calendar .lc-event.ph-event-card h3{display:block}.lc-calendar .lc-event.ph-event-card p{display:block}.lc-calendar .lc-event.ph-event-card .lc-location{display:flex}
+
+/* Navigation controls stay usable at narrow widths and enlarged text sizes.
+   Dates retain seven columns and full spoken date labels. */
+.lc-year-controls button,.lc-month-actions button,.lc-view-toggle button,.lc-months button,.lc-demo-note button,.lc-empty button{min-height:44px}
+.lc-year-controls button,.lc-month-actions button{min-width:44px;flex-shrink:0}
+.lc-month-heading{flex-wrap:wrap}
+.lc-month-heading>div:first-child{min-width:0}
+.lc-month-actions{flex-wrap:wrap}
+.lc-agenda-heading{flex-wrap:wrap}
+.lc-calendar h2[tabindex="-1"]:focus{outline:3px solid #244e80;outline-offset:4px;border-radius:3px}
+@media(max-width:650px){
+ .lc-intro>div{min-width:0}
+ .lc-intro h1,.lc-agenda-heading h2,.lc-event h3{overflow-wrap:anywhere}
+ .lc-toolbar{grid-template-columns:minmax(0,1fr)}
+ .lc-toolbar>button{justify-self:start;white-space:normal}
+ .lc-year-controls{gap:10px;flex-wrap:wrap}
+ .lc-months{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .lc-months button{white-space:normal}
+ .lc-view-toggle{flex-wrap:wrap}
+ .lc-day{overflow:hidden}
+ .lc-day-number{min-width:0}
+}

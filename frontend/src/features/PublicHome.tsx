@@ -238,15 +238,31 @@ export function PublicHome({
   };
   const [businessId, setBusinessId] = useState<string | null>(null);
   const detailTrigger = useRef<HTMLElement | null>(null);
+  const detailDialog = useRef<HTMLDialogElement>(null);
+  const menuToggle = useRef<HTMLButtonElement>(null);
   const hasDetail = businessId !== null;
   useEffect(() => {
     setBusinessId(null);
     setMenu(false);
   }, [page]);
   useEffect(() => {
+    if (!menu) return;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMenu(false);
+      menuToggle.current?.focus();
+    };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [menu]);
+  useEffect(() => {
     if (!hasDetail) return;
+    detailDialog.current?.showModal();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const trigger = detailTrigger.current;
     return () => {
+      document.body.style.overflow = previousOverflow;
       if (trigger?.isConnected) trigger.focus();
     };
   }, [hasDetail]);
@@ -303,6 +319,7 @@ export function PublicHome({
             </span>
           </button>
           <button
+            ref={menuToggle}
             className="ph-menu-toggle"
             onClick={() => setMenu(!menu)}
             aria-expanded={menu}
@@ -315,6 +332,10 @@ export function PublicHome({
             id="ph-navigation"
             className={`ph-nav ${menu ? "is-open" : ""}`}
             aria-label="公開網站導覽"
+            onBlur={(event) => {
+              const next = event.relatedTarget;
+              if (next instanceof Node && !event.currentTarget.contains(next) && next !== menuToggle.current) setMenu(false);
+            }}
           >
             <button
               aria-current={page === "home" ? "page" : undefined}
@@ -693,38 +714,14 @@ export function PublicHome({
         </div>
       </footer>
       {selectedBusiness && (
-        <div
+        <dialog
+          ref={detailDialog}
           className="ph-modal-overlay"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setBusinessId(null);
-            }
-          }}
+          aria-labelledby="ph-detail-title"
+          onCancel={(event) => { event.preventDefault(); setBusinessId(null); }}
+          onClick={(event) => { if (event.target === event.currentTarget) setBusinessId(null); }}
         >
-          <div
-            className="ph-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="ph-detail-title"
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                setBusinessId(null);
-              }
-              if (e.key === "Tab") {
-                const controls =
-                  e.currentTarget.querySelectorAll<HTMLButtonElement>("button");
-                const first = controls[0];
-                const last = controls[controls.length - 1];
-                if (e.shiftKey && document.activeElement === first) {
-                  e.preventDefault();
-                  last?.focus();
-                } else if (!e.shiftKey && document.activeElement === last) {
-                  e.preventDefault();
-                  first?.focus();
-                }
-              }
-            }}
-          >
+          <div className="ph-modal">
             <button
               className="ph-modal-close"
               autoFocus
@@ -759,7 +756,7 @@ export function PublicHome({
               </>
             )}
           </div>
-        </div>
+        </dialog>
       )}
     </div>
   );

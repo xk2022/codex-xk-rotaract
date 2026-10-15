@@ -43,6 +43,8 @@ export function LegacyCalendar() {
     }, [selectedDay, districtId, clubId, keyword, view]);
     const dateButtons = useRef(new Map<string, HTMLButtonElement>());
     const focusDay = useRef<string | null>(null);
+    const retriedLoad = useRef(false);
+    const loadedHeading = useRef<HTMLHeadingElement>(null);
     useEffect(() => {
         if (loadState !== 'loading') return;
         const timer = window.setTimeout(() => setLoadState('ready'), 700);
@@ -51,6 +53,12 @@ export function LegacyCalendar() {
     useEffect(() => {
         if (focusDay.current) { dateButtons.current.get(focusDay.current)?.focus(); focusDay.current = null; }
     }, [selectedDay]);
+    useEffect(() => {
+        if (loadState === 'ready' && retriedLoad.current) {
+            loadedHeading.current?.focus();
+            retriedLoad.current = false;
+        }
+    }, [loadState]);
     const districts = [...new Map(clubs.map(club => [club.districtId, club.districtName])).entries()].sort(([a], [b]) => a.localeCompare(b));
     // Historical clubs remain selectable only when they have a publicly visible record.
     const visible = useMemo(() => publicProjection(events, clubs), [events, clubs]);
@@ -84,13 +92,13 @@ export function LegacyCalendar() {
             <button type="button" className="lc-outline" onClick={resetFilters}>重設篩選</button>
         </div>
         <div className="lc-demo-note">目前為合成資料展示，時間依台北時區（UTC+8）呈現。<button type="button" onClick={() => setSelectedDay('2026-10-17')}>查看 2026 年 10 月示範</button></div>
-        {loadState === 'error' ? <div className="lc-feedback" role="alert"><h2>暫時無法載入行事曆</h2><p>此為載入失敗情境示範，請重試以重新讀取合成活動資料。</p><button type="button" className="lc-primary" onClick={() => setLoadState('loading')}>重新載入</button></div> : loadState === 'loading' ? <div className="lc-feedback" role="status" aria-live="polite" aria-busy="true"><h2>正在載入活動…</h2><p>此為載入狀態示範，請稍候，即將呈現合成公開活動。</p></div> : <div className="lc-layout">
+        {loadState === 'error' ? <div className="lc-feedback" role="alert"><h2>暫時無法載入行事曆</h2><p>此為載入失敗情境示範，請重試以重新讀取合成活動資料。</p><button type="button" className="lc-primary" onClick={() => { retriedLoad.current = true; setLoadState('loading'); }}>重新載入</button></div> : loadState === 'loading' ? <div className="lc-feedback" role="status" aria-live="polite" aria-busy="true"><h2>正在載入活動…</h2><p>此為載入狀態示範，請稍候，即將呈現合成公開活動。</p></div> : <div className="lc-layout">
             <aside className="lc-year-panel" aria-label="扶輪年度與月份"><div className="lc-year-controls"><button type="button" aria-label="上一個扶輪年度" onClick={() => setSelectedDay(shiftMonth(selectedDay, -12))}><ChevronLeft size={18} /></button><strong>{rotaryYear}–{rotaryYear + 1}</strong><button type="button" aria-label="下一個扶輪年度" onClick={() => setSelectedDay(shiftMonth(selectedDay, 12))}><ChevronRight size={18} /></button></div><p>扶輪年度 · 7 月至翌年 6 月</p><nav className="lc-months" aria-label="選擇月份">{Array.from({ length: 12 }, (_, index) => {
                 const m = (index + 6) % 12, y = rotaryYear + (m < 6 ? 1 : 0);
                 return <button type="button" key={index} aria-pressed={monthIndex === m} aria-label={`${y} 年 ${m + 1} 月`} onClick={() => setSelectedDay(`${y}-${String(m + 1).padStart(2, '0')}-01`)}><span>{m + 1} 月</span><small>{y}</small></button>;
             })}</nav></aside>
-            <div className="lc-main"><div className="lc-month-heading"><div><p className="lc-eyebrow">PUBLIC CALENDAR</p><h2 aria-live="polite">{year} 年 {monthIndex + 1} 月</h2><p role="status">本月符合條件 {monthEvents.length} 場活動</p></div><div className="lc-month-actions"><button type="button" aria-label="上一個月" onClick={() => setSelectedDay(shiftMonth(selectedDay, -1))}><ChevronLeft size={18} /></button><button type="button" onClick={() => setSelectedDay(today)}>今天</button><button type="button" aria-label="下一個月" onClick={() => setSelectedDay(shiftMonth(selectedDay, 1))}><ChevronRight size={18} /></button></div></div>
-                <div className="lc-view-toggle" aria-label="行事曆呈現方式"><button type="button" aria-pressed={view === 'calendar'} onClick={() => setView('calendar')}>月曆</button><button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>活動列表</button></div>
+            <div className="lc-main"><div className="lc-month-heading"><div><p className="lc-eyebrow">PUBLIC CALENDAR</p><h2 ref={loadedHeading} tabIndex={-1} aria-live="polite">{year} 年 {monthIndex + 1} 月</h2><p role="status">本月符合條件 {monthEvents.length} 場活動</p></div><div className="lc-month-actions"><button type="button" aria-label="上一個月" onClick={() => setSelectedDay(shiftMonth(selectedDay, -1))}><ChevronLeft size={18} /></button><button type="button" onClick={() => setSelectedDay(today)}>今天</button><button type="button" aria-label="下一個月" onClick={() => setSelectedDay(shiftMonth(selectedDay, 1))}><ChevronRight size={18} /></button></div></div>
+                <div className="lc-view-toggle" role="group" aria-label="行事曆呈現方式"><button type="button" aria-pressed={view === 'calendar'} onClick={() => setView('calendar')}>月曆</button><button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>活動列表</button></div>
                 {view === 'calendar' && <><p className="lc-keyboard-hint" id="lc-keyboard-hint">方向鍵移動日期，Home／End 跳至週首／週末，Page Up／Down 切換月份。</p>
                 <div className="lc-weekdays" aria-hidden="true">{'日一二三四五六'.split('').map(day => <span key={day}>{day}</span>)}</div>
                 <div className="lc-days" role="group" aria-label={`${year} 年 ${monthIndex + 1} 月日期`} aria-describedby="lc-keyboard-hint">{Array.from({ length: firstDate.getUTCDay() }, (_, index) => <span className="lc-spacer" key={`space-${index}`} />)}{Array.from({ length: dayCount }, (_, index) => {

@@ -18,7 +18,8 @@
     "test:browser:live:account": "node scripts/browser-live-account.mjs",
     "test:browser:phase2": "node scripts/browser-phase2.mjs",
     "test:browser:calendar": "node scripts/browser-calendar.mjs",
-    "test:browser:organization-sync": "node scripts/browser-organization-sync.mjs"
+    "test:browser:organization-sync": "node scripts/browser-organization-sync.mjs",
+    "test:browser:public-accessibility": "node scripts/browser-public-accessibility.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.0",
