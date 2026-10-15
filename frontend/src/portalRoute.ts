@@ -59,6 +59,7 @@ export const workspacePages = [
   "tasks",
   "reports",
   "confirmations",
+  "invitations",
 ] as const;
 export function readWorkspacePage(
   hash = window.location.hash,

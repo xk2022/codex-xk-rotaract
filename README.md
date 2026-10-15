@@ -4,7 +4,9 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：[全站銜接工具與八項實作安排](docs/2027/36-engagement-roadmap-and-ui-ux.md)：待辦提醒、商家回報與本人確認紀錄。
+最新：[公司共同維護邀請](docs/2027/37-company-maintainer-invitations.md)：邀請、回覆、取消與撤權前端完成。
+
+[全站銜接工具與八項實作安排](docs/2027/36-engagement-roadmap-and-ui-ux.md)：待辦提醒、商家回報與本人確認紀錄。
 
 [會員優惠、兌換碼與商家核銷](docs/2027/35-coupon-redemption-ui-ux.md)已完成第四階段前端假資料初版。
 

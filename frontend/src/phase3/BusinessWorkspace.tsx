@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useBusinessDemo } from './businessStore';
 import { useCommunityDemo } from '../phase2/store';
-import { businessEligibility, businessConfirmation, trialEndsAt, canMaintainBusiness, industries, validateBusinessInput } from './businessModel';
+import { demoBusinessMembers, businessEligibility, businessConfirmation, trialEndsAt, canMaintainBusiness, industries, validateBusinessInput } from './businessModel';
 import type { BusinessActor, BusinessCompany, BusinessInput, BusinessAction } from './businessModel';
 import './business-workspace.css';
 
@@ -14,6 +14,7 @@ const identities: { label: string; actor: BusinessActor }[] = [
   { label: '廣告帳號｜無社籍公司建立者', actor: { memberId: 'account-only', role: 'member' } },
   { label: '商家內容管理員｜事後治理', actor: { memberId: 'content-admin', role: 'content_admin' } },
   { label: 'OB｜無當年度社籍建立者', actor: { memberId: 'm-ob', role: 'member' } },
+  ...demoBusinessMembers.filter(m => m.id.startsWith('peer-')).map(m => ({ label: `${m.callName}｜受邀維護者示範`, actor: { memberId: m.id, role: 'member' as const } })),
 ];
 const blank = (): BusinessInput => ({ name: '', description: '', industryIds: [], city: '', phone: '', email: '', website: '', address: '', publicFlags: { phone: false, email: false, website: false, address: false }, locationConsent: false, latitude: null, longitude: null });
 function inputOf(company: BusinessCompany): BusinessInput {
@@ -98,7 +99,7 @@ export function BusinessWorkspace() {
   const duplicateName = input.name.trim() && store.companies.some(company => company.id !== selectedId && company.name.trim().toLocaleLowerCase() === input.name.trim().toLocaleLowerCase());
   const hasContact = (['phone', 'email', 'website', 'address'] as const).some(key => input.publicFlags[key] && input[key].trim());
   return <section className="bw-workspace" aria-label="會員商家維護" data-unsaved={dirty ? 'true' : 'false'}>
-    <header className="bw-header"><div><p className="bw-eyebrow">BUSINESS STUDIO · 合成資料示範</p><h2>讓你的專業，被看見</h2><p>維護公司資訊、選擇公開聯絡方式，儲存後自行發布公司。</p></div><a href="#/map" className="bw-button">查看公開商家</a></header>
+    <header className="bw-header"><div><p className="bw-eyebrow">BUSINESS STUDIO · 合成資料示範</p><h2>讓你的專業，被看見</h2><p>維護公司資訊、選擇公開聯絡方式，儲存後自行發布公司。</p></div><div className="bw-actions"><a href="#/map" className="bw-button">查看公開商家</a><a href={`#/demo?view=invitations&businessMember=${encodeURIComponent(actor.memberId)}`} className="bw-button">共同維護邀請</a></div></header>
     <div className="bw-demo"><label>商家示範身分<select value={identity} onChange={event => { if (!allowLeave()) return; setIdentity(Number(event.target.value)); setEditing(false); setSelectedId(null); setErrors([]); setNotice(''); }}>{identities.map((identity, index) => <option key={identity.actor.memberId} value={index}>{identity.label}</option>)}</select></label><label>曝光資格情境時間（台北）<input type="datetime-local" value={taipeiLocal(store.asOf)} onChange={event => { if (event.target.value && allowLeave()) { store.setAsOf(`${event.target.value}+08:00`); if (dirty) setEditing(false); } }} /></label><p>此處切換僅模擬商家權限，不代表社團、地區或帳號支援管理者可修改他人公司。重新整理會重設資料。</p></div>
     {notice && <p className="bw-notice" role="status">{notice}</p>}
     {errors.length > 0 && <div className="bw-error" role="alert"><strong>請確認以下內容</strong><ul>{errors.map(error => <li key={error}>{error}</li>)}</ul></div>}

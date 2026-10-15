@@ -2,7 +2,7 @@ import { actorClub, isManager, type Actor, type State } from '../domain';
 import type { SupportCase } from '../features/historySupportModel';
 import { businessEligibility, businessInstant, grantEndsOn, trialEndsAt, type BusinessCompany, type BusinessMember, type ExposureGrant } from '../phase3/businessModel';
 import type { CommunityClub } from '../phase2/model';
-export interface TaskItem { id: string; title: string; detail: string; view: 'applications'|'transfers'|'annual'|'support'|'businesses'|'profile'; priority: 'action'|'waiting'|'reminder'; companyId?: string; }
+export interface TaskItem { id: string; title: string; detail: string; view: 'applications'|'transfers'|'annual'|'support'|'businesses'|'profile'|'invitations'; priority: 'action'|'waiting'|'reminder'; companyId?: string; }
 export function membershipTasks(state: State, actor: Actor, cases: SupportCase[]): TaskItem[] {
  if (actor === 'visitor') return [];
  const items: TaskItem[] = []; const manager = isManager(actor); const own = actor === 'member'; const club = actorClub(actor);

@@ -23,7 +23,8 @@
     "test:browser:business": "node scripts/browser-business.mjs",
     "test:browser:business-exposure": "node scripts/browser-business-exposure.mjs",
     "test:browser:coupons": "node scripts/browser-coupons.mjs",
-    "test:browser:engagement": "node scripts/browser-engagement.mjs"
+    "test:browser:engagement": "node scripts/browser-engagement.mjs",
+    "test:browser:invitations": "node scripts/browser-invitations.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.0",

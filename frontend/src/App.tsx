@@ -67,6 +67,7 @@ import {
 } from "./features/HistorySupportViews";
 import { AnnualView, MembershipView } from "./features/MemberOperations";
 import { PublicHome } from "./features/PublicHome";
+import { CompanyInvitations } from "./engagement/CompanyInvitations";
 import { TaskCenter, taskCenterItems } from "./engagement/TaskCenter";
 import { ConfirmationHistory } from "./engagement/ConfirmationHistory";
 import { useReportDemo } from "./engagement/reportStore";
@@ -106,7 +107,8 @@ type Page =
   | "coupons"
   | "tasks"
   | "reports"
-  | "confirmations";
+  | "confirmations"
+  | "invitations";
 type Modal = "register" | "join" | "transfer" | null;
 const demoToday = "2026-10-15";
 const actorLabels: Record<Actor, string> = {
@@ -118,6 +120,7 @@ const actorLabels: Record<Actor, string> = {
   platform: "平台 · 帳號支援",
 };
 const nav: { page: Page; label: string; icon: typeof Users }[] = [
+  { page: "invitations", label: "公司共同維護邀請", icon: Users },
   { page: "tasks", label: "待辦與提醒", icon: Bell },
   { page: "reports", label: "商家回報追蹤", icon: ShieldCheck },
   { page: "confirmations", label: "我的商家確認", icon: CheckCheck },
@@ -337,7 +340,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
     actor === "visitor"
       ? ["overview"].includes(n.page)
       : actor === "platform"
-        ? ["support", "history", "audit", "businesses", "coupons", "tasks", "reports", "confirmations"].includes(n.page)
+        ? ["support", "history", "audit", "businesses", "coupons", "tasks", "reports", "confirmations", "invitations"].includes(n.page)
         : actor === "district"
           ? [
               "members",
@@ -352,6 +355,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
               "tasks",
               "reports",
               "confirmations",
+              "invitations",
             ].includes(n.page)
           : actor === "member"
             ? !["club", "roles", "annual", "district"].includes(n.page)
@@ -1132,7 +1136,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
               ],
             },
             { title: "組織與授權", pages: ["club", "roles", "district"] },
-            { title: "活動與交流", pages: ["events", "businesses", "coupons", "reports", "confirmations"] },
+            { title: "活動與交流", pages: ["events", "businesses", "coupons", "reports", "confirmations", "invitations"] },
             { title: "我的帳號", pages: ["profile", "account"] },
             { title: "紀錄與協助", pages: ["history", "audit", "support"] },
           ].map((group) => {
@@ -1349,6 +1353,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
                             businesses: "維護營業資訊與公開範圍，確認商家審核與曝光狀態。",
                             coupons: "探索會員優惠，管理兌換碼與商家一次核銷。",
                             tasks: "整合目前身分可見的待辦、進度與曝光提醒。",
+                            invitations: "邀請共同維護、回覆邀請與撤銷維護權限。",
                             reports: "回報商家資料問題，追蹤處理進度與結果。",
                             confirmations: "查看本人商家確認與效期，隱藏後仍可撤回。",
                           }[page] ?? "讓每個操作都有清楚的下一步。")}
@@ -1510,7 +1515,8 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
                     run={run}
                   />
                 )}
-                {page === "tasks" && <TaskCenter items={tasks} businessMemberId={reminderMemberId} onBusinessMemberChange={setReminderMemberId} onOpen={item => { if (item.companyId) window.location.hash = `/demo?view=businesses&company=${encodeURIComponent(item.companyId)}&businessMember=${encodeURIComponent(reminderMemberId)}`; else navigate(item.view); }} />}
+                {page === "tasks" && <TaskCenter items={tasks} businessMemberId={reminderMemberId} onBusinessMemberChange={setReminderMemberId} onOpen={item => { if (item.view === "invitations") window.location.hash = `/demo?view=invitations&businessMember=${encodeURIComponent(reminderMemberId)}`; else if (item.companyId) window.location.hash = `/demo?view=businesses&company=${encodeURIComponent(item.companyId)}&businessMember=${encodeURIComponent(reminderMemberId)}`; else navigate(item.view); }} />}
+                {page === "invitations" && <CompanyInvitations />}
                 {page === "reports" && <BusinessReports />}
                 {page === "confirmations" && <ConfirmationHistory />}
                 {page === "coupons" && <CouponWorkspace />}
