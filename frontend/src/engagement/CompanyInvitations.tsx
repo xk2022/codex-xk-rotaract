@@ -1,3 +1,4 @@
+import { workspaceHref } from '../portalRoute';
 import { useRef, useState } from 'react';
 import { useBusinessDemo } from '../phase3/businessStore';
 import type { MaintainerInvitation } from './invitationModel';
@@ -55,16 +56,16 @@ export function CompanyInvitations() {
             {tab === 'owned' && (company ? <div className="ci-panel"><label>我的公司<select aria-label="我的公司" value={company.id} onChange={e => { setCompanyId(e.target.value); setInviteeId(''); setMessage(''); }}>{owned.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
                 <form onSubmit={e => { e.preventDefault(); send(); }}><label>邀請共同維護會員<select aria-label="邀請共同維護會員" required value={inviteeId} onChange={e => setInviteeId(e.target.value)}><option value="">請選擇會員</option>{candidates.map(m => <option key={m.id} value={m.id}>{m.callName}（{m.id}）</option>)}</select></label><button type="submit" disabled={!inviteeId}>送出維護邀請</button></form>
                 {!candidates.length && <p>目前沒有可邀請的新對象，請先處理待回覆邀請。</p>}
-                <a href={`#/demo?view=businesses&company=${encodeURIComponent(company.id)}&businessMember=${encodeURIComponent(memberId)}`}>維護此公司資料</a>
+                <a href={workspaceHref('businesses', { company: company.id, businessMember: memberId })}>維護此公司資料</a>
                 <h3>目前共同維護人員</h3>{!company.acceptedMaintainerIds.length ? <p>尚無共同維護人員。</p> : <ul className="ci-maintainers">{company.acceptedMaintainerIds.map(id => <li key={id}><span>{name(id)}（{id}）</span><button type="button" onClick={() => ask({ type: 'revoke', companyId: company.id, companyName: company.name, companyVersion: company.version, memberId: id })}>撤銷 {name(id)} 維護權</button></li>)}</ul>}
-            </div> : <div className="ci-empty"><h3>目前沒有由你建立的公司</h3><p>共同維護者可到商家管理更新資料，但不能邀請其他維護人員。</p><a href={`#/demo?view=businesses&businessMember=${encodeURIComponent(memberId)}`}>前往商家管理</a></div>)}
+            </div> : <div className="ci-empty"><h3>目前沒有由你建立的公司</h3><p>共同維護者可到商家管理更新資料，但不能邀請其他維護人員。</p><a href={workspaceHref('businesses', { businessMember: memberId })}>前往商家管理</a></div>)}
             <div className="ci-list-heading"><h3>{tab === 'owned' ? '此公司的邀請紀錄' : '我的受邀紀錄'}</h3><label>邀請狀態<select aria-label="邀請狀態" value={filter} onChange={e => setFilter(e.target.value)}><option value="all">全部狀態</option>{Object.entries(statuses).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label></div>
             <p>共 {rows.length} 筆，顯示 {visible.length} 筆。</p>
             {!visible.length ? <div className="ci-empty"><h3>目前沒有符合的邀請</h3><p>{filter !== 'all' ? '請調整狀態篩選。' : tab === 'received' ? '公司建立者送出邀請後，會在這裡顯示。' : '送出邀請後，可在這裡追蹤回覆或取消邀請。'}</p></div> : <div className="ci-list">{visible.map(invitation => {
                 const linked = business.companies.find(c => c.id === invitation.companyId);
                 return <article className="ci-card" key={invitation.id}><div className="ci-card-heading"><h3>{invitation.companyName}</h3><span className="ci-badge">{statuses[invitation.status]}</span></div>{tab === 'owned' && <p>受邀會員：{name(invitation.inviteeId)}（{invitation.inviteeId}）</p>}<dl><div><dt>邀請時間</dt><dd>{formatDate(invitation.createdAt)}</dd></div><div><dt>最後更新</dt><dd>{formatDate(invitation.updatedAt)}</dd></div></dl>
                     <div className="ci-actions">{invitation.status === 'pending' && linked && (tab === 'owned' ? <button type="button" onClick={() => ask({ type: 'cancel', invitation, companyVersion: linked.version })}>取消邀請</button> : <><button type="button" onClick={() => ask({ type: 'accept', invitation, companyVersion: linked.version })}>接受邀請</button><button type="button" onClick={() => ask({ type: 'reject', invitation, companyVersion: linked.version })}>拒絕邀請</button></>)}
-                    {tab === 'received' && invitation.status === 'accepted' && linked?.acceptedMaintainerIds.includes(memberId) && <a href={`#/demo?view=businesses&company=${encodeURIComponent(invitation.companyId)}&businessMember=${encodeURIComponent(memberId)}`}>維護此公司資料</a>}</div>
+                    {tab === 'received' && invitation.status === 'accepted' && linked?.acceptedMaintainerIds.includes(memberId) && <a href={workspaceHref('businesses', { company: invitation.companyId, businessMember: memberId })}>維護此公司資料</a>}</div>
                 </article>;
             })}</div>}
         </>}

@@ -4,7 +4,9 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：[年度交接總覽](docs/2027/41-annual-handover-overview.md)：社員確認、任期及接任進度。八項建議前端初版已補齊，正式後端待辦保留。
+最新：[八項前端整體驗收與待辦](docs/2027/42-frontend-acceptance-and-change-backlog.md)：完整回歸、工作區角色接續與跨社年度提醒修正。
+
+[年度交接總覽](docs/2027/41-annual-handover-overview.md)：社員確認、任期及接任進度。八項建議前端初版已補齊，正式後端待辦保留。
 
 [商家、社團與活動收藏清單](docs/2027/40-favorites-ui-ux.md)：三類收藏、本人隔離與失效提示。
 

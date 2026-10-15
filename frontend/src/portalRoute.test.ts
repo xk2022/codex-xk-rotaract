@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  workspaceHref,
   readPortalRoute,
   readWorkspacePage,
   isPublicPortalRoute,
@@ -32,4 +33,13 @@ describe("safe workspace deep links", () => {
       false,
     );
   });
+});
+
+// Workspace handoffs preserve the root and therefore the current demo actor.
+it("keeps the current workspace root and safely encodes handoff values", () => {
+ const link = workspaceHref("businesses", { company: "coffee", businessMember: "peer-1" }, "#/workspace?view=tasks");
+ expect(link).toMatch(/^#\/workspace\?/);
+ const query = new URLSearchParams(link.split("?")[1]);
+ expect(query.get("company")).toBe("coffee"); expect(query.get("businessMember")).toBe("peer-1"); expect(query.get("view")).toBe("businesses");
+ expect(workspaceHref("invitations", {}, "#/demo?view=tasks")).toBe("#/demo?view=invitations");
 });

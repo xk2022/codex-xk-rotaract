@@ -45,15 +45,17 @@ React入口為 `main.tsx → Portal.tsx`，根網址預設只載入公開首頁�
 
 ## 尚待正式開發
 
-後端登入／密碼驗證、Session、資料庫、郵件、檔案儲存、排程、伺服器授權與稽核、舊資料實際合併及移轉皆未串接。扶輪社整合保留資料模型，操作頁以扶青社為主；活動、公司地圖、付款與優惠屬後續階段。請只輸入假資料。
+預設展示模式仍使用假資料；另有獨立本地 API 模式，已涵蓋註冊登入、入社審核、名冊及本人帳號／隱私，見下方串接說明。活動、商家、優惠及八項銜接工具的正式API、通知、檔案、排程、付款與跨裝置保存仍待整合，後端依指示暫停。請只輸入假資料。最新範圍見[整體驗收與待辦](../docs/2027/42-frontend-acceptance-and-change-backlog.md)。
 
 ## GitHub Pages 部署
 
 main 的 frontend 變更會由 `.github/workflows/deploy-frontend.yml` 執行測試與建置，再發布 frontend/dist。Pages 已啟用 GitHub Actions Source；歷史啟用紀錄見[部署文件](../docs/2027/18-pages-deployment.md)。
 
-## 先前討論紀錄
+## 先前討論紀錄（歷史規劃）
 
-此目錄將存放 Xk-rotaract 的畫面、互動與前端測試。目前為規劃階段，已選定 React + TypeScript + Vite，尚無應用程式或經驗證的啟動命令。
+以下保留早期規劃脈絡，不是目前實作狀態或待辦；現行決策依需求基準及後續交付文件，最新驗收見42號文件。
+
+規劃初期選定 React + TypeScript + Vite；目前已有可執行應用程式與驗證命令，請以上方「啟動與驗證」為準。
 
 ## 已確認的 UI 與技術方向（2026-10-15）
 
