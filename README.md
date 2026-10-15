@@ -4,7 +4,9 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：[第二階段前端UI／UX](docs/2027/28-phase2-frontend-ui-ux.md)已補齊公開活動／社團頁、行事曆、活動管理與會員閱讀的假資料初版；依使用者指示暫停新增後端。
+最新：公開行事曆依[舊版資訊架構重做](docs/2027/29-legacy-calendar-react.md)，保留地區、扶輪年度、社團及日期導覽。
+
+[第二階段前端UI／UX](docs/2027/28-phase2-frontend-ui-ux.md)已補齊公開活動／社團頁、行事曆、活動管理與會員閱讀的假資料初版；依使用者指示暫停新增後端。
 
 第一階段與後續模組的需求基準 v1.0 已完成，後續以需求變更調整。前端採 React + TypeScript + Vite，保留舊版品牌與配色並更新版面；正式供應商設定與資產仍待取得，詳見[現行規格](docs/2027/13-requirements-baseline.md)。GitHub Pages 已發布前端合成資料展示。另有 Java 21／Spring Boot／PostgreSQL 17 的本地 API 與前端串接模式，涵蓋註冊、登入、入社審核、會員查詢及本人帳號／隱私變更，已有前端單元、資料庫整合與真實HTTPS瀏覽器驗證。最新範圍、證據與限制見[帳號與隱私交付](docs/2027/27-account-and-privacy-integration.md)，前輪見[核心串接紀錄](docs/2027/26-core-api-integration.md)。第一階段整體與正式後端部署尚未完成。
 

@@ -81,25 +81,19 @@ try {
   await page.getByRole("heading", { name: "海港交流日", level: 1 }).waitFor();
   assert.match(await page.locator("body").innerText(), /天候因素/);
   await hash("/calendar");
+  await page.getByRole("button", { name: "查看 2026 年 10 月示範", exact: true }).click();
   await page.getByRole("button", { name: "月曆", exact: true }).click();
-  assert.equal(
-    await page
-      .getByRole("link", { name: "10月23日 跨日服務接力", exact: true })
-      .count(),
-    1,
-  );
-  assert.equal(
-    await page
-      .getByRole("link", { name: "10月24日 跨日服務接力", exact: true })
-      .count(),
-    1,
-  );
+  for (const day of [23, 24]) {
+    await page.getByRole("button", { name: new RegExp(`2026年10月${day}日`) }).click();
+    assert.equal(await page.locator(".ph-event-card").filter({ hasText: "跨日服務接力" }).count(), 1);
+  }
   await preview("calendar-desktop");
+  await page.getByRole("button", { name: "查看 2026 年 10 月示範", exact: true }).click();
   await page.getByRole("button", { name: "活動列表", exact: true }).click();
   assert.match(await page.locator(".ph-event-card").first().innerText(), /社區服務週末/);
-  await page.getByLabel("搜尋活動", { exact: true }).fill("不存在的活動");
+  await page.getByLabel("搜尋公開活動", { exact: true }).fill("不存在的活動");
   assert.equal(await page.locator(".ph-event-card").count(), 0);
-  await page.getByRole("button", { name: "清除活動篩選", exact: true }).click();
+  await page.getByRole("button", { name: "重設篩選", exact: true }).click();
   await hash("/demo?view=events");
   const workspace = page.getByRole("region", { name: "活動管理工作區" });
   await workspace.waitFor();
@@ -137,8 +131,9 @@ try {
     .getByRole("button", { name: "確認發布", exact: true })
     .click();
   await hash("/calendar");
+  await page.getByRole("button", { name: "查看 2026 年 10 月示範", exact: true }).click();
   await page.getByRole("button", { name: "活動列表", exact: true }).click();
-  await page.getByLabel("搜尋活動", { exact: true }).fill(title);
+  await page.getByLabel("搜尋公開活動", { exact: true }).fill(title);
   assert.equal(
     await page.locator(".ph-event-card").count(),
     1,

@@ -3,7 +3,6 @@ import {
   ArrowRight,
   CalendarDays,
   ChevronLeft,
-  ChevronRight,
   MapPin,
   Search,
   Users,
@@ -20,6 +19,7 @@ import {
   type CommunityClub,
 } from "./model";
 import "./public-community.css";
+import { LegacyCalendar } from "./LegacyCalendar";
 
 const go = (kind: "club" | "event", id: string) =>
   `#/${kind}?id=${encodeURIComponent(id)}`;
@@ -184,11 +184,6 @@ export function PublicCommunity({
   const { events, clubs } = useCommunityDemo();
   const [keyword, setKeyword] = useState("");
   const [city, setCity] = useState("全部地區");
-  const [clubId, setClubId] = useState("");
-  const [view, setView] = useState<"calendar" | "list">(() =>
-    window.matchMedia("(max-width:560px)").matches ? "list" : "calendar",
-  );
-  const [offset, setOffset] = useState(0);
   const visibleClubs = publicClubs(clubs);
   const visibleEvents = publicProjection(events, clubs);
   const id = new URLSearchParams(window.location.hash.split("?")[1] ?? "").get(
@@ -196,33 +191,8 @@ export function PublicCommunity({
   );
   const club = visibleClubs.find((c) => c.id === id);
   const event = visibleEvents.find((e) => e.id === id);
-  const date = new Date(2026, 9 + offset, 1);
-  const y = date.getFullYear();
-  const m = date.getMonth();
-  const monthStart = Date.UTC(y, m, 1) - 8 * 3600000;
-  const monthEnd = Date.UTC(y, m + 1, 1) - 8 * 3600000;
-  const filtered = visibleEvents
-    .filter((e) => {
-      const org = clubs.find((c) => c.id === e.organizerId);
-      const bounds = eventBounds(e);
-      return (
-        bounds.start.getTime() < monthEnd &&
-        bounds.end.getTime() > monthStart &&
-        (!clubId || e.organizerId === clubId) &&
-        (city === "全部地區" || org?.city === city) &&
-        `${e.title} ${e.description} ${e.location} ${org?.name ?? ""}`
-          .toLowerCase()
-          .includes(keyword.toLowerCase().trim())
-      );
-    })
-    .sort(
-      (a, b) => eventBounds(a).start.getTime() - eventBounds(b).start.getTime(),
-    );
-  const reset = () => {
-    setKeyword("");
-    setCity("全部地區");
-    setClubId("");
-  };
+  const reset = () => { setKeyword(""); setCity("全部地區"); };
+  if (page === "calendar") return <LegacyCalendar />;
   const missing = (page === "club" && !club) || (page === "event" && !event);
   if (missing)
     return (
@@ -369,36 +339,24 @@ export function PublicCommunity({
         回首頁
       </a>
       <div className="ph-directory-heading">
-        <p className="ph-eyebrow">
-          {page === "clubs" ? "ROTARACT COMMUNITY" : "COMMUNITY CALENDAR"}
-        </p>
-        <h1>
-          {page === "clubs" ? "找到你的同路人。" : "讓下一場相遇，有個日期。"}
-        </h1>
-        <p>
-          {page === "clubs"
-            ? "從城市到社團，認識一起交流、服務與成長的夥伴。"
-            : "認識身邊的社團活動，一起參與、交流與行動。"}
-        </p>
+        <p className="ph-eyebrow">ROTARACT COMMUNITY</p>
+        <h1>找到你的同路人。</h1>
+        <p>從城市到社團，認識一起交流、服務與成長的夥伴。</p>
       </div>
       <div className="ph-event-filters pc-filters">
         <label className="ph-search">
           <Search size={18} />
           <input
-            aria-label={page === "clubs" ? "搜尋社團" : "搜尋活動"}
-            placeholder={
-              page === "clubs"
-                ? "搜尋社團名稱、城市或簡介"
-                : "搜尋活動名稱、地點或社團"
-            }
+            aria-label="搜尋社團"
+            placeholder="搜尋社團名稱、城市或簡介"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
           />
         </label>
         <label className="ph-city-filter">
-          {page === "clubs" ? "社團地區" : "活動地區"}
+          社團地區
           <select
-            aria-label={page === "clubs" ? "社團地區" : "活動地區"}
+            aria-label="社團地區"
             value={city}
             onChange={(e) => setCity(e.target.value)}
           >
@@ -409,31 +367,11 @@ export function PublicCommunity({
             )}
           </select>
         </label>
-        {page === "calendar" && (
-          <>
-            <label className="ph-city-filter">
-              主辦社團
-              <select
-                aria-label="主辦社團"
-                value={clubId}
-                onChange={(e) => setClubId(e.target.value)}
-              >
-                <option value="">全部社團</option>
-                {visibleClubs.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </>
-        )}
         <button className="ph-clear-filter" onClick={reset}>
-          清除{page === "clubs" ? "社團" : "活動"}篩選
+          清除社團篩選
         </button>
       </div>
-      {page === "clubs" ? (
-        <>
+      <>
           <p role="status">
             找到{" "}
             {
@@ -476,131 +414,7 @@ export function PublicCommunity({
               </button>
             </div>
           )}
-        </>
-      ) : (
-        <>
-          <div className="ph-calendar-toolbar">
-            <div className="ph-calendar-controls">
-              <button
-                aria-label="上一個月"
-                onClick={() => setOffset(offset - 1)}
-              >
-                <ChevronLeft size={19} />
-              </button>
-              <h2>
-                {y} 年 {m + 1} 月
-              </h2>
-              <button
-                aria-label="下一個月"
-                onClick={() => setOffset(offset + 1)}
-              >
-                <ChevronRight size={19} />
-              </button>
-            </div>
-            <button className="ph-text-button" onClick={() => setOffset(0)}>
-              回到示範月份
-            </button>
-            <span role="status" aria-live="polite">
-              公開活動 · {filtered.length} 場
-            </span>
-            <div
-              className="ph-view-switch"
-              role="group"
-              aria-label="活動顯示方式"
-            >
-              <button
-                aria-pressed={view === "calendar"}
-                onClick={() => setView("calendar")}
-              >
-                月曆
-              </button>
-              <button
-                aria-pressed={view === "list"}
-                onClick={() => setView("list")}
-              >
-                活動列表
-              </button>
-            </div>
-          </div>
-          <p className="pc-time-note">
-            月曆以 Asia/Taipei
-            顯示日期，詳情保留活動原設時區。含跨日活動與公開取消紀錄。
-          </p>
-          <div className={`ph-calendar-layout ph-calendar-view-${view}`}>
-            <div className="ph-calendar-grid" hidden={view === "list"}>
-              {["日", "一", "二", "三", "四", "五", "六"].map((d) => (
-                <div className="ph-weekday" key={d}>
-                  {d}
-                </div>
-              ))}
-              {Array.from({ length: date.getDay() }, (_, i) => (
-                <div className="ph-day ph-day-empty" key={"blank" + i} />
-              ))}
-              {Array.from(
-                { length: new Date(y, m + 1, 0).getDate() },
-                (_, i) => {
-                  const day = i + 1;
-                  const start = Date.UTC(y, m, day) - 8 * 3600000;
-                  const daily = filtered.filter((e) => {
-                    const b = eventBounds(e);
-                    return (
-                      b.start.getTime() < start + 86400000 &&
-                      b.end.getTime() > start
-                    );
-                  });
-                  return (
-                    <div
-                      className={`ph-day ${daily.length ? "has-event" : ""}`}
-                      key={day}
-                    >
-                      <span>{day}</span>
-                      {daily.map((e) => (
-                        <a
-                          className={
-                            e.status === "cancelled" ? "pc-cancelled" : ""
-                          }
-                          key={e.id}
-                          href={go("event", e.id)}
-                          aria-label={`${m + 1}月${day}日 ${e.title}`}
-                        >
-                          <span>
-                            {e.status === "cancelled" ? "已取消" : "公開活動"}
-                          </span>
-                          <span>{e.title}</span>
-                        </a>
-                      ))}
-                    </div>
-                  );
-                },
-              )}
-            </div>
-            <div className="ph-event-list">
-              <h3>這個月，一起參與</h3>
-              {filtered.map((e) => (
-                <EventCard key={e.id} event={e} clubs={clubs} />
-              ))}
-              {!filtered.length && (
-                <div className="ph-empty">
-                  <CalendarDays size={30} />
-                  <h3>
-                    {offset === 0 ? "沒有符合篩選的活動" : "這個月尚無示範活動"}
-                  </h3>
-                  <p>調整篩選，或回到 2026 年 10 月查看示範活動。</p>
-                  <button
-                    className="ph-text-button"
-                    onClick={() => {
-                      reset();
-                      setOffset(0);
-                    }}
-                  >
-                    查看全部示範活動 <ArrowRight size={14} />
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
+      </>
     </section>
   );
 }

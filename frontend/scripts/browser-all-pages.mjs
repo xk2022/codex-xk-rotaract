@@ -113,11 +113,12 @@ try {
     .getByRole("button", { name: "社團行事曆", exact: true })
     .click();
   await page.getByRole("button", { name: "活動列表", exact: true }).click();
-  await page.getByLabel("活動地區").selectOption({ label: "台中" });
+  await page.getByRole("button", { name: "查看 2026 年 10 月示範", exact: true }).click();
+  await page.getByLabel("扶輪地區").selectOption("d3462");
   assert.equal(await page.locator(".ph-event-card").count(), 2);
   assert.match(await page.locator(".ph-event-list").innerText(), /社區服務週末/);
   assert.match(await page.locator(".ph-event-list").innerText(), /青年的下一站/);
-  await page.getByRole("button", { name: "清除活動篩選" }).click();
+  await page.getByRole("button", { name: "重設篩選" }).click();
   await screenshot("calendar-desktop");
   await page
     .getByRole("navigation", { name: "公開網站導覽" })

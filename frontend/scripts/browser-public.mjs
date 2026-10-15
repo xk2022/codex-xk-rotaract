@@ -105,11 +105,12 @@ try {
   await page.getByRole("heading", { level: 1 }).waitFor();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   await page.goto(`${base}#/calendar`);
+  await page.getByRole("button", { name: "查看 2026 年 10 月示範", exact: true }).click();
   await page.getByRole("button", { name: "下一個月", exact: true }).click();
   assert(
-    await page.getByText("這個月尚無示範活動", { exact: true }).isVisible(),
+    await page.getByText("這一天沒有符合條件的公開活動", { exact: true }).isVisible(),
   );
-  await page.getByRole("button", { name: "回到示範月份" }).click();
+  await page.getByRole("button", { name: "查看 2026 年 10 月示範" }).click();
   await page.locator(".ph-event-card").first().click();
   await page.waitForURL(/#\/event\?id=/);
   await page.getByRole("heading", { level: 1 }).waitFor();
