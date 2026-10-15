@@ -49,6 +49,14 @@ CSRF、Session及密碼不存localStorage。聯絡方式成功變更後採伺服
 
 目前已有17個operation；其餘42個仍未實作。此計數不表示頭像資產等依賴已完成。
 
+## GitHub驗證
+
+來源提交：`8e0098d`。
+
+- [核心API CI成功](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38688884846)：29項PostgreSQL測試、既有HTTPS入社流程與新增帳號流程均通過。
+- [前端建置與Pages部署成功](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38688884698)：53項前端測試、正式建置及30組角色／頁面檢查通過。
+- [線上公開首頁](https://xk2022.github.io/codex-xk-rotaract/)仍使用展示資料；尚未部署正式後端。
+
 ## 後續待辦
 
 - [ ] 忘記密碼、SMTP outbox與人工帳號復原。
