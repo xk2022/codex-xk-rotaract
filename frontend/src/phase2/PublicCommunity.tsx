@@ -1,3 +1,4 @@
+import { FavoriteControls } from "../engagement/Favorites";
 import { EventSaveShare } from "./EventSaveShare";
 import { authHref } from "../engagement/authContinuation";
 import { useState } from "react";
@@ -258,6 +259,7 @@ export function PublicCommunity({
             </dl>
             <p>社團聯絡方式依公開設定顯示；會員私人資料不在此頁提供。</p>
             <PublicContacts club={club} />
+            <FavoriteControls key={club.id} kind="club" targetId={club.id} />
             {organizations.clubs.some(c => c.id === club.id && c.enabled) ? <a className="pc-card-link" href={authHref("register", `#/club?id=${encodeURIComponent(club.id)}`, "join")}>
               註冊後申請加入社團 <ArrowRight size={16} />
             </a> : <p className="pc-note">此社團目前未開放線上入社申請，請透過社團公開聯絡方式洽詢。</p>}
@@ -298,6 +300,7 @@ export function PublicCommunity({
             )}
             <h2>關於這場活動</h2>
             <p className="pc-prose">{event.description}</p>
+            <FavoriteControls key={event.id} kind="event" targetId={event.id} />
             <EventSaveShare key={`${event.id}-${event.version}`} event={event} />
             <h2>參與提醒</h2>
             <p>

@@ -302,3 +302,5 @@ BASE_URL=http://127.0.0.1:5173/ CHROMIUM_PATH=/usr/bin/chromium npm run test:bro
 公開登入／註冊保留白名單原頁目標；社團註冊可預填入社，不自動送出。限假資料模式，live模式待整合。`npm run test:browser:auth-continuation` 驗證；[接續流程與限制](../docs/2027/38-auth-continuation-ui-ux.md)。
 
 公開活動詳情提供ICS下載、複製連結與系統分享，皆有手動備援；單次下載不自動同步。`npm run test:browser:event-sharing` 驗證下載及分享分支；[交付與限制](../docs/2027/39-event-calendar-and-sharing.md)。
+
+`#/demo?view=favorites` 顯示本人商家／社團／活動收藏，公開詳情可加入或取消；僅記憶體假資料，失效內容不顯示原名稱或連結。`npm run test:browser:favorites` 驗證；[交付說明](../docs/2027/40-favorites-ui-ux.md)。

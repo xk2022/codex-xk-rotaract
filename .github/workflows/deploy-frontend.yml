@@ -62,6 +62,7 @@ jobs:
           BASE_URL=http://127.0.0.1:4173/codex-xk-rotaract/ npm run test:browser:invitations
           BASE_URL=http://127.0.0.1:4173/codex-xk-rotaract/ npm run test:browser:auth-continuation
           BASE_URL=http://127.0.0.1:4173/codex-xk-rotaract/ npm run test:browser:event-sharing
+          BASE_URL=http://127.0.0.1:4173/codex-xk-rotaract/ npm run test:browser:favorites
       - name: Upload frontend only
         uses: actions/upload-pages-artifact@v3
         with:

@@ -4,7 +4,9 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：[活動加入個人行事曆與分享](docs/2027/39-event-calendar-and-sharing.md)：公開活動ICS下載、複製與系統分享。
+最新：[商家、社團與活動收藏清單](docs/2027/40-favorites-ui-ux.md)：三類收藏、本人隔離與失效提示。
+
+[活動加入個人行事曆與分享](docs/2027/39-event-calendar-and-sharing.md)：公開活動ICS下載、複製與系統分享。
 
 [登入／註冊後接續原操作](docs/2027/38-auth-continuation-ui-ux.md)：公開頁返回與社團入社預填。
 

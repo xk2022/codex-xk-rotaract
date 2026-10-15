@@ -1,3 +1,4 @@
+import { FavoriteControls } from "../engagement/Favorites";
 import { authHref } from "../engagement/authContinuation";
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Building2, ChevronLeft, ExternalLink, MapPin, Search } from 'lucide-react';
@@ -88,6 +89,7 @@ export function BusinessPublic({ page }: { page: 'map' | 'business' }) {
         <a className="bp-primary" href={authHref("login")}>登入使用會員優惠</a>
         <p className="bp-note"><a href={`#/demo?view=coupons&company=${encodeURIComponent(business.id)}`}>體驗此商家優惠（假資料）</a></p>
       </section>
+      <FavoriteControls key={business.id} kind="business" targetId={business.id} />
       <CommunityConfirmation key={business.id} business={business} />
       <BusinessReports key={`report-${business.id}`} companyId={business.id} />
       <p className="bp-demo-note">本頁為合成資料展示。曝光資格示範時間：{taipeiTime(asOf)}。會員優惠請由上方登入入口使用；展示操作可選擇假資料體驗。</p>
