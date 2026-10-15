@@ -36,3 +36,7 @@
 錯誤情境：`#/calendar?calendarState=error`；載入情境：`#/calendar?calendarState=loading`。這些是明示的前端狀態示範。預設開啟今天，示範資料可用「查看 2026 年 10 月示範」查看。選取日期、地區、社團、關鍵字與顯示模式以 sessionStorage 保留在同一分頁；不儲存活動資料。
 
 獨立審查通過：篩選範圍、年度切換、跨月焦點、手機版、錯誤重試，以及活動詳情返回／重新整理保留查詢狀態；損壞的儲存內容回退正常，無瀏覽器例外。
+
+## 發布證據
+
+來源提交 `d3d361d` 已由 [GitHub Actions 38693528053](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38693528053) 完成建置、單元與瀏覽器檢查及 Pages 部署，結論 success。入口：[公開行事曆](https://xk2022.github.io/codex-xk-rotaract/#/calendar)。
