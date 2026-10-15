@@ -233,3 +233,29 @@ main 的 frontend 變更會由 `.github/workflows/deploy-frontend.yml` 執行測
 - 停用社團保留社員、社籍及歷史資料，停止新入社申請及新增活動；不因停用刪除會員帳號或覆寫社籍歷史。
 - 停用社團不再提供免費地圖曝光資格；會員若另有符合條件的有效社籍，或其商家具有有效付費廣告，則依該資格顯示。停用不能撤銷獨立有效的付費曝光期間。
 - 社團停用／恢復的授權者、既有待審申請與已發布活動的處理仍待確認。
+
+## 本地 API 串接模式
+
+預設仍為公開首頁與合成資料展示；`VITE_API_MODE=live` 才會把登入後服務切換到真實後端。公開首頁、地圖、行事曆仍為合成展示資料。本模式先提供註冊、登入／登出、入社申請、授權社團核准、會員名冊與隱私詳情，其餘管理功能保留於預設展示模式。
+
+先依 `backend/README.md` 啟動 PostgreSQL 與 API，並準備本地 HTTPS 憑證（只供本地使用，不提交私鑰），再啟動：
+
+```sh
+VITE_API_MODE=live DEV_TLS_KEY=/absolute/local/key.pem DEV_TLS_CERT=/absolute/local/cert.pem npm run dev
+```
+
+開啟 `https://localhost:5173/`。Vite 同源代理 `/api` 到 `http://localhost:8080`（可用 `DEV_API_TARGET` 調整）。後端需允許該 HTTPS Origin。必須使用 HTTPS，維持 `__Host-session` Secure／HttpOnly cookie。自簽憑證只用於本地；正式環境須使用受信任憑證與同源反向代理，不能直接使用 Vite 開發伺服器。
+
+CSRF token 僅在記憶體保存；登入、角色與社團範圍皆由伺服器提供，沒有展示角色切換。資料不寫入 localStorage。新增操作在結果未知時，會以記憶體中的 SHA-256 輸入指紋重用 Idempotency-Key；輸入變更會換新 key，成功或登出後清除，不額外保存密碼明文。更新後會重新讀取 `/me`；API 錯誤保留 requestId 以供查詢。第一條串接目前未提供表單離頁草稿保存與提醒，返回公開頁會保留掛載期間的輸入，重新整理會清除。
+
+真實端到端檢查（會建立 `.test` 合成帳號與入社資料，只用獨立本地測試資料庫）：
+
+```sh
+BASE_URL=https://localhost:5173/ CHROMIUM_PATH=/usr/bin/chromium \
+LIVE_REVIEWER_EMAIL='<local seeded reviewer>' LIVE_REVIEWER_PASSWORD='<local password>' \
+LIVE_CLUB_ID='<reviewer club UUID>' npm run test:browser:live
+```
+
+未設定 `CHROMIUM_PATH` 時使用 Playwright 安裝的瀏覽器，適用 CI；本地可指定系統 Chromium。
+
+測試只對本地自簽 HTTPS 使用 `ignoreHTTPSErrors`，不模擬 API 回應；包括註冊、入社前名冊隱藏、登入、入社、審核、名冊及私人電話省略、360px 無橫向溢出。現有其他瀏覽器測試仍應在預設 mock 模式執行。

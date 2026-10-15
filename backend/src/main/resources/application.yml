@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/rotaract}
+    username: ${DATABASE_USER:rotaract}
+    password: ${DATABASE_PASSWORD}
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+server:
+  address: ${API_BIND:127.0.0.1}
+  port: ${API_PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+app:
+  allowed-origin: ${APP_ORIGIN:https://localhost:5173}
+  idempotency-secret: ${IDEMPOTENCY_SECRET}
+logging:
+  level:
+    org.springframework.security: WARN

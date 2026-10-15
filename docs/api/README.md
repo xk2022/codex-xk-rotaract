@@ -1,6 +1,6 @@
 # 第一階段 API 契約
 
-[OpenAPI 3.1 JSON](openapi.json) 是第一階段的正式設計契約，包含 59 個操作與 84 個封閉 DTO schema，依[需求基準 v1.0](../2027/13-requirements-baseline.md)、[角色矩陣](../2027/14-role-matrix.md)及[開發契約清單](../2027/15-phase1-contract.md)轉寫。所有資料皆為合成範例，`/api/v1` 是同源相對路徑，沒有宣稱任何後端、資料庫或郵件已實作／上線。
+[OpenAPI 3.1 JSON](openapi.json) 是第一階段的正式設計契約，包含 59 個操作與 84 個封閉 DTO schema，依[需求基準 v1.0](../2027/13-requirements-baseline.md)、[角色矩陣](../2027/14-role-matrix.md)及[開發契約清單](../2027/15-phase1-contract.md)轉寫。所有範例資料皆為合成，`/api/v1` 是同源相對路徑。現有13個operation已完成本地核心實作與資料庫驗證，詳見[後端說明](../../backend/README.md)及[串接交付](../2027/26-core-api-integration.md)；其餘46個仍為設計契約，沒有正式後端或郵件部署。
 
 ## 讀取與驗證
 

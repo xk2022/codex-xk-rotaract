@@ -1,0 +1,15 @@
+CREATE TABLE accounts(id uuid PRIMARY KEY, account_code varchar(20) NOT NULL, email varchar(254) NOT NULL, email_key varchar(254) NOT NULL UNIQUE, phone varchar(16) UNIQUE, password_hash text NOT NULL, status text NOT NULL DEFAULT 'active' CHECK(status IN ('active','disabled')), version integer NOT NULL DEFAULT 0);
+CREATE UNIQUE INDEX accounts_code_ci ON accounts(lower(account_code));
+CREATE TABLE members(id uuid PRIMARY KEY, account_id uuid NOT NULL UNIQUE REFERENCES accounts(id), name varchar(100) NOT NULL, call_name varchar(100) NOT NULL, phone_visible boolean NOT NULL DEFAULT false, email_visible boolean NOT NULL DEFAULT true, version integer NOT NULL DEFAULT 0);
+CREATE TABLE districts(id uuid PRIMARY KEY,code text UNIQUE NOT NULL,name varchar(100) NOT NULL);
+CREATE TABLE clubs(id uuid PRIMARY KEY,name varchar(100) NOT NULL,type_code text NOT NULL CHECK(type_code IN ('ROTARACT','ROTARY','JCI','BNI')),district_id uuid NOT NULL REFERENCES districts(id),status text NOT NULL DEFAULT 'active', description text);
+CREATE TABLE role_grants(id uuid PRIMARY KEY,account_id uuid NOT NULL REFERENCES accounts(id),role text NOT NULL,club_id uuid NOT NULL REFERENCES clubs(id),starts_at timestamptz NOT NULL,ends_at timestamptz NOT NULL, granted_by uuid NOT NULL REFERENCES accounts(id),reason text NOT NULL,version integer NOT NULL DEFAULT 0);
+CREATE TABLE api_sessions(token_hash text PRIMARY KEY,id uuid NOT NULL UNIQUE,account_id uuid REFERENCES accounts(id),csrf_token text NOT NULL,created_at timestamptz NOT NULL,last_seen timestamptz NOT NULL);
+CREATE TABLE join_applications(id uuid PRIMARY KEY,member_id uuid NOT NULL REFERENCES members(id),club_id uuid NOT NULL REFERENCES clubs(id),type_code text NOT NULL,message text,status text NOT NULL,reason text,decided_at timestamptz,requested_at timestamptz NOT NULL,expires_at timestamptz NOT NULL,version integer NOT NULL DEFAULT 0);
+CREATE UNIQUE INDEX one_pending_join ON join_applications(member_id,type_code) WHERE status='pending';
+CREATE TABLE memberships(id uuid PRIMARY KEY,member_id uuid NOT NULL REFERENCES members(id),club_id uuid NOT NULL REFERENCES clubs(id),type_code text NOT NULL,status text NOT NULL CHECK(status IN ('active','ended','void')),starts_on date NOT NULL,ends_on date,name_snapshot text NOT NULL,call_name_snapshot text NOT NULL,club_name_snapshot text NOT NULL,district_name_snapshot text NOT NULL,confirmed_year integer NOT NULL,version integer NOT NULL DEFAULT 0, CHECK(ends_on IS NULL OR ends_on>=starts_on));
+CREATE UNIQUE INDEX one_active_membership ON memberships(member_id,type_code) WHERE status='active';
+CREATE INDEX memberships_member ON memberships(member_id);
+CREATE TABLE idempotency_records(actor uuid NOT NULL,path text NOT NULL,key text NOT NULL,body_hash text NOT NULL,status integer NOT NULL,response text NOT NULL,expires_at timestamptz NOT NULL,PRIMARY KEY(actor,path,key));
+CREATE TABLE rate_limits(bucket text PRIMARY KEY,failures integer NOT NULL,window_start timestamptz NOT NULL);
+CREATE TABLE audit_events(id uuid PRIMARY KEY,actor_id uuid NOT NULL,action text NOT NULL,target_id uuid NOT NULL,recorded_at timestamptz NOT NULL);

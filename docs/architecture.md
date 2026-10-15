@@ -1,6 +1,6 @@
 # 架構與決策紀錄
 
-更新：2026-10-15。使用者授權依合理性原則補齊規格；技術選型為開發基準，尚未建置或實測。
+更新：2026-10-15。使用者授權依合理性原則補齊規格；技術選型為開發基準。公開前端及13個核心API已有實作與本地驗證，其餘模組與正式後端部署尚未完成，詳見[核心交付](2027/26-core-api-integration.md)。
 
 - Monorepo：frontend、backend、docs/api，保留舊repo作來源。
 - 前端React＋TypeScript＋Vite，Tailwind，Metronic參考版型；未取得模板授權先採自有元件。

@@ -29,3 +29,6 @@ Thumbs.db
 *.tsbuildinfo
 playwright-report/
 test-results/
+
+# Local HTTPS certificates and development runtime files.
+.local/

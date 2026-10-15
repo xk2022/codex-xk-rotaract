@@ -8,6 +8,8 @@ import "./portal.css";
 
 // The public React entry does not import the management application eagerly.
 const Workspace = lazy(() => import("./App"));
+const LiveWorkspace = lazy(() => import("./live/LiveWorkspace"));
+const liveMode = import.meta.env.VITE_API_MODE === "live";
 const isPublic = (route: PortalRoute) =>
   ["home", "map", "calendar"].includes(route);
 
@@ -116,7 +118,7 @@ export default function Portal() {
         >
           <ScreenBoundary>
             <Suspense fallback={<OpeningWorkspace />}>
-              <Workspace embedded />
+              {liveMode ? <LiveWorkspace /> : <Workspace embedded />}
             </Suspense>
           </ScreenBoundary>
         </div>
