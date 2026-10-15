@@ -1,0 +1,2547 @@
+{
+  "paths": {
+    "/coupon-offers": {
+      "get": {
+        "operationId": "listCouponOffers",
+        "summary": "會員可領優惠／商家優惠管理清單",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Authenticated personal account; available is currently approved, within [startsAt,endsAt), and company publicly eligible; manage restricts to company owner or effective content_manager. No private coupon codes in offer projections.",
+        "x-state-safeguards": [
+          "Management counts include void and used claims; no claim identities or codes."
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "available",
+                "manage"
+              ],
+              "default": "available"
+            }
+          },
+          {
+            "name": "companyId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "suspended",
+                "all"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponOfferPage"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "30000000-0000-4000-8000-000000000001",
+                          "companyName": "合成咖啡館",
+                          "companyId": "20000000-0000-4000-8000-000000000001",
+                          "title": "社友咖啡交流禮",
+                          "description": "手沖咖啡第二杯半價",
+                          "terms": "每碼限用一次，現場由商家確認核銷",
+                          "startsAt": "2026-10-01T00:00:00Z",
+                          "endsAt": "2026-11-01T00:00:00Z",
+                          "totalQuota": 20,
+                          "perMemberLimit": 1,
+                          "status": "approved",
+                          "version": 3,
+                          "remaining": 19,
+                          "myClaimCount": 1,
+                          "eligible": true
+                        }
+                      ],
+                      "page": 1,
+                      "pageSize": 20,
+                      "total": 1,
+                      "statusCounts": {
+                        "draft": 0,
+                        "pending": 0,
+                        "approved": 1,
+                        "rejected": 0,
+                        "suspended": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createCouponOffer",
+        "summary": "公司owner建立優惠草稿",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Company owner only; accepted editor and organization roles do not authorize coupon creation.",
+        "x-state-safeguards": [
+          "Compare current version inside the transaction; stale version returns 409 without overwrite.",
+          "Acquire company, offer and claim row locks in order; quota allocation and one-time redemption are atomic."
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Account, request path and content bound replay retained 24h; coupon claim keys also cannot be reused for another offer."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponOffer"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "endsAt": "2026-11-01T00:00:00Z",
+                      "totalQuota": 20,
+                      "perMemberLimit": 1,
+                      "status": "approved",
+                      "version": 3,
+                      "remaining": 19,
+                      "myClaimCount": 1,
+                      "eligible": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CouponOfferCreate"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "companyId": "20000000-0000-4000-8000-000000000001",
+                    "title": "社友咖啡交流禮",
+                    "description": "手沖咖啡第二杯半價",
+                    "terms": "每碼限用一次，現場由商家確認核銷",
+                    "startsAt": "2026-10-01T00:00:00Z",
+                    "endsAt": "2026-11-01T00:00:00Z",
+                    "totalQuota": 20,
+                    "perMemberLimit": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/coupon-offers/{id}": {
+      "get": {
+        "operationId": "getCouponOffer",
+        "summary": "取得可領或可管理的優惠詳情",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Authenticated personal account; available is currently approved, within [startsAt,endsAt), and company publicly eligible; manage restricts to company owner or effective content_manager. No private coupon codes in offer projections.",
+        "x-state-safeguards": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "available",
+                "manage"
+              ],
+              "default": "available"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponOffer"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "endsAt": "2026-11-01T00:00:00Z",
+                      "totalQuota": 20,
+                      "perMemberLimit": 1,
+                      "status": "approved",
+                      "version": 3,
+                      "remaining": 19,
+                      "myClaimCount": 1,
+                      "eligible": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateCouponOffer",
+        "summary": "公司owner更新優惠並退回草稿",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Current company owner only; suspended offers cannot be edited.",
+        "x-state-safeguards": [
+          "Compare current version inside the transaction; stale version returns 409 without overwrite.",
+          "Acquire company, offer and claim row locks in order; quota allocation and one-time redemption are atomic.",
+          "Company cannot change; totalQuota and perMemberLimit cannot drop below historical issued counts. Existing claim content and expiry snapshots remain immutable."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Account, request path and content bound replay retained 24h; coupon claim keys also cannot be reused for another offer."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponOffer"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "endsAt": "2026-11-01T00:00:00Z",
+                      "totalQuota": 20,
+                      "perMemberLimit": 1,
+                      "status": "approved",
+                      "version": 3,
+                      "remaining": 19,
+                      "myClaimCount": 1,
+                      "eligible": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CouponOfferUpdate"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "version": 3,
+                    "companyId": "20000000-0000-4000-8000-000000000001",
+                    "title": "社友咖啡交流禮",
+                    "description": "手沖咖啡第二杯半價",
+                    "terms": "每碼限用一次，現場由商家確認核銷",
+                    "startsAt": "2026-10-01T00:00:00Z",
+                    "endsAt": "2026-11-01T00:00:00Z",
+                    "totalQuota": 20,
+                    "perMemberLimit": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/coupon-offers/{id}/submit": {
+      "post": {
+        "operationId": "submitCouponOffer",
+        "summary": "送審會員優惠",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Company owner only.",
+        "x-state-safeguards": [
+          "Compare current version inside the transaction; stale version returns 409 without overwrite.",
+          "Acquire company, offer and claim row locks in order; quota allocation and one-time redemption are atomic.",
+          "Only draft/rejected can submit; pending can approve/reject; approved or previously issued offers can suspend. Review and suspension require a reason."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Account, request path and content bound replay retained 24h; coupon claim keys also cannot be reused for another offer."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponOffer"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "endsAt": "2026-11-01T00:00:00Z",
+                      "totalQuota": 20,
+                      "perMemberLimit": 1,
+                      "status": "approved",
+                      "version": 3,
+                      "remaining": 19,
+                      "myClaimCount": 1,
+                      "eligible": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CouponSubmitRequest"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "version": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/coupon-offers/{id}/approve": {
+      "post": {
+        "operationId": "approveCouponOffer",
+        "summary": "核准會員優惠",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Effective platform/content scoped content_manager only; no private member coupon-code access.",
+        "x-state-safeguards": [
+          "Compare current version inside the transaction; stale version returns 409 without overwrite.",
+          "Acquire company, offer and claim row locks in order; quota allocation and one-time redemption are atomic.",
+          "Only draft/rejected can submit; pending can approve/reject; approved or previously issued offers can suspend. Review and suspension require a reason."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Account, request path and content bound replay retained 24h; coupon claim keys also cannot be reused for another offer."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponOffer"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "endsAt": "2026-11-01T00:00:00Z",
+                      "totalQuota": 20,
+                      "perMemberLimit": 1,
+                      "status": "approved",
+                      "version": 3,
+                      "remaining": 19,
+                      "myClaimCount": 1,
+                      "eligible": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CouponReviewRequest"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "version": 2,
+                    "reason": "符合優惠內容要求"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/coupon-offers/{id}/reject": {
+      "post": {
+        "operationId": "rejectCouponOffer",
+        "summary": "退回會員優惠",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Effective platform/content scoped content_manager only; no private member coupon-code access.",
+        "x-state-safeguards": [
+          "Compare current version inside the transaction; stale version returns 409 without overwrite.",
+          "Acquire company, offer and claim row locks in order; quota allocation and one-time redemption are atomic.",
+          "Only draft/rejected can submit; pending can approve/reject; approved or previously issued offers can suspend. Review and suspension require a reason."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Account, request path and content bound replay retained 24h; coupon claim keys also cannot be reused for another offer."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponOffer"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "endsAt": "2026-11-01T00:00:00Z",
+                      "totalQuota": 20,
+                      "perMemberLimit": 1,
+                      "status": "approved",
+                      "version": 3,
+                      "remaining": 19,
+                      "myClaimCount": 1,
+                      "eligible": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CouponReviewRequest"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "version": 2,
+                    "reason": "符合優惠內容要求"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/coupon-offers/{id}/suspend": {
+      "post": {
+        "operationId": "suspendCouponOffer",
+        "summary": "暫停會員優惠",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Effective platform/content scoped content_manager only; no private member coupon-code access.",
+        "x-state-safeguards": [
+          "Compare current version inside the transaction; stale version returns 409 without overwrite.",
+          "Acquire company, offer and claim row locks in order; quota allocation and one-time redemption are atomic.",
+          "Only draft/rejected can submit; pending can approve/reject; approved or previously issued offers can suspend. Review and suspension require a reason."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Account, request path and content bound replay retained 24h; coupon claim keys also cannot be reused for another offer."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponOffer"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "endsAt": "2026-11-01T00:00:00Z",
+                      "totalQuota": 20,
+                      "perMemberLimit": 1,
+                      "status": "approved",
+                      "version": 3,
+                      "remaining": 19,
+                      "myClaimCount": 1,
+                      "eligible": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CouponReviewRequest"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "version": 2,
+                    "reason": "符合優惠內容要求"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/coupon-offers/{id}/claim": {
+      "post": {
+        "operationId": "claimCouponOffer",
+        "summary": "當年度正常會員領取一次性優惠碼",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Authenticated owning account with active confirmed membership in the current Taipei Rotary year and an enabled club. Grace, trial exposure, paid advertisements and content roles do not provide eligibility.",
+        "x-state-safeguards": [
+          "Optional empty JSON object body; all JSON fields are rejected.",
+          "Same request key returns original claim; account-wide claim key cannot target a different offer.",
+          "Company public exposure and approved offer within [startsAt,endsAt) required for new claim.",
+          "Atomic lock and count enforce quota and per-account limits; void/used claims never release quota.",
+          "Snapshot title, description, terms, startsAt and expiresAt. Generate 256-bit random code; hash lookup and authenticated encryption at rest; only owner account may read."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Account, request path and content bound replay retained 24h; coupon claim keys also cannot be reused for another offer."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponSelfClaim"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "10000000-0000-4000-8000-000000000001",
+                      "offerId": "30000000-0000-4000-8000-000000000001",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "status": "available",
+                      "effectiveStatus": "available",
+                      "version": 1,
+                      "claimVersion": 1,
+                      "offerVersion": 3,
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "expiresAt": "2026-11-01T00:00:00Z",
+                      "paused": false,
+                      "claimedAt": "2026-10-15T00:00:00Z",
+                      "code": "XK-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "description": "Send no body or an empty JSON object {}. Claim response contains the private code; never log or cache it. A successful replay does not allocate another claim."
+      }
+    },
+    "/me/coupons": {
+      "get": {
+        "operationId": "listMyCoupons",
+        "summary": "本人優惠錢包與狀態篩選",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Current account only, including after losing new-claim eligibility; content_manager gains no other-person access.",
+        "x-state-safeguards": [
+          "available/used/expired/void filters derive expiry at read time; returned code belongs only to current member."
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "available",
+                "used",
+                "expired",
+                "void"
+              ],
+              "default": "all"
+            }
+          },
+          {
+            "name": "companyId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponWalletPage"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "10000000-0000-4000-8000-000000000001",
+                          "offerId": "30000000-0000-4000-8000-000000000001",
+                          "companyId": "20000000-0000-4000-8000-000000000001",
+                          "companyName": "合成咖啡館",
+                          "title": "社友咖啡交流禮",
+                          "description": "手沖咖啡第二杯半價",
+                          "terms": "每碼限用一次，現場由商家確認核銷",
+                          "status": "available",
+                          "effectiveStatus": "available",
+                          "version": 1,
+                          "claimVersion": 1,
+                          "offerVersion": 3,
+                          "startsAt": "2026-10-01T00:00:00Z",
+                          "expiresAt": "2026-11-01T00:00:00Z",
+                          "paused": false,
+                          "claimedAt": "2026-10-15T00:00:00Z",
+                          "code": "XK-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                        }
+                      ],
+                      "page": 1,
+                      "pageSize": 20,
+                      "total": 1,
+                      "availableCount": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/me/coupons/{id}": {
+      "get": {
+        "operationId": "getMyCoupon",
+        "summary": "本人優惠碼及領取快照",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Claim owning member only; uniform 404 for another member, company owner, or content_manager.",
+        "x-state-safeguards": [
+          "Subsequent offer edits and natural company exposure expiry do not invalidate snapshot. Company or offer suspension blocks redemption."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponSelfClaim"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "10000000-0000-4000-8000-000000000001",
+                      "offerId": "30000000-0000-4000-8000-000000000001",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "status": "available",
+                      "effectiveStatus": "available",
+                      "version": 1,
+                      "claimVersion": 1,
+                      "offerVersion": 3,
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "expiresAt": "2026-11-01T00:00:00Z",
+                      "paused": false,
+                      "claimedAt": "2026-10-15T00:00:00Z",
+                      "code": "XK-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/me/coupons/{id}/void": {
+      "post": {
+        "operationId": "voidMyCoupon",
+        "summary": "本人附理由作廢優惠",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Claim owning member only.",
+        "x-state-safeguards": [
+          "Compare current version inside the transaction; stale version returns 409 without overwrite.",
+          "Acquire company, offer and claim row locks in order; quota allocation and one-time redemption are atomic.",
+          "Available and unexpired only; no quota release and no payment/refund action."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Account, request path and content bound replay retained 24h; coupon claim keys also cannot be reused for another offer."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponSelfClaim"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "10000000-0000-4000-8000-000000000001",
+                      "offerId": "30000000-0000-4000-8000-000000000001",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "status": "available",
+                      "effectiveStatus": "available",
+                      "version": 1,
+                      "claimVersion": 1,
+                      "offerVersion": 3,
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "expiresAt": "2026-11-01T00:00:00Z",
+                      "paused": false,
+                      "claimedAt": "2026-10-15T00:00:00Z",
+                      "code": "XK-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CouponVoidRequest"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "version": 1,
+                    "reason": "會員自行放棄"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{companyId}/coupon-redemptions/lookup": {
+      "post": {
+        "operationId": "lookupMerchantCoupon",
+        "summary": "商家owner檢查會員出示的完整碼",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Current company owner only; company editors and content_manager do not gain access. Exact high-entropy code lookup scoped to that company.",
+        "x-state-safeguards": [
+          "No code echo, member identity, private contact, claim listing or internal void reason. Snapshot terms and current claim/offer versions only."
+        ],
+        "parameters": [
+          {
+            "name": "companyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponRedemptionView"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "10000000-0000-4000-8000-000000000001",
+                      "offerId": "30000000-0000-4000-8000-000000000001",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "status": "available",
+                      "effectiveStatus": "available",
+                      "version": 1,
+                      "claimVersion": 1,
+                      "offerVersion": 3,
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "expiresAt": "2026-11-01T00:00:00Z",
+                      "paused": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CouponCodeLookup"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "code": "XK-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{companyId}/coupon-redemptions/confirm": {
+      "post": {
+        "operationId": "confirmMerchantCoupon",
+        "summary": "商家owner確認一次性核銷",
+        "tags": [
+          "coupons"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Current company owner only. Supplied exact code must belong to the selected company.",
+        "x-state-safeguards": [
+          "Compare current version inside the transaction; stale version returns 409 without overwrite.",
+          "Acquire company, offer and claim row locks in order; quota allocation and one-time redemption are atomic.",
+          "Reject used, void, expired, pre-start, company-suspended and offer-suspended claims.",
+          "Compare both claimVersion and offerVersion; stale confirmation returns 409.",
+          "Existing snapshot remains usable after offer editing or natural company exposure expiry.",
+          "Record usedAt and audit atomically; no coupon code or member identity in receipt."
+        ],
+        "parameters": [
+          {
+            "name": "companyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Account, request path and content bound replay retained 24h; coupon claim keys also cannot be reused for another offer."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-authorized private projection; no-store.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponRedemptionView"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "10000000-0000-4000-8000-000000000001",
+                      "offerId": "30000000-0000-4000-8000-000000000001",
+                      "companyId": "20000000-0000-4000-8000-000000000001",
+                      "companyName": "合成咖啡館",
+                      "title": "社友咖啡交流禮",
+                      "description": "手沖咖啡第二杯半價",
+                      "terms": "每碼限用一次，現場由商家確認核銷",
+                      "status": "available",
+                      "effectiveStatus": "available",
+                      "version": 1,
+                      "claimVersion": 1,
+                      "offerVersion": 3,
+                      "startsAt": "2026-10-01T00:00:00Z",
+                      "expiresAt": "2026-11-01T00:00:00Z",
+                      "paused": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CouponRedemptionConfirm"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "code": "XK-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "claimVersion": 1,
+                    "offerVersion": 3
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "schemas": {
+    "CouponOfferCreate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "companyId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "terms": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "startsAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endsAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "totalQuota": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "perMemberLimit": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "companyId",
+        "title",
+        "description",
+        "terms",
+        "startsAt",
+        "endsAt",
+        "totalQuota",
+        "perMemberLimit"
+      ]
+    },
+    "CouponOfferUpdate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "companyId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "terms": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "startsAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endsAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "totalQuota": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "perMemberLimit": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "version",
+        "companyId",
+        "title",
+        "description",
+        "terms",
+        "startsAt",
+        "endsAt",
+        "totalQuota",
+        "perMemberLimit"
+      ]
+    },
+    "CouponSubmitRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "version"
+      ]
+    },
+    "CouponReviewRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "version",
+        "reason"
+      ]
+    },
+    "CouponVoidRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "version",
+        "reason"
+      ]
+    },
+    "CouponCodeLookup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "writeOnly": true,
+          "description": "Full high-entropy member-presented code. Never send in URL or logs."
+        }
+      },
+      "required": [
+        "code"
+      ]
+    },
+    "CouponRedemptionConfirm": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "writeOnly": true,
+          "description": "Full high-entropy member-presented code. Never send in URL or logs."
+        },
+        "claimVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offerVersion": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "code",
+        "claimVersion",
+        "offerVersion"
+      ]
+    },
+    "CouponOffer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "readOnly": true
+        },
+        "companyName": {
+          "type": "string",
+          "readOnly": true
+        },
+        "companyId": {
+          "type": "string",
+          "format": "uuid",
+          "readOnly": true
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "readOnly": true
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "readOnly": true
+        },
+        "terms": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "readOnly": true
+        },
+        "startsAt": {
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "endsAt": {
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "totalQuota": {
+          "type": "integer",
+          "minimum": 1,
+          "readOnly": true
+        },
+        "perMemberLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "readOnly": true
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "pending",
+            "approved",
+            "rejected",
+            "suspended"
+          ],
+          "readOnly": true
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "readOnly": true
+        },
+        "remaining": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        },
+        "issuedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        },
+        "redeemedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        },
+        "reviewReason": {
+          "type": "string",
+          "maxLength": 500,
+          "readOnly": true
+        },
+        "myClaimCount": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        },
+        "eligible": {
+          "type": "boolean",
+          "readOnly": true
+        }
+      },
+      "required": [
+        "id",
+        "companyName",
+        "companyId",
+        "title",
+        "description",
+        "terms",
+        "startsAt",
+        "endsAt",
+        "totalQuota",
+        "perMemberLimit",
+        "status",
+        "version",
+        "remaining"
+      ]
+    },
+    "CouponStatusCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "draft": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        },
+        "pending": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        },
+        "approved": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        },
+        "rejected": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        },
+        "suspended": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        }
+      },
+      "required": [
+        "draft",
+        "pending",
+        "approved",
+        "rejected",
+        "suspended"
+      ]
+    },
+    "CouponRedemptionView": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "readOnly": true
+        },
+        "offerId": {
+          "type": "string",
+          "format": "uuid",
+          "readOnly": true
+        },
+        "companyId": {
+          "type": "string",
+          "format": "uuid",
+          "readOnly": true
+        },
+        "companyName": {
+          "type": "string",
+          "readOnly": true
+        },
+        "title": {
+          "type": "string",
+          "readOnly": true
+        },
+        "description": {
+          "type": "string",
+          "readOnly": true
+        },
+        "terms": {
+          "type": "string",
+          "readOnly": true
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "available",
+            "used",
+            "void"
+          ],
+          "readOnly": true
+        },
+        "effectiveStatus": {
+          "type": "string",
+          "enum": [
+            "available",
+            "used",
+            "void",
+            "expired"
+          ],
+          "readOnly": true
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "readOnly": true
+        },
+        "claimVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "readOnly": true
+        },
+        "offerVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "readOnly": true
+        },
+        "startsAt": {
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "paused": {
+          "type": "boolean",
+          "readOnly": true
+        },
+        "usedAt": {
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      },
+      "required": [
+        "id",
+        "offerId",
+        "companyId",
+        "companyName",
+        "title",
+        "description",
+        "terms",
+        "status",
+        "effectiveStatus",
+        "version",
+        "claimVersion",
+        "offerVersion",
+        "startsAt",
+        "expiresAt",
+        "paused"
+      ]
+    },
+    "CouponSelfClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "readOnly": true
+        },
+        "offerId": {
+          "type": "string",
+          "format": "uuid",
+          "readOnly": true
+        },
+        "companyId": {
+          "type": "string",
+          "format": "uuid",
+          "readOnly": true
+        },
+        "companyName": {
+          "type": "string",
+          "readOnly": true
+        },
+        "title": {
+          "type": "string",
+          "readOnly": true
+        },
+        "description": {
+          "type": "string",
+          "readOnly": true
+        },
+        "terms": {
+          "type": "string",
+          "readOnly": true
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "available",
+            "used",
+            "void"
+          ],
+          "readOnly": true
+        },
+        "effectiveStatus": {
+          "type": "string",
+          "enum": [
+            "available",
+            "used",
+            "void",
+            "expired"
+          ],
+          "readOnly": true
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "readOnly": true
+        },
+        "claimVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "readOnly": true
+        },
+        "offerVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "readOnly": true
+        },
+        "startsAt": {
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "paused": {
+          "type": "boolean",
+          "readOnly": true
+        },
+        "usedAt": {
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "claimedAt": {
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^XK-[A-Za-z0-9_-]{43}$",
+          "description": "Private code returned to the owning member only. No administrator or merchant list may read it.",
+          "readOnly": true
+        },
+        "voidReason": {
+          "type": "string",
+          "maxLength": 500,
+          "readOnly": true
+        }
+      },
+      "required": [
+        "id",
+        "offerId",
+        "companyId",
+        "companyName",
+        "title",
+        "description",
+        "terms",
+        "status",
+        "effectiveStatus",
+        "version",
+        "claimVersion",
+        "offerVersion",
+        "startsAt",
+        "expiresAt",
+        "paused",
+        "claimedAt",
+        "code"
+      ]
+    },
+    "CouponOfferPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/CouponOffer"
+          },
+          "readOnly": true
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "readOnly": true
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 20,
+          "maximum": 100,
+          "readOnly": true
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        },
+        "statusCounts": {
+          "$ref": "#/components/schemas/CouponStatusCounts"
+        }
+      },
+      "required": [
+        "items",
+        "page",
+        "pageSize",
+        "total"
+      ]
+    },
+    "CouponWalletPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/CouponSelfClaim"
+          },
+          "readOnly": true
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "readOnly": true
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 20,
+          "maximum": 100,
+          "readOnly": true
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        },
+        "availableCount": {
+          "type": "integer",
+          "minimum": 0,
+          "readOnly": true
+        }
+      },
+      "required": [
+        "items",
+        "page",
+        "pageSize",
+        "total",
+        "availableCount"
+      ]
+    }
+  }
+}

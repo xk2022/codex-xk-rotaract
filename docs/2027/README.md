@@ -4,6 +4,10 @@
 
 使用者已授權依合理性原則補齊剩餘規格，後續以需求變更調整。規格基準完成，已交付第一版前端合成資料雛形與正式 OpenAPI 契約；前端已部署 GitHub Pages；後端部署、試轉及正式整合驗收尚未完成。
 
+最新交付：[141 項後端 API，前端暫不串接](42-backend-api-delivery.md)。
+
+下一步：[API 交接、模型差異與分階段串接安排](43-api-handoff-and-integration-plan.md)，先會員／社團／權限，再活動行事曆；目前維持未串接。
+
 ## 優先閱讀
 
 1. [需求基準 v1.0](13-requirements-baseline.md)：B01～B13涵蓋剩餘決策與各階段預設。

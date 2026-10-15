@@ -48,16 +48,21 @@ class AccountService {
                     : member.get("email_visible"),
                 member.get("id"));
           } else {
-            // Asset ownership and scanning are not implemented. Never accept an unverified asset
-            // ID.
-            if (body.has("avatarAssetId") && !body.get("avatarAssetId").isNull()) {
-              uuid(body, "avatarAssetId");
-              throw ApiException.missing();
+            Object avatar=member.get("avatar_asset_id");
+            if (body.has("avatarAssetId")) {
+              avatar=null;
+              if (!body.get("avatarAssetId").isNull()) {
+                UUID id=uuid(body,"avatarAssetId");
+                var assets=core.db.queryForList("SELECT * FROM assets WHERE id=? AND owner_account_id=? AND purpose='avatar' AND case_id IS NULL",id,session.accountId());
+                if (assets.isEmpty()) throw ApiException.missing();
+                avatar=id;
+              }
             }
             core.db.update(
-                "UPDATE members SET name=?,call_name=?,version=version+1 WHERE id=?",
+                "UPDATE members SET name=?,call_name=?,avatar_asset_id=?,version=version+1 WHERE id=?",
                 body.has("name") ? text(body, "name", 1, 100) : member.get("name"),
                 body.has("callName") ? text(body, "callName", 1, 100) : member.get("call_name"),
+                avatar,
                 member.get("id"));
           }
           core.audit(

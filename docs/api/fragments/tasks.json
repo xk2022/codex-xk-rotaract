@@ -1,0 +1,275 @@
+{
+  "paths": {
+    "/me/tasks": {
+      "get": {
+        "operationId": "listMyTasks",
+        "summary": "依明確選擇的身分範圍彙整即時待辦與曝光提醒",
+        "tags": [
+          "Tasks"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "self",
+                "club",
+                "support",
+                "business"
+              ],
+              "default": "self"
+            }
+          },
+          {
+            "name": "clubId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "action",
+                "waiting",
+                "reminder"
+              ],
+              "default": "all"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "x-authorization": "Authenticated account. self only owns own tasks; club requires clubId and current club/district scope, district does not inherit application/transfer review; support only assigned account_support cases; business must be explicitly selected and uses own member identity.",
+        "x-state-safeguards": [
+          "Read only; never sends notifications, changes versions, or extends exposure. Current grant/status/consent/version and server time checked; 409 represents conflicts in linked workflow, not changes by this GET.",
+          "Annual grace is not unconfirmed; disabled clubs and stale approvals do not create actionable tasks; business detail is never included in default self scope. summary is before priority filter and pagination."
+        ],
+        "responses": {
+          "200": {
+            "description": "目前授權範圍的待辦；summary 為 priority 篩選及分頁前數量",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskPage"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "exposure-20000000-0000-4000-8000-000000000001",
+                          "title": "合成商家：曝光即將到期",
+                          "detail": "確認社籍或廣告資格才能繼續曝光。",
+                          "view": "businesses",
+                          "priority": "reminder",
+                          "companyId": "20000000-0000-4000-8000-000000000001"
+                        }
+                      ],
+                      "page": 1,
+                      "pageSize": 20,
+                      "total": 1,
+                      "summary": {
+                        "action": 0,
+                        "waiting": 0,
+                        "reminder": 1,
+                        "total": 1
+                      },
+                      "scope": "business",
+                      "asOf": "2026-10-15T12:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TaskItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "detail",
+          "view",
+          "priority"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "view": {
+            "type": "string",
+            "enum": [
+              "applications",
+              "transfers",
+              "annual",
+              "support",
+              "businesses",
+              "profile",
+              "invitations",
+              "history"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "action",
+              "waiting",
+              "reminder"
+            ]
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "TaskSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "waiting",
+          "reminder",
+          "total"
+        ],
+        "properties": {
+          "action": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "waiting": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reminder": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "TaskPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total",
+          "summary",
+          "scope",
+          "asOf"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskItem"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "summary": {
+            "$ref": "#/components/schemas/TaskSummary"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "self",
+              "club",
+              "support",
+              "business"
+            ]
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

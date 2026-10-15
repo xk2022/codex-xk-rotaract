@@ -4,7 +4,7 @@
 
 - 先讀本檔、README 與任務相關文件；子目錄若有更具體的規則，同時遵循。
 - 檢查 Git 狀態，保留使用者與其他代理的既有修改。
-- 本 repo 已有 React／TypeScript／Vite 前端合成資料雛形與正式 OpenAPI，後端仍為骨架。先依實際檔案確認技術、命令與需求基準，不套用其他專案需求。
+- 本 repo 已有 React／TypeScript／Vite 前端雛形，以及 Java 21／Spring Boot／PostgreSQL 後端與正式 OpenAPI；新增API目前不串接前端。先依實際檔案確認技術、命令與需求基準，不套用其他專案需求。
 
 ## 分工與範圍
 
@@ -18,7 +18,7 @@
 ## 驗證與交付
 
 - 新增業務邏輯時補上有意義的測試，依變更風險執行必要驗證。
-- 前端可執行 npm run build、npm test；瀏覽器流程見 frontend/README.md，API 靜態驗證為 python3 docs/api/validate_contract.py。只報告實際執行結果，不把合成前端狀態或契約驗證當成正式後端、資料庫及權限通過。
+- 前端可執行 npm run build、npm test；瀏覽器流程見 frontend/README.md，API 靜態驗證為 python3 docs/api/validate_contract.py；後端測試依 backend/README.md，以明確允許重設的獨立 *_test PostgreSQL 資料庫執行 mvn verify。只報告實際執行結果，不把合成前端狀態或契約驗證當成正式後端、資料庫及權限通過。
 - 報告實際修改檔案、驗證命令與結果，以及未解問題；未執行的檢查明確標示。
 - 實作者與獨立審查者分開，重大正確性或資料安全問題修正後再交付。
 - 不提交秘密、憑證或真實個人資料。範例環境設定只使用占位值。

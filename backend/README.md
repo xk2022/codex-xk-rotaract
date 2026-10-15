@@ -1,6 +1,6 @@
-# 核心 API 與本人帳號設定 v0.7
+# 全畫面對應後端 API v0.8
 
-已實作 Java 21、Spring Boot 3.5.13、Spring Security、JDBC、PostgreSQL 17 與 Flyway。這是第一階段的核心串接切片，並非完整第一階段後端。
+已實作 Java 21、Spring Boot 3.5.13、Spring Security、JDBC、PostgreSQL 17 與 Flyway。本輪已擴充為141個API操作，對應 `bd33582` 的前端範圍（後續收藏及交接總覽見交付差異）；沒有新增前端串接。完整清單見 [API操作索引](../docs/api/operations.md) 與 [本輪交付](../docs/2027/42-backend-api-delivery.md)。正式部署與外部服務仍有下述限制。
 
 ## 本地啟動
 
@@ -25,7 +25,7 @@ SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
 
 服務預設綁定 `127.0.0.1:8080`。前端以 HTTPS Vite 同源代理 `/api`，啟動方式見 [frontend README](../frontend/README.md)。`APP_ORIGIN` 是單一精確來源，必須與瀏覽器網址相符；不接受萬用來源，不採信任意 forwarded header。`__Host-session` 始終保留 Secure、HttpOnly、SameSite=Lax、Path=/、無 Domain；不提供降低 Cookie 安全性的 HTTP 展示模式。
 
-## 已實作端點
+## 已實作端點（原有核心與新增模組）
 
 均在 `/api/v1`，請求與回應依 [OpenAPI](../docs/api/openapi.json)。
 
@@ -39,6 +39,8 @@ SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
 - `GET/POST /join-applications`、`POST /join-applications/{id}/approve|reject|withdraw`：本人與有效本社管理者範圍、版本、30 日到期、每日五筆、拒絕後24小時冷卻、交易唯一上限、核准日期與重疊檢查。
 - `GET /members`、`GET /members/{id}`：登入後投影；未曾核准入社者不出現在名冊；列表無聯絡資訊、詳情依隱私開關省略欄位。
 
+新增完整模組：MFA／轉社與退社OB／年度確認／歷史公開同意與稽核／組織角色與轉區／圖片資產與人工復原／活動與公開社團／公司名錄、地圖及存在確認／優惠配額、本人錢包與一次性核銷／任務中心／商家回報／邀請歷史、取消與撤權／本人確認紀錄。逐端點請以141項 [OpenAPI](../docs/api/openapi.json) 為準。`GET /api/v1/openapi` 提供打包契約，`GET /api/v1/health` 作為含資料庫的啟動檢查。
+
 關鍵建立與審核使用 actor/path/key 的24小時冪等紀錄，請求內容以配置金鑰 HMAC 雜湊，不保存原始密碼。回放內容以獨立用途衍生金鑰 AES-256-GCM 加密，12-byte 隨機 nonce，AAD 綁定 actor、path、key、status 與內容雜湊；不接受明文或驗證失敗的回覆。V3 遷移會清除首次發布前本地試跑的舊明文回放暫存，保留業務資料與加密暫存；先前本地明文請求代號將無法回放原結果，不提供降級解密。每60秒獨立排程清除到期紀錄（不依賴流量），服務停止時不執行、重啟後補清；查詢則到期立即拒絕回放。成功業務操作與冪等回應同交易提交；重送內容不同409。社籍及待審唯一索引搭配會員資料列鎖，不以前端狀態代替交易。管理角色每次請求重查有效期及社團狀態，冪等回放前同樣檢查目前授權。
 
 密碼使用 Argon2id，保留空白且依 Unicode 碼點計長，電話以 libphonenumber 解析。離線弱密碼名單來自 SecLists `Passwords/Common-Credentials/10k-most-common.txt`（2026-10-15 擷取），附原 MIT 授權 `src/main/resources/common-passwords.LICENSE`，另補少量長弱密碼；這不是完整外洩密碼資料庫，後續應定期更新與擴充。沒有外部密碼查詢或將密碼送至第三方。
@@ -51,11 +53,11 @@ SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
 CORE_TEST_ALLOW_RESET=true DATABASE_URL=jdbc:postgresql://127.0.0.1:55432/xk_rotaract_test mvn verify
 ```
 
-整合案例涵蓋註冊登入核准至名冊、匿名 CSRF 與 Origin、Cookie 屬性、冪等重放／內容衝突、跨社／撤權、版本、隱私、唯一與密碼空白、待審上限、撤回、拒絕冷卻、停權及核准競爭。本次在 PostgreSQL 17.11 執行 `mvn verify`：29 項整合測試通過，0 失敗、0 錯誤、0 跳過；測試包含年度查詢 7/1、8/1 台北日期邊界，並不代表年度寫入與排程已實作。
+整合案例涵蓋註冊登入核准至名冊、匿名 CSRF 與 Origin、Cookie 屬性、冪等重放／內容衝突、跨社／撤權、版本、隱私、唯一與密碼空白、待審上限、撤回、拒絕冷卻、停權及核准競爭。本輪在 PostgreSQL 17、JDK 21、Maven 3.9.11 執行 `mvn verify`：111 項測試通過，0 失敗、0 錯誤、0 跳過；包含原有核心回歸、所有新增模組與實際路由覆蓋。年度讀寫及7/1、8/1邊界已驗證，長期維運排程不因此視為完成。
 
 ## 本人帳號修改與重試
 
-個人姓名／call name 及隱私使用 `member.version`；識別變更使用 `account.version`。空 PATCH、額外欄位、錯誤型別與格式均拒絕；409 不覆寫。頭像僅支援 `avatarAssetId: null` 清除；尚無資產服務，非空 UUID 一律404，不接受任意他人或未檢查資產。
+個人姓名／call name 及隱私使用 `member.version`；識別變更使用 `account.version`。空 PATCH、額外欄位、錯誤型別與格式均拒絕；409 不覆寫。頭像支援已上傳且屬於本人的清理後 avatar 資產及 null 清除；拒絕他人、案件證據與不存在資產。圖片上限2MiB、4096×4096，PNG/JPEG/WebP解碼後重編碼為PNG；其他登入者只可讀取目前引用且符合會員投影可見性的頭像。公開社徽只由目前啟用公開社團的引用提供。
 
 聯絡值／代號 POST 必填 `Idempotency-Key`，profile／privacy PATCH 不要求此標頭。錯目前密碼回401 `AUTHENTICATION_FAILED`，不登出目前工作階段；前端應再查 `GET /me`，仍為200則保留登入並顯示密碼錯誤，401才要求重新登入。本人驗證失敗以帳號及 IP 各15分鐘10次限流，之後429；密碼保留所有空白，不寫入稽核／冪等原文。Email 僅去首尾空白、全地址不分大小寫比對，保留 `+` 與點號；電話透過 libphonenumber 驗證實際有效號碼。成功聯絡值變更才撤其他工作階段及更新 Cookie。
 
@@ -65,8 +67,10 @@ CORE_TEST_ALLOW_RESET=true DATABASE_URL=jdbc:postgresql://127.0.0.1:55432/xk_rot
 
 新增測試覆蓋 PATCH／聯絡／代號白名單及版本、頭像 fail-closed、聯絡唯一與電話解析、舊識別立即失效、Cookie／CSRF 輪替與撤其他 Session、絕對到期保留、冪等回放最新投影、密碼空白與失敗限流、同帳號代號與聯絡競爭、跨帳號 Email 競爭，以及強制保存失敗時的交易回滾與不發送新 Cookie。未驗證大量並發負載，獨立交易限流在連線池高壓下的容量仍需壓測。
 
-## 尚未實作
+## 尚未啟用與正式驗收限制
 
-密碼復原、TOTP、轉社／退社／OB、年度確認與補跑排程、組織／角色管理、歷史公開、支援案件、資產、SMTP outbox、備份還原與負載驗收仍待後續切片。本次僅讀取年度資格日期；未提供年度寫入或排程。讀取列表目前採應用層投影篩選，1萬會員負載目標尚未驗證，不應直接當正式上線版本。Mailpit 已規劃本地服務，但本切片不寄信，沒有假回「已寄達」。
+新增API的前端串接、實際SMTP發送器、正式舊資料匯入、S3替換、長期保留／去識別化排程、備份還原與負載驗收尚未完成。密碼復原與MFA人工復原已有安全的outbox／proof／token及合成資料測試，但未配置真實郵件配送；不會假回「已寄達」。支援案件不替代組織／社籍專責操作，未滿足條件時拒絕核准，不假成功。
 
-尚未部署正式 API，GitHub Pages 預設維持合成資料展示。正式部署仍需 TLS 反向代理、資料庫權限隔離、環境秘密管理與後續驗收。
+廣告權益目前唯讀，不提供新收款或付款／退款／曝光啟用API。人工認領只使用已盤點staging，沒有正式資料自動移轉或UUID合併。讀取列表仍有應用層投影篩選，1萬會員負載目標尚未驗證。
+
+尚未部署正式 API，GitHub Pages 預設維持合成資料展示，既有核心live模式保留。本地建置產物名稱維持`core-api-0.6.0-SNAPSHOT.jar`以相容既有CI；契約版本為0.8.0。正式部署仍需TLS反向代理、資料庫權限隔離、環境秘密管理與後續驗收。

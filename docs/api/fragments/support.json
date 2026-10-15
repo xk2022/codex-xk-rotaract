@@ -1,0 +1,1717 @@
+{
+  "paths": {
+    "/support-cases/{id}": {
+      "get": {
+        "operationId": "getSupportCase",
+        "summary": "getSupportCase",
+        "description": "Requester sees only own case self projection; effective assigned account_support sees assigned projection. Unrelated staff gets 404.",
+        "tags": [
+          "support-and-assets"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Requester sees only own case self projection; effective assigned account_support sees assigned projection. Unrelated staff gets 404.",
+        "x-state-safeguards": [
+          "All authorization is checked against current effective grants and case assignment. Private attachments never become public.",
+          "Compare version in the mutation transaction; stale version returns 409; failure rolls back all changes and idempotency result."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Self or assigned case, selected by server authorization.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Do not persist private, session, token or case responses."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Request correlation identifier; no sensitive content."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SupportCaseSelf"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SupportCaseAssigned"
+                    }
+                  ]
+                },
+                "examples": {
+                  "self": {
+                    "value": {
+                      "id": "10000000-0000-4000-8000-000000000001",
+                      "subjectAccountId": "10000000-0000-4000-8000-000000000001",
+                      "type": "account_recovery",
+                      "status": "pending",
+                      "description": "x",
+                      "decisionReason": "x",
+                      "createdAt": "2026-10-15T02:00:00Z",
+                      "updatedAt": "2026-10-15T02:00:00Z",
+                      "version": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/support-cases/{id}/verifications": {
+      "post": {
+        "operationId": "verifySupportCaseIdentity",
+        "summary": "verifySupportCaseIdentity",
+        "description": "Independent named current club manager attests the exact subject and case club; existing-session proof requires subject self, a session predating intake and current password. Evidence attachments alone cannot grant identity. Legacy claims attest the exact staged record club. Handler cannot attest own approval.",
+        "tags": [
+          "support-and-assets"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Independent named current club manager attests the exact subject and case club; existing-session proof requires subject self, a session predating intake and current password. Evidence attachments alone cannot grant identity. Legacy claims attest the exact staged record club. Handler cannot attest own approval.",
+        "x-state-safeguards": [
+          "All authorization is checked against current effective grants and case assignment. Private attachments never become public.",
+          "Compare version in the mutation transaction; stale version returns 409; failure rolls back all changes and idempotency result."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            },
+            "description": "Required for every mutation, including anonymous login/register/reset. Obtain session-bound token from GET /csrf-token. Origin validation also required."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Scope to actor (or anonymous pre-session) and path, retain 24 hours. Same key/body replays original result, different body returns 409. Do not store raw credentials in idempotency records."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success; server-authorized projection.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Do not persist private, session, token or case responses."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Request correlation identifier; no sensitive content."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportVerification"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "10000000-0000-4000-8000-000000000001",
+                      "caseId": "10000000-0000-4000-8000-000000000001",
+                      "kind": "club_attestation",
+                      "recordedAt": "2026-10-15T02:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportVerificationRequest"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "version": 0,
+                    "kind": "club_attestation",
+                    "subjectAccountId": "10000000-0000-4000-8000-000000000001",
+                    "clubId": "10000000-0000-4000-8000-000000000001",
+                    "reason": "具名核對既有來源"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/support-cases/{id}/assignments": {
+      "post": {
+        "operationId": "assignSupportCase",
+        "summary": "assignSupportCase",
+        "description": "Effective permission_admin with recent MFA assigns an account_support handler. Cannot assign requester or subject. Only explicit assignee may inspect or decide case.",
+        "tags": [
+          "support-and-assets"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Effective permission_admin with recent MFA assigns an account_support handler. Cannot assign requester or subject. Only explicit assignee may inspect or decide case.",
+        "x-state-safeguards": [
+          "All authorization is checked against current effective grants and case assignment. Private attachments never become public.",
+          "Compare version in the mutation transaction; stale version returns 409; failure rolls back all changes and idempotency result."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            },
+            "description": "Required for every mutation, including anonymous login/register/reset. Obtain session-bound token from GET /csrf-token. Origin validation also required."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Scope to actor (or anonymous pre-session) and path, retain 24 hours. Same key/body replays original result, different body returns 409. Do not store raw credentials in idempotency records."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; server-authorized projection.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Do not persist private, session, token or case responses."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Request correlation identifier; no sensitive content."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportAssignment"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "caseId": "10000000-0000-4000-8000-000000000001",
+                      "accountId": "10000000-0000-4000-8000-000000000001",
+                      "version": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportAssignmentRequest"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "version": 0,
+                    "accountId": "10000000-0000-4000-8000-000000000001",
+                    "reason": "案件分派"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/support-cases/{id}/supplements": {
+      "post": {
+        "operationId": "supplementOwnSupportCase",
+        "summary": "supplementOwnSupportCase",
+        "description": "Authenticated requester own pending/awaiting_evidence case only. Appends supplement, checks owned evidence, returns to pending. Cannot retarget subject or staged record.",
+        "tags": [
+          "support-and-assets"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Authenticated requester own pending/awaiting_evidence case only. Appends supplement, checks owned evidence, returns to pending. Cannot retarget subject or staged record.",
+        "x-state-safeguards": [
+          "All authorization is checked against current effective grants and case assignment. Private attachments never become public.",
+          "Compare version in the mutation transaction; stale version returns 409; failure rolls back all changes and idempotency result."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            },
+            "description": "Required for every mutation, including anonymous login/register/reset. Obtain session-bound token from GET /csrf-token. Origin validation also required."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Scope to actor (or anonymous pre-session) and path, retain 24 hours. Same key/body replays original result, different body returns 409. Do not store raw credentials in idempotency records."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; server-authorized projection.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Do not persist private, session, token or case responses."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Request correlation identifier; no sensitive content."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportCaseSelf"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "10000000-0000-4000-8000-000000000001",
+                      "subjectAccountId": "10000000-0000-4000-8000-000000000001",
+                      "type": "account_recovery",
+                      "status": "pending",
+                      "description": "x",
+                      "decisionReason": "x",
+                      "createdAt": "2026-10-15T02:00:00Z",
+                      "updatedAt": "2026-10-15T02:00:00Z",
+                      "version": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportSupplementRequest"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "version": 0,
+                    "description": "補充合成說明",
+                    "evidenceRefs": []
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listSupportCaseSupplements",
+        "summary": "listSupportCaseSupplements",
+        "description": "Only requester or current assigned account_support can view case supplements.",
+        "tags": [
+          "support-and-assets"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Only requester or current assigned account_support can view case supplements.",
+        "x-state-safeguards": [
+          "All authorization is checked against current effective grants and case assignment. Private attachments never become public.",
+          "Compare version in the mutation transaction; stale version returns 409; failure rolls back all changes and idempotency result."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; server-authorized projection.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Do not persist private, session, token or case responses."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Request correlation identifier; no sensitive content."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportSupplementsPage"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "items": [],
+                      "page": 1,
+                      "pageSize": 20,
+                      "total": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/support-recovery-cases/{id}/supplements": {
+      "post": {
+        "operationId": "supplementAnonymousRecoveryCase",
+        "summary": "supplementAnonymousRecoveryCase",
+        "description": "Exact valid unrevoked case receipt plus CSRF and Origin. Open cases only; evidence must use the separate case-scoped upload route. No account existence, identity or staff details returned.",
+        "tags": [
+          "support-and-assets"
+        ],
+        "security": [
+          {
+            "supportReceipt": []
+          }
+        ],
+        "x-authorization": "Exact valid unrevoked case receipt plus CSRF and Origin. Open cases only; evidence must use the separate case-scoped upload route. No account existence, identity or staff details returned.",
+        "x-state-safeguards": [
+          "Atomic append-only supplement under exact case receipt; pending/awaiting_evidence only. It never overwrites previous content or changes account binding.",
+          "Exact case receipt and CSRF/Origin required; no identity, staff or evidence details disclosed."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            },
+            "description": "Required for every mutation, including anonymous login/register/reset. Obtain session-bound token from GET /csrf-token. Origin validation also required."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Scope to actor (or anonymous pre-session) and path, retain 24 hours. Same key/body replays original result, different body returns 409. Do not store raw credentials in idempotency records."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; server-authorized projection.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Do not persist private, session, token or case responses."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Request correlation identifier; no sensitive content."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCaseStatus"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "caseId": "10000000-0000-4000-8000-000000000001",
+                      "status": "pending",
+                      "message": "案件處理中，請保留收據以查詢進度。",
+                      "expiresAt": "2026-10-15T02:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnonymousRecoverySupplementRequest"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "description": "補充合成說明"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/support-cases/{id}/legacy-confirmations": {
+      "post": {
+        "operationId": "confirmLegacyClaimAssociation",
+        "summary": "confirmLegacyClaimAssociation",
+        "description": "Exact requester and verified subject confirms approved legacy_claim using current password. Locks reviewed staging record; unique immutable source-to-current-account/member link. Preserves current UUIDs, never copies or merges memberships. Separate authorized source inventory/import remains a prerequisite.",
+        "tags": [
+          "support-and-assets"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Exact requester and verified subject confirms approved legacy_claim using current password. Locks reviewed staging record; unique immutable source-to-current-account/member link. Preserves current UUIDs, never copies or merges memberships. Separate authorized source inventory/import remains a prerequisite.",
+        "x-state-safeguards": [
+          "All authorization is checked against current effective grants and case assignment. Private attachments never become public.",
+          "Compare version in the mutation transaction; stale version returns 409; failure rolls back all changes and idempotency result."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            },
+            "description": "Required for every mutation, including anonymous login/register/reset. Obtain session-bound token from GET /csrf-token. Origin validation also required."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Scope to actor (or anonymous pre-session) and path, retain 24 hours. Same key/body replays original result, different body returns 409. Do not store raw credentials in idempotency records."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; server-authorized projection.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Do not persist private, session, token or case responses."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Request correlation identifier; no sensitive content."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegacyClaimConfirmation"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "caseId": "10000000-0000-4000-8000-000000000001",
+                      "stagedRecordId": "10000000-0000-4000-8000-000000000001",
+                      "accountId": "10000000-0000-4000-8000-000000000001",
+                      "memberId": "10000000-0000-4000-8000-000000000001",
+                      "confirmedAt": "2026-10-15T02:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegacyClaimConfirmationRequest"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "version": 2,
+                    "currentPassword": "synthetic-password"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/support-cases/{id}/evidence": {
+      "post": {
+        "operationId": "uploadSupportCaseEvidence",
+        "summary": "uploadSupportCaseEvidence",
+        "description": "Authenticated own requester or explicitly assigned effective account_support, pending/awaiting_evidence case only. At most 10 files per case. Image bytes inspected and reencoded; evidence never public.",
+        "tags": [
+          "support-and-assets"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Authenticated own requester or explicitly assigned effective account_support, pending/awaiting_evidence case only. At most 10 files per case. Image bytes inspected and reencoded; evidence never public.",
+        "x-state-safeguards": [
+          "All authorization is checked against current effective grants and case assignment. Private attachments never become public.",
+          "Compare version in the mutation transaction; stale version returns 409; failure rolls back all changes and idempotency result."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            },
+            "description": "Required for every mutation, including anonymous login/register/reset. Obtain session-bound token from GET /csrf-token. Origin validation also required."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Scope to actor (or anonymous pre-session) and path, retain 24 hours. Same key/body replays original result, different body returns 409. Do not store raw credentials in idempotency records."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success; server-authorized projection.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Do not persist private, session, token or case responses."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Request correlation identifier; no sensitive content."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "assetId": "10000000-0000-4000-8000-000000000001",
+                      "mediaType": "image/png",
+                      "sizeBytes": 40,
+                      "width": 3,
+                      "height": 2,
+                      "visibility": "private"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryEvidenceUpload"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assets/{id}": {
+      "get": {
+        "operationId": "getPrivateAssetMetadata",
+        "summary": "getPrivateAssetMetadata",
+        "description": "Current owner, exact case requester owning that attachment, or effective assigned support only. Club logo edit scope required for other club editors. Anonymous receipt is insufficient to inspect evidence. A currently referenced avatar may also be read by authenticated members only when the same member-detail projection is visible; unreferenced avatars remain owner-only. Support evidence never inherits avatar access.",
+        "tags": [
+          "support-and-assets"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Current owner, exact case requester owning that attachment, or effective assigned support only. Club logo edit scope required for other club editors. Anonymous receipt is insufficient to inspect evidence. A currently referenced avatar may also be read by authenticated members only when the same member-detail projection is visible; unreferenced avatars remain owner-only. Support evidence never inherits avatar access.",
+        "x-state-safeguards": [
+          "All authorization is checked against current effective grants and case assignment. Private attachments never become public.",
+          "Compare version in the mutation transaction; stale version returns 409; failure rolls back all changes and idempotency result."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; server-authorized projection.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Do not persist private, session, token or case responses."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Request correlation identifier; no sensitive content."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "assetId": "10000000-0000-4000-8000-000000000001",
+                      "mediaType": "image/png",
+                      "sizeBytes": 40,
+                      "width": 3,
+                      "height": 2,
+                      "visibility": "private"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/assets/{id}/content": {
+      "get": {
+        "operationId": "downloadPrivateAsset",
+        "summary": "downloadPrivateAsset",
+        "description": "Same current ownership/case authorization as metadata; raw reencoded PNG attachment, no-store and nosniff. No public evidence URLs. Closed-case evidence inaccessible and purged after 30 days unless legal hold. A currently referenced avatar may also be read by authenticated members only when the same member-detail projection is visible; unreferenced avatars remain owner-only. Support evidence never inherits avatar access.",
+        "tags": [
+          "support-and-assets"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Same current ownership/case authorization as metadata; raw reencoded PNG attachment, no-store and nosniff. No public evidence URLs. Closed-case evidence inaccessible and purged after 30 days unless legal hold. A currently referenced avatar may also be read by authenticated members only when the same member-detail projection is visible; unreferenced avatars remain owner-only. Support evidence never inherits avatar access.",
+        "x-state-safeguards": [
+          "All authorization is checked against current effective grants and case assignment. Private attachments never become public.",
+          "Compare version in the mutation transaction; stale version returns 409; failure rolls back all changes and idempotency result."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; server-authorized projection.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Do not persist private, session, token or case responses."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Request correlation identifier; no sensitive content."
+              }
+            },
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                },
+                "examples": {
+                  "image": {
+                    "value": "PNG image bytes"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/support-cases/{id}/recovery-email-requests": {
+      "post": {
+        "operationId": "reissueRecoveryEmailProof",
+        "summary": "重新安排已核准案件的新信箱確認信",
+        "description": "Exact effective assigned account_support only, independently approved recovery subject distinct from handler/requester; awaiting_new_email_proof or awaiting_password_reset. Rechecks independent verification, revokes older proof/reset links, maximum five reissues/hour. Queued does not imply delivered.",
+        "tags": [
+          "support-and-assets"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Exact effective assigned account_support only, independently approved recovery subject distinct from handler/requester; awaiting_new_email_proof or awaiting_password_reset. Rechecks independent verification, revokes older proof/reset links, maximum five reissues/hour. Queued does not imply delivered.",
+        "x-state-safeguards": [
+          "All authorization is checked against current effective grants and case assignment. Private attachments never become public.",
+          "Compare version in the mutation transaction; stale version returns 409; failure rolls back all changes and idempotency result."
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            },
+            "description": "Required for every mutation, including anonymous login/register/reset. Obtain session-bound token from GET /csrf-token. Origin validation also required."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Scope to actor (or anonymous pre-session) and path, retain 24 hours. Same key/body replays original result, different body returns 409. Do not store raw credentials in idempotency records."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; server-authorized projection.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Do not persist private, session, token or case responses."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Request correlation identifier; no sensitive content."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportCaseAssigned"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "id": "10000000-0000-4000-8000-000000000001",
+                      "subjectAccountId": "10000000-0000-4000-8000-000000000001",
+                      "type": "account_recovery",
+                      "status": "awaiting_new_email_proof",
+                      "description": "合成復原案件",
+                      "decisionReason": "已獨立核實",
+                      "createdAt": "2026-10-15T02:00:00Z",
+                      "updatedAt": "2026-10-15T02:00:00Z",
+                      "version": 3,
+                      "evidenceRefs": [],
+                      "handledBy": "20000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryEmailReissueRequest"
+              },
+              "examples": {
+                "request": {
+                  "value": {
+                    "version": 2,
+                    "reason": "確認連結過期，重新安排"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SupportCreateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "account_recovery",
+              "legacy_claim",
+              "account_status",
+              "club_status",
+              "membership_correction",
+              "club_type_correction",
+              "mfa_recovery"
+            ]
+          },
+          "subjectAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000
+          },
+          "proposedEmail": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254,
+            "format": "email"
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 10
+          },
+          "stagedRecordId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "type",
+          "description"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "legacy_claim"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "stagedRecordId"
+              ]
+            }
+          }
+        ],
+        "description": "legacy_claim requires an exact reviewed stagedRecordId from the separately authorized inventory/import process; other types cannot supply stagedRecordId. For authenticated account_recovery/mfa_recovery, omitted proposedEmail defaults to the requester existing account email. Identity approval alone never changes contact, password or MFA; email possession and final password reset are required. Legacy association requires separate requester confirmation and never merges current UUIDs."
+      },
+      "SupportVerificationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "club_attestation",
+              "existing_session"
+            ]
+          },
+          "subjectAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clubId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "version",
+          "kind",
+          "subjectAccountId",
+          "reason"
+        ]
+      },
+      "SupportVerification": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "caseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "club_attestation",
+              "existing_session"
+            ]
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "caseId",
+          "kind",
+          "recordedAt"
+        ]
+      },
+      "SupportAssignmentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "version",
+          "accountId",
+          "reason"
+        ]
+      },
+      "SupportAssignment": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "caseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          }
+        },
+        "required": [
+          "caseId",
+          "accountId",
+          "version"
+        ]
+      },
+      "SupportSupplementRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 10
+          }
+        },
+        "required": [
+          "version",
+          "description"
+        ]
+      },
+      "SupportSupplement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "createdAt"
+        ]
+      },
+      "SupportSupplementsPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupportSupplement"
+            },
+            "maxItems": 100
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ]
+      },
+      "LegacyClaimConfirmationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "version",
+          "currentPassword"
+        ]
+      },
+      "LegacyClaimConfirmation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "caseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stagedRecordId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "memberId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "confirmedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "caseId",
+          "stagedRecordId",
+          "accountId",
+          "memberId",
+          "confirmedAt"
+        ]
+      },
+      "AnonymousRecoverySupplementRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000
+          }
+        },
+        "required": [
+          "description"
+        ]
+      },
+      "RecoveryEmailReissueRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "version",
+          "reason"
+        ]
+      },
+      "RecoveryCaseCreateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 254
+          },
+          "newEmail": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254,
+            "format": "email"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "account_recovery",
+              "mfa_recovery"
+            ],
+            "default": "account_recovery"
+          }
+        },
+        "required": [
+          "identifier",
+          "newEmail",
+          "description"
+        ],
+        "description": "Opaque anonymous intake. Optional mfa_recovery selects lost-MFA workflow; clearing MFA requires independent verification, new-email possession and final atomic password reset. Ordinary recovery never clears MFA."
+      }
+    }
+  }
+}

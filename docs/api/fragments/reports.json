@@ -1,0 +1,835 @@
+{
+  "paths": {
+    "/business-reports": {
+      "post": {
+        "operationId": "createBusinessReport",
+        "summary": "建立商家資料問題回報",
+        "tags": [
+          "business-reports"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Authenticated account with its own member profile; company must currently pass the public company projection when creating a new report. Reporter identity is derived from session.",
+        "description": "Private reports persist company-name snapshots. Hiding a company never exposes its private contact fields through report responses. Reports do not automatically suspend, publish, or edit companies. A member profile is sufficient; current annual membership confirmation is not required.",
+        "x-frontend-feature": "engagement/reportModel.ts; engagement/BusinessReports.tsx",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            },
+            "description": "Required for every mutation, including anonymous login/register/reset. Obtain session-bound token from GET /csrf-token. Origin validation also required."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Scope to actor (or anonymous pre-session) and path, retain 24 hours. Same key/body replays original result, different body returns 409. Do not store raw credentials in idempotency records."
+          }
+        ],
+        "x-state-safeguards": [
+          "Current session and global content_manager grant dates and revocation are checked on every request, including idempotent replay. Scoped history moderation grants do not authorize company report handling.",
+          "Atomic database unique index permits at most one open/processing report per reporter member and company. Closed reports permit a new report.",
+          "Snapshots contain only previously public company name and report fields; anonymous users and other reporters cannot read private cases."
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "201": {
+            "description": "Success. Projection and eligibility checked by server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessReport"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "companyId": "30000000-0000-4000-8000-000000000002",
+                      "companyName": "公開合成公司",
+                      "reporterId": "30000000-0000-4000-8000-000000000003",
+                      "reason": "address",
+                      "description": "公開地址與實際位置不符，請確認。",
+                      "status": "open",
+                      "version": 1,
+                      "createdAt": "2026-10-15T04:00:00Z",
+                      "updatedAt": "2026-10-15T04:00:00Z"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Scoped response must not persist."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Correlation identifier."
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessReportCreateRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "companyId": "30000000-0000-4000-8000-000000000002",
+                    "reason": "address",
+                    "description": "公開地址與實際位置不符，請確認。"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listBusinessReports",
+        "summary": "本人回報或內容管理案件列表",
+        "tags": [
+          "business-reports"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "scope=self (default): own member reports only. scope=managed: current global content_manager only.",
+        "description": "Private reports persist company-name snapshots. Hiding a company never exposes its private contact fields through report responses. Reports do not automatically suspend, publish, or edit companies. A member profile is sufficient; current annual membership confirmation is not required.",
+        "x-frontend-feature": "engagement/reportModel.ts; engagement/BusinessReports.tsx",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": ""
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 100,
+              "default": 20
+            },
+            "description": ""
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "self",
+                "managed"
+              ],
+              "default": "self"
+            }
+          },
+          {
+            "name": "companyId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "open",
+                "processing",
+                "closed"
+              ]
+            }
+          }
+        ],
+        "x-state-safeguards": [
+          "Current session and global content_manager grant dates and revocation are checked on every request, including idempotent replay. Scoped history moderation grants do not authorize company report handling.",
+          "Atomic database unique index permits at most one open/processing report per reporter member and company. Closed reports permit a new report.",
+          "Snapshots contain only previously public company name and report fields; anonymous users and other reporters cannot read private cases."
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "Success. Projection and eligibility checked by server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessReportsPage"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "30000000-0000-4000-8000-000000000001",
+                          "companyId": "30000000-0000-4000-8000-000000000002",
+                          "companyName": "公開合成公司",
+                          "reporterId": "30000000-0000-4000-8000-000000000003",
+                          "reason": "address",
+                          "description": "公開地址與實際位置不符，請確認。",
+                          "status": "open",
+                          "version": 1,
+                          "createdAt": "2026-10-15T04:00:00Z",
+                          "updatedAt": "2026-10-15T04:00:00Z"
+                        }
+                      ],
+                      "page": 1,
+                      "pageSize": 20,
+                      "total": 1
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Scoped response must not persist."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Correlation identifier."
+              }
+            }
+          }
+        }
+      }
+    },
+    "/business-reports/{id}": {
+      "get": {
+        "operationId": "getBusinessReport",
+        "summary": "商家回報案件詳情",
+        "tags": [
+          "business-reports"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Original reporting member or current global content_manager; company no longer being public does not remove existing case access.",
+        "description": "Private reports persist company-name snapshots. Hiding a company never exposes its private contact fields through report responses. Reports do not automatically suspend, publish, or edit companies. A member profile is sufficient; current annual membership confirmation is not required.",
+        "x-frontend-feature": "engagement/reportModel.ts; engagement/BusinessReports.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "x-state-safeguards": [
+          "Current session and global content_manager grant dates and revocation are checked on every request, including idempotent replay. Scoped history moderation grants do not authorize company report handling.",
+          "Atomic database unique index permits at most one open/processing report per reporter member and company. Closed reports permit a new report.",
+          "Snapshots contain only previously public company name and report fields; anonymous users and other reporters cannot read private cases."
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "Success. Projection and eligibility checked by server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessReport"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "companyId": "30000000-0000-4000-8000-000000000002",
+                      "companyName": "公開合成公司",
+                      "reporterId": "30000000-0000-4000-8000-000000000003",
+                      "reason": "address",
+                      "description": "公開地址與實際位置不符，請確認。",
+                      "status": "open",
+                      "version": 1,
+                      "createdAt": "2026-10-15T04:00:00Z",
+                      "updatedAt": "2026-10-15T04:00:00Z"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Scoped response must not persist."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Correlation identifier."
+              }
+            }
+          }
+        }
+      }
+    },
+    "/business-reports/{id}/accept": {
+      "post": {
+        "operationId": "acceptBusinessReport",
+        "summary": "接案處理商家回報",
+        "tags": [
+          "business-reports"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Current global content_manager only. Company owners, district managers, and scoped history moderators gain no implicit case-processing rights.",
+        "description": "Private reports persist company-name snapshots. Hiding a company never exposes its private contact fields through report responses. Reports do not automatically suspend, publish, or edit companies. A member profile is sufficient; current annual membership confirmation is not required.",
+        "x-frontend-feature": "engagement/reportModel.ts; engagement/BusinessReports.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            },
+            "description": "Required for every mutation, including anonymous login/register/reset. Obtain session-bound token from GET /csrf-token. Origin validation also required."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Scope to actor (or anonymous pre-session) and path, retain 24 hours. Same key/body replays original result, different body returns 409. Do not store raw credentials in idempotency records."
+          }
+        ],
+        "x-state-safeguards": [
+          "Current session and global content_manager grant dates and revocation are checked on every request, including idempotent replay. Scoped history moderation grants do not authorize company report handling.",
+          "Atomic database unique index permits at most one open/processing report per reporter member and company. Closed reports permit a new report.",
+          "Snapshots contain only previously public company name and report fields; anonymous users and other reporters cannot read private cases.",
+          "409 on stale version, invalid transition, or competing handling; accept requires open and close requires processing. Processing notes are required, 1–2000 characters, and are audited."
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "Success. Projection and eligibility checked by server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessReport"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "companyId": "30000000-0000-4000-8000-000000000002",
+                      "companyName": "公開合成公司",
+                      "reporterId": "30000000-0000-4000-8000-000000000003",
+                      "reason": "address",
+                      "description": "公開地址與實際位置不符，請確認。",
+                      "status": "processing",
+                      "version": 2,
+                      "createdAt": "2026-10-15T04:00:00Z",
+                      "updatedAt": "2026-10-15T05:00:00Z",
+                      "assignedTo": "30000000-0000-4000-8000-000000000004",
+                      "resolution": "已受理查證。"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Scoped response must not persist."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Correlation identifier."
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessReportDecisionRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 1,
+                    "resolution": "已受理查證。"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/business-reports/{id}/close": {
+      "post": {
+        "operationId": "closeBusinessReport",
+        "summary": "結案商家回報",
+        "tags": [
+          "business-reports"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "x-authorization": "Current global content_manager only. Company owners, district managers, and scoped history moderators gain no implicit case-processing rights.",
+        "description": "Private reports persist company-name snapshots. Hiding a company never exposes its private contact fields through report responses. Reports do not automatically suspend, publish, or edit companies. A member profile is sufficient; current annual membership confirmation is not required.",
+        "x-frontend-feature": "engagement/reportModel.ts; engagement/BusinessReports.tsx",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 512
+            },
+            "description": "Required for every mutation, including anonymous login/register/reset. Obtain session-bound token from GET /csrf-token. Origin validation also required."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Scope to actor (or anonymous pre-session) and path, retain 24 hours. Same key/body replays original result, different body returns 409. Do not store raw credentials in idempotency records."
+          }
+        ],
+        "x-state-safeguards": [
+          "Current session and global content_manager grant dates and revocation are checked on every request, including idempotent replay. Scoped history moderation grants do not authorize company report handling.",
+          "Atomic database unique index permits at most one open/processing report per reporter member and company. Closed reports permit a new report.",
+          "Snapshots contain only previously public company name and report fields; anonymous users and other reporters cannot read private cases.",
+          "409 on stale version, invalid transition, or competing handling; accept requires open and close requires processing. Processing notes are required, 1–2000 characters, and are audited."
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "Success. Projection and eligibility checked by server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessReport"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "companyId": "30000000-0000-4000-8000-000000000002",
+                      "companyName": "公開合成公司",
+                      "reporterId": "30000000-0000-4000-8000-000000000003",
+                      "reason": "address",
+                      "description": "公開地址與實際位置不符，請確認。",
+                      "status": "closed",
+                      "version": 3,
+                      "createdAt": "2026-10-15T04:00:00Z",
+                      "updatedAt": "2026-10-15T05:00:00Z",
+                      "assignedTo": "30000000-0000-4000-8000-000000000004",
+                      "resolution": "查證後已通知商家維護者更正。"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Scoped response must not persist."
+              },
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Correlation identifier."
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessReportDecisionRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "version": 2,
+                    "resolution": "查證後已通知商家維護者更正。"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BusinessReport": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "reporterId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Reporting member UUID; only the reporter and currently authorized global content managers can read."
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "missing",
+              "address",
+              "impersonation",
+              "other"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "processing",
+              "closed"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "assignedTo": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Current handling account UUID, not a member lookup or contact record."
+          },
+          "resolution": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "id",
+          "companyId",
+          "companyName",
+          "reporterId",
+          "reason",
+          "description",
+          "status",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BusinessReportCreateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "missing",
+              "address",
+              "impersonation",
+              "other"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "companyId",
+          "reason",
+          "description"
+        ]
+      },
+      "BusinessReportDecisionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "resolution": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "version",
+          "resolution"
+        ]
+      },
+      "BusinessReportsPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessReport"
+            },
+            "maxItems": 100
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ]
+      }
+    }
+  }
+}

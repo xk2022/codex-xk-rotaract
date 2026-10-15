@@ -1,14 +1,19 @@
-# 第一階段 API 契約
+# 全畫面後端 API 契約 v0.8
 
-[OpenAPI 3.1 JSON](openapi.json) 是第一階段的正式設計契約，包含 59 個操作與 84 個封閉 DTO schema，依[需求基準 v1.0](../2027/13-requirements-baseline.md)、[角色矩陣](../2027/14-role-matrix.md)及[開發契約清單](../2027/15-phase1-contract.md)轉寫。所有範例資料皆為合成，`/api/v1` 是同源相對路徑。現有17個operation已完成本地實作與資料庫驗證，詳見[後端說明](../../backend/README.md)及[帳號／隱私串接交付](../2027/27-account-and-privacy-integration.md)；其餘42個仍為設計契約，沒有正式後端或郵件部署。頭像資產上傳仍未提供，非空資產引用採拒絕處理。
+[OpenAPI 3.1 JSON](openapi.json) 包含 141 個已實作 API 操作、158 個封閉 DTO schema，涵蓋 `bd33582` 的前端功能；最新收藏持久化與交接總覽差異見交付紀錄。完整清單見 [操作索引](operations.md)，畫面對應與驗證見 [交付紀錄](../2027/42-backend-api-delivery.md)。本輪沒有修改前端或新增前後端串接。
+
+`GET /api/v1/openapi` 直接提供打包契約（不遞迴列入自身），`GET /api/v1/health` 檢查服務與資料庫。全部功能路徑以 `/api/v1` 為前綴。Cookie、CSRF、角色、資料範圍與資源版本均由伺服器驗證，不接受前端角色旗標。
 
 ## 讀取與驗證
 
 契約為標準 JSON，可供支援 OpenAPI 3.1／JSON Schema 2020-12 的工具讀取。只需 Python 3 標準函式庫即可執行專案靜態檢查：
 
 ```sh
+python3 docs/api/build_contract.py --check
 python3 docs/api/validate_contract.py
 ```
+
+核心契約保留於 `openapi.json`，模組覆寫位於 `fragments/`；修改模組後執行 `python3 docs/api/build_contract.py`，再做靜態及後端驗證。刪除端點或 schema 時也需同步移除合併文件，實際 Spring 路由覆蓋測試會拒絕契約漂移。
 
 檢查涵蓋全部內部 `$ref`、operationId 唯一、原端點清單及補充操作覆蓋、所有 DTO 可達性、輸入欄位白名單、required、JSON 範例型別／長度／enum／format／條件 schema、版本與 CSRF 宣告，以及轉社、隱私與人工復原的必要保護條件。也以負例檢查額外權限欄位、空更新、不合法電話／Email 與過短密碼。
 
@@ -36,6 +41,14 @@ python3 docs/api/validate_contract.py
 - 三段式轉社：本人申請 → 雙社核准（僅 ready_for_member）→ 本人 execute。執行再驗有效授權與版本；失效 needs_reapproval；結束舊籍／建立新籍同一交易，不留半筆資料。
 - 年度資格按日期即時判定：7 月寬限、8/1 未確認撤免費曝光；補確認即恢復，不能復活已結束社籍。獨立有效付費廣告不受年度待確認影響，廣告 API 不在第一階段。
 
+## 新增畫面的讀寫入口
+
+- 任務中心：`GET /me/tasks?scope=self|club|support|business`。預設本人待辦；社團需 `clubId`，帳號支援僅已指派案件。私人商家提醒須明確選擇 business，伺服器仍只使用登入者會員身分。`priority=all|action|waiting|reminder`；summary 是篩選及分頁前數量，不發送通知。
+- 商家回報：`GET/POST /business-reports`、`GET /business-reports/{id}`，以及 `POST .../accept|close`。一般會員只讀本人；`scope=managed` 與接／結案需要全域內容管理角色。案件處理不會自動下架公司。
+- 共同維護邀請：`GET /me/company-invitations` 回本人收發的全部狀態；`POST /companies/{id}/links` 建立，`POST /company-invitations/{id}/accept|reject|cancel|revoke` 決定。決定時 version 是邀請版本，可另外帶 companyVersion；被拒絕、取消或撤權的紀錄保留，重新邀請產生新 UUID。
+- 本人確認紀錄：`GET /me/business-confirmations` 回到期時間、是否計入及公司是否公開；隱藏公司仍保留本人可撤回的最小紀錄，不揭露聯絡資料或其他確認者。
+- 登入後返回公開頁與入社預填由前端 allowlist 處理；伺服器沿用公開社團、帳號、Session 與入社 API，重新驗證社團狀態，不因登入或註冊自動申請入社，也沒有接受任意 redirect URL 的新增入口。
+
 ## 清單之外補足的必要操作
 
 原清單使用 Cookie／CSRF 及雙地區移轉，但沒有列完整取得 token 與後續核准路徑，因此補入：
@@ -54,7 +67,7 @@ python3 docs/api/validate_contract.py
 5. `POST /support-recovery-email-confirmations`：一次性 30 分鐘 proof token 換成限定該案件、永久帳號與新信箱的單次密碼重設 token；此時仍不改登入資料。
 6. 既有 `POST /password-resets` 最後在同一交易檢查新 Email 唯一、替換信箱與密碼、完成案件並撤銷全部工作階段與案件 token。一般忘記密碼 token 不能更換信箱。
 
-寄信失敗使用 outbox 有限重試，不假稱已送達；任何證據不足保持待補件。復原證據結案 30 日刪除，案件稽核依基準保留。此處是已定義契約，尚未實作或驗收。
+寄信失敗使用 outbox 有限重試，不假稱已送達；任何證據不足保持待補件。復原證據結案 30 日刪除，案件稽核依基準保留。此流程已有本地合成資料與資料庫測試；實際 SMTP 發送器未啟用，outbox 維持待送，不宣稱寄達。
 
 ## 下一階段驗收
 
