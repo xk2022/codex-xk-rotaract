@@ -48,3 +48,7 @@
 畫面：[桌機首頁](../previews/public-index-desktop.png)、[手機首頁](../previews/public-index-mobile.png)。
 
 正式建置另以 `/codex-xk-rotaract/` 子路徑靜態伺服器執行整套公開瀏覽器測試通過，確認相對資源與片段路由相容 Pages 路徑。
+
+## 發布紀錄
+
+提交 `d375b43` 已推送 main；[GitHub Actions 38675766973](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38675766973) 的 build／deploy 均成功。公開網址為 [Rotaract 萬花筒](https://xk2022.github.io/codex-xk-rotaract/)，管理入口為 [#/admin](https://xk2022.github.io/codex-xk-rotaract/#/admin)。發布證據為 Actions 結果；外網公開網址未另進行瀏覽器驗收。
