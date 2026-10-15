@@ -236,7 +236,7 @@ main 的 frontend 變更會由 `.github/workflows/deploy-frontend.yml` 執行測
 
 ## 本地 API 串接模式
 
-預設仍為公開首頁與合成資料展示；`VITE_API_MODE=live` 才會把登入後服務切換到真實後端。公開首頁、地圖、行事曆仍為合成展示資料。本模式先提供註冊、登入／登出、入社申請、授權社團核准、會員名冊與隱私詳情，其餘管理功能保留於預設展示模式。
+預設仍為公開首頁與合成資料展示；`VITE_API_MODE=live` 才會把登入後服務切換到真實後端。公開首頁、地圖、行事曆仍為合成展示資料。本模式提供註冊、登入／登出、入社申請、授權社團核准、會員名冊與隱私詳情，以及「我的帳號」姓名／call name、聯絡隱私、電話／Email 單項密碼驗證變更及一次性會員代號變更，其餘管理功能保留於預設展示模式。
 
 先依 `backend/README.md` 啟動 PostgreSQL 與 API，並準備本地 HTTPS 憑證（只供本地使用，不提交私鑰），再啟動：
 
@@ -246,7 +246,7 @@ VITE_API_MODE=live DEV_TLS_KEY=/absolute/local/key.pem DEV_TLS_CERT=/absolute/lo
 
 開啟 `https://localhost:5173/`。Vite 同源代理 `/api` 到 `http://localhost:8080`（可用 `DEV_API_TARGET` 調整）。後端需允許該 HTTPS Origin。必須使用 HTTPS，維持 `__Host-session` Secure／HttpOnly cookie。自簽憑證只用於本地；正式環境須使用受信任憑證與同源反向代理，不能直接使用 Vite 開發伺服器。
 
-CSRF token 僅在記憶體保存；登入、角色與社團範圍皆由伺服器提供，沒有展示角色切換。資料不寫入 localStorage。新增操作在結果未知時，會以記憶體中的 SHA-256 輸入指紋重用 Idempotency-Key；輸入變更會換新 key，成功或登出後清除，不額外保存密碼明文。更新後會重新讀取 `/me`；API 錯誤保留 requestId 以供查詢。第一條串接目前未提供表單離頁草稿保存與提醒，返回公開頁會保留掛載期間的輸入，重新整理會清除。
+CSRF token 僅在記憶體保存；登入、角色與社團範圍皆由伺服器提供，沒有展示角色切換。資料不寫入 localStorage。新增操作在結果未知時，會以記憶體中的 SHA-256 輸入指紋重用 Idempotency-Key；輸入變更會換新 key，成功或登出後清除，不額外保存密碼明文。更新後會重新讀取 `/me`；API 錯誤保留 requestId 以供查詢。「我的帳號」非密碼草稿僅留於記憶體；切換頁籤、返回公開頁與登出前會確認未儲存修改，重新整理／關頁使用瀏覽器原生提醒。密碼每次操作完成（含失敗）清空；409 不自動重送或覆蓋，須明確重新讀取並確認捨棄草稿後再操作。其他原有串接表單尚未提供離頁提醒。
 
 真實端到端檢查（會建立 `.test` 合成帳號與入社資料，只用獨立本地測試資料庫）：
 
@@ -259,3 +259,11 @@ LIVE_CLUB_ID='<reviewer club UUID>' npm run test:browser:live
 未設定 `CHROMIUM_PATH` 時使用 Playwright 安裝的瀏覽器，適用 CI；本地可指定系統 Chromium。
 
 測試只對本地自簽 HTTPS 使用 `ignoreHTTPSErrors`，不模擬 API 回應；包括註冊、入社前名冊隱藏、登入、入社、審核、名冊及私人電話省略、360px 無橫向溢出。現有其他瀏覽器測試仍應在預設 mock 模式執行。
+
+帳號串接驗證（同樣只用獨立本地測試資料庫）：
+
+```sh
+BASE_URL=https://localhost:5173/ CHROMIUM_PATH=/usr/bin/chromium npm run test:browser:live:account
+```
+
+此流程建立隨機 `.test` 帳號，驗證資料／隱私保存、草稿離頁取消、錯密碼保留登入、Email／電話變更後 Session 輪替與新識別登入、舊 Email／代號失效、一次性代號限制及 360px 版面。聯絡方式仍採目前密碼驗證；電話／信箱驗證碼保留後續可選整合，並未在本次加入。頭像因尚無資產服務不提供上傳。

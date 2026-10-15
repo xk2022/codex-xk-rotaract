@@ -78,14 +78,31 @@ class SessionService {
         (String) row.get("csrf_token"));
   }
 
-  Session create(HttpServletResponse res, UUID accountId) {
+  record PendingSession(Session session, String token) {}
+
+  PendingSession createPending(UUID accountId) {
+    return createPending(accountId, java.sql.Timestamp.from(clock.instant()));
+  }
+
+  PendingSession createPending(UUID accountId, java.sql.Timestamp authenticatedAt) {
     String token = random(), csrf = random();
     UUID id = UUID.randomUUID();
     var now = java.sql.Timestamp.from(clock.instant());
     db.update(
-        "INSERT INTO api_sessions VALUES(?,?,?,?,?,?)", hash(token), id, accountId, csrf, now, now);
-    cookie(res, token);
-    return new Session(hash(token), id, accountId, csrf);
+        "INSERT INTO api_sessions VALUES(?,?,?,?,?,?)",
+        hash(token),
+        id,
+        accountId,
+        csrf,
+        authenticatedAt,
+        now);
+    return new PendingSession(new Session(hash(token), id, accountId, csrf), token);
+  }
+
+  Session create(HttpServletResponse res, UUID accountId) {
+    var pending = createPending(accountId);
+    cookie(res, pending.token());
+    return pending.session();
   }
 
   void cookie(HttpServletResponse res, String token) {

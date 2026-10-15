@@ -145,3 +145,119 @@ it("retains mutation key across network failure and starts a fresh operation aft
     fetcher.mock.calls[2][1].headers["Idempotency-Key"],
   );
 });
+
+it("uses member versions for PATCH and never attaches creation idempotency keys", async () => {
+  const fetcher = vi
+    .fn()
+    .mockResolvedValueOnce(json({ csrfToken: "csrf" }))
+    .mockResolvedValueOnce(json({ version: 8 }))
+    .mockResolvedValueOnce(json({ version: 9 }));
+  const client = createApi(fetcher as typeof fetch);
+  await client.updateProfile({ version: 7, name: "New", callName: "Call" });
+  await client.updatePrivacy({
+    version: 8,
+    phoneVisible: false,
+    emailVisible: true,
+  });
+  expect(fetcher.mock.calls[1][1].method).toBe("PATCH");
+  expect(fetcher.mock.calls[1][1].headers["Idempotency-Key"]).toBeUndefined();
+  expect(JSON.parse(fetcher.mock.calls[2][1].body)).toEqual({
+    version: 8,
+    phoneVisible: false,
+    emailVisible: true,
+  });
+});
+it("adopts rotated contact CSRF before the next mutation", async () => {
+  const fetcher = vi
+    .fn()
+    .mockResolvedValueOnce(json({ csrfToken: "before" }))
+    .mockResolvedValueOnce(
+      json({ csrfToken: "rotated", account: { version: 3 } }),
+    )
+    .mockResolvedValueOnce(new Response(null, { status: 204 }));
+  const client = createApi(fetcher as typeof fetch);
+  await client.changeContact({
+    version: 2,
+    kind: "phone",
+    newValue: "+14155552671",
+    currentPassword: "secret",
+  });
+  await client.logout();
+  expect(fetcher.mock.calls[1][1].headers["Idempotency-Key"]).toBeTruthy();
+  expect(fetcher.mock.calls[2][1].headers["X-CSRF-Token"]).toBe("rotated");
+});
+it("preserves contact unknown-result key and does not retry stale profile writes", async () => {
+  const fetcher = vi
+    .fn()
+    .mockResolvedValueOnce(json({ csrfToken: "t" }))
+    .mockRejectedValueOnce(new TypeError("offline"))
+    .mockResolvedValueOnce(json({ csrfToken: "new" }))
+    .mockResolvedValueOnce(json({ message: "stale" }, 409));
+  const client = createApi(fetcher as typeof fetch);
+  const body = {
+    version: 1,
+    kind: "email" as const,
+    newValue: "a@example.test",
+    currentPassword: "secret",
+  };
+  await expect(client.changeContact(body)).rejects.toMatchObject({ status: 0 });
+  await client.changeContact(body);
+  expect(fetcher.mock.calls[1][1].headers["Idempotency-Key"]).toBe(
+    fetcher.mock.calls[2][1].headers["Idempotency-Key"],
+  );
+  await expect(
+    client.updateProfile({ version: 0, name: "N", callName: "C" }),
+  ).rejects.toMatchObject({ status: 409 });
+  expect(fetcher).toHaveBeenCalledTimes(4);
+});
+it("uses the successful code-change Me token and account-version request", async () => {
+  const fetcher = vi
+    .fn()
+    .mockResolvedValueOnce(json({ csrfToken: "old" }))
+    .mockResolvedValueOnce(
+      json({ csrfToken: "after-code", remainingCodeChanges: 0 }),
+    )
+    .mockResolvedValueOnce(new Response(null, { status: 204 }));
+  const client = createApi(fetcher as typeof fetch);
+  const current = await client.changeCode({
+    version: 4,
+    currentPassword: "secret",
+    newCode: "member_new",
+  });
+  expect(current.remainingCodeChanges).toBe(0);
+  await client.logout();
+  expect(JSON.parse(fetcher.mock.calls[1][1].body).version).toBe(4);
+  expect(fetcher.mock.calls[2][1].headers["X-CSRF-Token"]).toBe("after-code");
+});
+it("recovers authenticated CSRF through me after current-password rejection without replaying the change", async () => {
+  const fetcher = vi
+    .fn()
+    .mockResolvedValueOnce(json({ csrfToken: "old" }))
+    .mockResolvedValueOnce(
+      json(
+        { code: "AUTHENTICATION_FAILED", message: "Password rejected" },
+        401,
+      ),
+    )
+    .mockResolvedValueOnce(json({ csrfToken: "recovered" }))
+    .mockResolvedValueOnce(json({ version: 2 }));
+  const client = createApi(fetcher as typeof fetch);
+  await expect(
+    client.changeContact({
+      version: 1,
+      kind: "email",
+      newValue: "new@example.test",
+      currentPassword: "wrong",
+    }),
+  ).rejects.toMatchObject({ status: 401 });
+  await client.me();
+  await client.updatePrivacy({
+    version: 1,
+    phoneVisible: false,
+    emailVisible: false,
+  });
+  expect(fetcher.mock.calls[3][1].headers["X-CSRF-Token"]).toBe("recovered");
+  expect(
+    fetcher.mock.calls.filter(([url]) => url.endsWith("contact-changes")),
+  ).toHaveLength(1);
+});

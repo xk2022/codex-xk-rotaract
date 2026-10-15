@@ -4,14 +4,14 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-第一階段與後續模組的需求基準 v1.0 已完成，後續以需求變更調整。前端採 React + TypeScript + Vite，保留舊版品牌與配色並更新版面；正式供應商設定與資產仍待取得，詳見[現行規格](docs/2027/13-requirements-baseline.md)。GitHub Pages 已發布前端合成資料展示。另新增 Java 21／Spring Boot／PostgreSQL 17 的本地核心 API 與前端串接模式，涵蓋註冊、登入、入社審核及會員查詢，已有48項前端單元測試與19項資料庫整合測試；本次驗證、啟動與剩餘範圍見[核心串接紀錄](docs/2027/26-core-api-integration.md)。第一階段整體與正式後端部署尚未完成。
+第一階段與後續模組的需求基準 v1.0 已完成，後續以需求變更調整。前端採 React + TypeScript + Vite，保留舊版品牌與配色並更新版面；正式供應商設定與資產仍待取得，詳見[現行規格](docs/2027/13-requirements-baseline.md)。GitHub Pages 已發布前端合成資料展示。另有 Java 21／Spring Boot／PostgreSQL 17 的本地 API 與前端串接模式，涵蓋註冊、登入、入社審核、會員查詢及本人帳號／隱私變更，已有前端單元、資料庫整合與真實HTTPS瀏覽器驗證。最新範圍、證據與限制見[帳號與隱私交付](docs/2027/27-account-and-privacy-integration.md)，前輪見[核心串接紀錄](docs/2027/26-core-api-integration.md)。第一階段整體與正式後端部署尚未完成。
 
 ## 目錄
 
 | 路徑 | 用途 | 目前內容 |
 | --- | --- | --- |
 | `frontend/` | 前端畫面與互動 | 公開展示、可選本地 API 串接模式與測試 |
-| `backend/` | 後端 API 與業務邏輯 | 13個核心 API operation、Flyway與PostgreSQL整合測試 |
+| `backend/` | 後端 API 與業務邏輯 | 17個 API operation、Flyway與PostgreSQL整合測試 |
 | `docs/` | 需求、架構、API 契約與團隊規則 | 協作文件 |
 | `.github/workflows/` | GitHub Actions | 前端 Pages 部署、核心 API 與 HTTPS 流程驗證 |
 

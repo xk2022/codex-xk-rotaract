@@ -166,7 +166,11 @@ class CoreIntegrationTest {
     var detail = node(admin.run(get("/api/v1/members/" + memberId)));
     assertEquals("new@example.test", detail.path("email").asText());
     assertFalse(detail.has("phone"));
-    core.db.update("UPDATE members SET email_visible=false WHERE id=?", UUID.fromString(memberId));
+    assertEquals(
+        200,
+        patchSelf(member, "/me/privacy", Map.of("version", 0, "emailVisible", false))
+            .getResponse()
+            .getStatus());
     assertFalse(node(admin.run(get("/api/v1/members/" + memberId))).has("email"));
     assertEquals(
         0,
@@ -693,5 +697,546 @@ class CoreIntegrationTest {
         core.db.queryForObject(
             "SELECT status FROM join_applications WHERE id=?", String.class, UUID.fromString(id)));
     assertEquals(0, core.db.queryForObject("SELECT count(*) FROM memberships", Integer.class));
+  }
+
+  MvcResult patchSelf(Client c, String path, Object body) throws Exception {
+    return c.run(
+        patch("/api/v1" + path)
+            .contentType("application/json")
+            .content(json.writeValueAsBytes(body)));
+  }
+
+  JsonNode freshMe(Client c) throws Exception {
+    var response = c.run(get("/api/v1/me"));
+    assertEquals(200, response.getResponse().getStatus());
+    return node(response);
+  }
+
+  JsonNode acceptRotation(Client c, MvcResult r) throws Exception {
+    assertEquals(200, r.getResponse().getStatus(), r.getResponse().getContentAsString());
+    String header = r.getResponse().getHeader("Set-Cookie");
+    assertNotNull(header);
+    assertTrue(header.contains("Secure; HttpOnly; SameSite=Lax"));
+    c.cookie = header.split(";", 2)[0].split("=", 2)[1];
+    c.csrf = node(r).path("csrfToken").asText();
+    return node(r);
+  }
+
+  @Test
+  void selfProfileAndPrivacyUseMemberVersionsAndRejectPrivilegeFields() throws Exception {
+    var c = new Client();
+    signup(c, "self@example.test");
+    var me = c.login("self@example.test");
+    var r = patchSelf(c, "/me/profile", Map.of("version", 0, "name", "新姓名", "callName", "NewCall"));
+    assertEquals(200, r.getResponse().getStatus());
+    assertEquals(1, node(r).path("version").asInt());
+    assertEquals("新姓名", node(r).path("name").asText());
+    assertEquals(0, freshMe(c).path("account").path("version").asInt());
+    assertEquals(
+        409,
+        patchSelf(c, "/me/privacy", Map.of("version", 0, "emailVisible", false))
+            .getResponse()
+            .getStatus());
+    r =
+        patchSelf(
+            c, "/me/privacy", Map.of("version", 1, "emailVisible", false, "phoneVisible", true));
+    assertEquals(200, r.getResponse().getStatus());
+    assertEquals(2, node(r).path("version").asInt());
+    for (String field : List.of("email", "phone", "accountId", "role"))
+      assertEquals(
+          400,
+          patchSelf(c, "/me/profile", Map.of("version", 2, field, "forbidden"))
+              .getResponse()
+              .getStatus());
+    assertEquals(400, patchSelf(c, "/me/profile", Map.of("version", 2)).getResponse().getStatus());
+    assertEquals(
+        400,
+        patchSelf(c, "/me/privacy", Map.of("version", 2, "emailVisible", "false"))
+            .getResponse()
+            .getStatus());
+    assertEquals(
+        400,
+        patchSelf(c, "/me/profile", Map.of("version", 2, "name", "")).getResponse().getStatus());
+    assertEquals(
+        404,
+        patchSelf(c, "/me/profile", Map.of("version", 2, "avatarAssetId", UUID.randomUUID()))
+            .getResponse()
+            .getStatus());
+    var clear = new LinkedHashMap<String, Object>();
+    clear.put("version", 2);
+    clear.put("avatarAssetId", null);
+    assertEquals(200, patchSelf(c, "/me/profile", clear).getResponse().getStatus());
+    assertTrue(freshMe(c).path("member").path("avatarAssetId").isNull());
+  }
+
+  @Test
+  void contactChangeRotatesRevokesAndReplaysCurrentProjection() throws Exception {
+    var c = new Client();
+    signup(c, "old@example.test");
+    var before = c.login("old@example.test");
+    var other = new Client();
+    other.login("old@example.test");
+    String oldCookie = c.cookie, oldCsrf = c.csrf;
+    var created =
+        core.one(
+                "SELECT created_at FROM api_sessions WHERE token_hash=?",
+                SessionService.hash(oldCookie))
+            .get("created_at");
+    var body =
+        Map.of(
+            "version",
+            0,
+            "currentPassword",
+            password,
+            "kind",
+            "email",
+            "newValue",
+            " New+Tag@Example.test ");
+    String idem = key();
+    var result = c.post("/me/contact-changes", body, idem);
+    var me = acceptRotation(c, result);
+    assertNotEquals(oldCookie, c.cookie);
+    assertNotEquals(oldCsrf, c.csrf);
+    assertEquals("New+Tag@Example.test", me.path("account").path("email").asText());
+    assertEquals(before.path("account").path("id"), me.path("account").path("id"));
+    assertEquals(
+        created,
+        core.one(
+                "SELECT created_at FROM api_sessions WHERE token_hash=?",
+                SessionService.hash(c.cookie))
+            .get("created_at"));
+    assertEquals(401, other.run(get("/api/v1/me")).getResponse().getStatus());
+    var old = new Client();
+    assertEquals(
+        401,
+        old.post("/sessions", Map.of("identifier", "old@example.test", "password", password), null)
+            .getResponse()
+            .getStatus());
+    var newLogin = new Client();
+    newLogin.login("new+tag@example.test");
+    var changed =
+        Map.of(
+            "version",
+            1,
+            "currentPassword",
+            password,
+            "kind",
+            "email",
+            "newValue",
+            "latest@example.test");
+    acceptRotation(c, c.post("/me/contact-changes", changed, key()));
+    var replay = c.post("/me/contact-changes", body, idem);
+    assertEquals(200, replay.getResponse().getStatus());
+    assertNull(replay.getResponse().getHeader("Set-Cookie"));
+    assertEquals("latest@example.test", node(replay).path("account").path("email").asText());
+    assertEquals(c.csrf, node(replay).path("csrfToken").asText());
+    assertEquals(2, node(replay).path("account").path("version").asInt());
+    assertEquals(409, c.post("/me/contact-changes", changed, idem).getResponse().getStatus());
+    assertEquals(
+        2,
+        core.db.queryForObject(
+            "SELECT count(*) FROM audit_events WHERE action='account.contact.email'",
+            Integer.class));
+    assertEquals(
+        1,
+        core.db.queryForObject(
+            "SELECT count(*) FROM api_sessions WHERE account_id=?",
+            Integer.class,
+            UUID.fromString(me.path("account").path("id").asText())));
+    assertFalse(
+        core.db
+            .queryForList("SELECT response,body_hash FROM idempotency_records")
+            .toString()
+            .contains(password));
+  }
+
+  @Test
+  void phoneUniquenessAndValidationRollbackPreserveCurrentSession() throws Exception {
+    var a = new Client();
+    signup(a, "one@example.test");
+    a.login("one@example.test");
+    var b = new Client();
+    signup(b, "two@example.test");
+    b.login("two@example.test");
+    String reserved = "+14155552671";
+    var body =
+        Map.of("version", 0, "currentPassword", password, "kind", "phone", "newValue", reserved);
+    acceptRotation(a, a.post("/me/contact-changes", body, key()));
+    assertEquals(409, b.post("/me/contact-changes", body, key()).getResponse().getStatus());
+    assertEquals(0, freshMe(b).path("account").path("version").asInt());
+    assertEquals(
+        400,
+        b.post(
+                "/me/contact-changes",
+                Map.of(
+                    "version",
+                    0,
+                    "currentPassword",
+                    password,
+                    "kind",
+                    "phone",
+                    "newValue",
+                    "+886000000000"),
+                key())
+            .getResponse()
+            .getStatus());
+    var both = new HashMap<String, Object>(body);
+    both.put("email", "extra@example.test");
+    assertEquals(400, b.post("/me/contact-changes", both, key()).getResponse().getStatus());
+    assertEquals(
+        409,
+        b.post(
+                "/me/contact-changes",
+                Map.of(
+                    "version",
+                    0,
+                    "currentPassword",
+                    password,
+                    "kind",
+                    "email",
+                    "newValue",
+                    " ONE@EXAMPLE.TEST "),
+                key())
+            .getResponse()
+            .getStatus());
+    assertEquals(0, freshMe(b).path("account").path("version").asInt());
+    var login = new Client();
+    login.login(reserved);
+    assertEquals(
+        409,
+        a.post(
+                "/me/contact-changes",
+                Map.of(
+                    "version",
+                    0,
+                    "currentPassword",
+                    password,
+                    "kind",
+                    "email",
+                    "newValue",
+                    "stale@example.test"),
+                key())
+            .getResponse()
+            .getStatus());
+  }
+
+  @Test
+  void accountCodeIsOneTimeReservedAndIdempotent() throws Exception {
+    var a = new Client();
+    var initial = signup(a, "code@example.test");
+    a.login("code@example.test");
+    var body = Map.of("version", 0, "currentPassword", password, "newCode", "My_New_Code");
+    String idem = key();
+    var r = a.post("/me/account-code-changes", body, idem);
+    assertEquals(200, r.getResponse().getStatus(), r.getResponse().getContentAsString());
+    assertEquals(1, node(r).path("account").path("codeChangeCount").asInt());
+    assertEquals(0, node(r).path("remainingCodeChanges").asInt());
+    assertEquals(200, a.post("/me/account-code-changes", body, idem).getResponse().getStatus());
+    assertEquals(
+        409,
+        a.post(
+                "/me/account-code-changes",
+                Map.of("version", 1, "currentPassword", password, "newCode", "SecondCode"),
+                key())
+            .getResponse()
+            .getStatus());
+    var old = new Client();
+    assertEquals(
+        401,
+        old.post(
+                "/sessions",
+                Map.of("identifier", initial.path("accountCode").asText(), "password", password),
+                null)
+            .getResponse()
+            .getStatus());
+    var changed = new Client();
+    changed.login("my_new_code");
+    var other = new Client();
+    signup(other, "othercode@example.test");
+    other.login("othercode@example.test");
+    assertEquals(
+        409,
+        other
+            .post(
+                "/me/account-code-changes",
+                Map.of(
+                    "version",
+                    0,
+                    "currentPassword",
+                    password,
+                    "newCode",
+                    initial.path("accountCode").asText()),
+                key())
+            .getResponse()
+            .getStatus());
+    assertEquals(
+        409,
+        other
+            .post(
+                "/me/account-code-changes",
+                Map.of("version", 0, "currentPassword", password, "newCode", "MY_NEW_CODE"),
+                key())
+            .getResponse()
+            .getStatus());
+    for (String invalid : List.of("1234567890", "short", "bad@code", "a".repeat(21)))
+      assertEquals(
+          400,
+          other
+              .post(
+                  "/me/account-code-changes",
+                  Map.of("version", 0, "currentPassword", password, "newCode", invalid),
+                  key())
+              .getResponse()
+              .getStatus());
+    assertEquals(0, freshMe(other).path("account").path("codeChangeCount").asInt());
+  }
+
+  @Test
+  void currentPasswordPreservesWhitespaceAndFailuresAreThrottledWithoutLogout() throws Exception {
+    var c = new Client();
+    signup(c, "verify@example.test");
+    c.login("verify@example.test");
+    var wrong =
+        Map.of(
+            "version",
+            0,
+            "currentPassword",
+            password.strip(),
+            "kind",
+            "email",
+            "newValue",
+            "newverify@example.test");
+    for (int i = 0; i < 10; i++) {
+      var r = c.post("/me/contact-changes", wrong, key());
+      assertEquals(401, r.getResponse().getStatus());
+      assertEquals("AUTHENTICATION_FAILED", node(r).path("code").asText());
+    }
+    assertEquals(429, c.post("/me/contact-changes", wrong, key()).getResponse().getStatus());
+    assertEquals(0, freshMe(c).path("account").path("version").asInt());
+    assertEquals(
+        0,
+        core.db.queryForObject(
+            "SELECT count(*) FROM audit_events WHERE action LIKE 'account.contact.%'",
+            Integer.class));
+    assertEquals(
+        1,
+        core.db.queryForObject(
+            "SELECT count(*) FROM api_sessions WHERE account_id IS NOT NULL", Integer.class));
+  }
+
+  @Test
+  void simultaneousCodeChangesOnlyOneCanConsumeAllowance() throws Exception {
+    var c = new Client();
+    signup(c, "racecode@example.test");
+    c.login("racecode@example.test");
+    try (var pool = Executors.newFixedThreadPool(2)) {
+      var start = new CountDownLatch(1);
+      var futures = new ArrayList<Future<Integer>>();
+      for (String code : List.of("RaceCodeOne", "RaceCodeTwo"))
+        futures.add(
+            pool.submit(
+                () -> {
+                  start.await();
+                  return c.post(
+                          "/me/account-code-changes",
+                          Map.of("version", 0, "currentPassword", password, "newCode", code),
+                          key())
+                      .getResponse()
+                      .getStatus();
+                }));
+      start.countDown();
+      var statuses = new ArrayList<Integer>();
+      for (var f : futures) statuses.add(f.get(30, TimeUnit.SECONDS));
+      Collections.sort(statuses);
+      assertEquals(List.of(200, 409), statuses);
+    }
+    assertEquals(1, freshMe(c).path("account").path("codeChangeCount").asInt());
+    assertEquals(
+        2,
+        core.db.queryForObject(
+            "SELECT count(*) FROM account_code_reservations WHERE account_id=?",
+            Integer.class,
+            UUID.fromString(freshMe(c).path("account").path("id").asText())));
+  }
+
+  @Test
+  void simultaneousContactChangesCannotReviveRevokedSessions() throws Exception {
+    var c = new Client();
+    signup(c, "racecontact@example.test");
+    var me = c.login("racecontact@example.test");
+    try (var pool = Executors.newFixedThreadPool(2)) {
+      var start = new CountDownLatch(1);
+      var futures = new ArrayList<Future<MvcResult>>();
+      for (String email : List.of("raceone@example.test", "racetwo@example.test"))
+        futures.add(
+            pool.submit(
+                () -> {
+                  start.await();
+                  return c.post(
+                      "/me/contact-changes",
+                      Map.of(
+                          "version",
+                          0,
+                          "currentPassword",
+                          password,
+                          "kind",
+                          "email",
+                          "newValue",
+                          email),
+                      key());
+                }));
+      start.countDown();
+      int success = 0;
+      for (var f : futures) {
+        var r = f.get(30, TimeUnit.SECONDS);
+        if (r.getResponse().getStatus() == 200) success++;
+        else
+          assertTrue(
+              Set.of(401, 403).contains(r.getResponse().getStatus()),
+              r.getResponse().getContentAsString());
+      }
+      assertEquals(1, success);
+    }
+    assertEquals(
+        1,
+        core.db.queryForObject(
+            "SELECT count(*) FROM api_sessions WHERE account_id=?",
+            Integer.class,
+            UUID.fromString(me.path("account").path("id").asText())));
+  }
+
+  @Test
+  void replacementPhoneImmediatelyLosesOldLoginAndKeepsPasswordSpaces() throws Exception {
+    var c = new Client();
+    signup(c, "phones@example.test");
+    c.login("phones@example.test");
+    acceptRotation(
+        c,
+        c.post(
+            "/me/contact-changes",
+            Map.of(
+                "version",
+                0,
+                "currentPassword",
+                password,
+                "kind",
+                "phone",
+                "newValue",
+                "+14155552671"),
+            key()));
+    var firstLogin = new Client();
+    firstLogin.login("+14155552671");
+    acceptRotation(
+        c,
+        c.post(
+            "/me/contact-changes",
+            Map.of(
+                "version",
+                1,
+                "currentPassword",
+                password,
+                "kind",
+                "phone",
+                "newValue",
+                "+442079460018"),
+            key()));
+    var old = new Client();
+    assertEquals(
+        401,
+        old.post("/sessions", Map.of("identifier", "+14155552671", "password", password), null)
+            .getResponse()
+            .getStatus());
+    var fresh = new Client();
+    fresh.login("+442079460018");
+    assertEquals(401, firstLogin.run(get("/api/v1/me")).getResponse().getStatus());
+  }
+
+  @Test
+  void competingAccountsCannotClaimSameNormalizedEmail() throws Exception {
+    var a = new Client();
+    signup(a, "claimone@example.test");
+    a.login("claimone@example.test");
+    var b = new Client();
+    signup(b, "claimtwo@example.test");
+    b.login("claimtwo@example.test");
+    try (var pool = Executors.newFixedThreadPool(2)) {
+      var gate = new CountDownLatch(1);
+      var futures = new ArrayList<Future<Integer>>();
+      for (var client : List.of(a, b))
+        futures.add(
+            pool.submit(
+                () -> {
+                  gate.await();
+                  return client
+                      .post(
+                          "/me/contact-changes",
+                          Map.of(
+                              "version",
+                              0,
+                              "currentPassword",
+                              password,
+                              "kind",
+                              "email",
+                              "newValue",
+                              client == a ? " Shared@Example.test " : "shared@example.test"),
+                          key())
+                      .getResponse()
+                      .getStatus();
+                }));
+      gate.countDown();
+      var statuses = new ArrayList<Integer>();
+      for (var f : futures) statuses.add(f.get(30, TimeUnit.SECONDS));
+      Collections.sort(statuses);
+      assertEquals(List.of(200, 409), statuses);
+    }
+    assertEquals(
+        1,
+        core.db.queryForObject(
+            "SELECT count(*) FROM accounts WHERE email_key='shared@example.test'", Integer.class));
+    assertEquals(
+        1, core.db.queryForObject("SELECT count(*) FROM accounts WHERE version=1", Integer.class));
+  }
+
+  @Test
+  void failedCommitDoesNotPublishCookieOrReplaceIdentifierOrRevokeSessions() throws Exception {
+    var c = new Client();
+    signup(c, "rollback@example.test");
+    c.login("rollback@example.test");
+    var other = new Client();
+    other.login("rollback@example.test");
+    core.db.execute(
+        "CREATE FUNCTION test_fail_replay_insert() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN"
+            + " RAISE EXCEPTION 'synthetic commit failure'; END; $$");
+    core.db.execute(
+        "CREATE TRIGGER test_fail_replay BEFORE INSERT ON idempotency_records FOR EACH ROW EXECUTE"
+            + " FUNCTION test_fail_replay_insert()");
+    try {
+      var result =
+          c.post(
+              "/me/contact-changes",
+              Map.of(
+                  "version",
+                  0,
+                  "currentPassword",
+                  password,
+                  "kind",
+                  "email",
+                  "newValue",
+                  "shouldrollback@example.test"),
+              key());
+      assertEquals(503, result.getResponse().getStatus());
+      assertNull(result.getResponse().getHeader("Set-Cookie"));
+      assertEquals("rollback@example.test", freshMe(c).path("account").path("email").asText());
+      assertEquals(0, freshMe(c).path("account").path("version").asInt());
+      freshMe(other);
+      assertEquals(
+          0,
+          core.db.queryForObject(
+              "SELECT count(*) FROM audit_events WHERE action='account.contact.email'",
+              Integer.class));
+    } finally {
+      core.db.execute("DROP TRIGGER test_fail_replay ON idempotency_records");
+      core.db.execute("DROP FUNCTION test_fail_replay_insert()");
+    }
   }
 }

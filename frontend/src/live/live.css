@@ -4,6 +4,7 @@
   color: #243143;
   padding: 24px max(20px, calc((100vw - 1080px) / 2));
   font-family: inherit;
+  overflow-wrap: anywhere;
 }
 .live-header,
 .live-tabs,
@@ -190,5 +191,42 @@
   .live-pagination {
     justify-content: center;
     gap: 8px;
+  }
+}
+.live-account-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+.live-account-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.live-account .live-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.live-main .live-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.live-main .live-checkbox input {
+  width: 22px;
+  min-height: 22px;
+  flex: 0 0 22px;
+  accent-color: #a30d27;
+}
+@media (max-width: 600px) {
+  .live-account-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .live-account-heading {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

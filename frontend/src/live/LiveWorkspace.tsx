@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
   api,
@@ -10,6 +10,7 @@ import {
 import type { Club, Join, Me, Member, Page } from "./api";
 import { goToPortal, readPortalRoute } from "../portalRoute";
 import "./live.css";
+import AccountSettings from "./AccountSettings";
 export default function LiveWorkspace() {
   const [route, setRoute] = useState(readPortalRoute),
     [me, setMe] = useState<Me | null>(null),
@@ -30,6 +31,19 @@ export default function LiveWorkspace() {
     [keyword, setKeyword] = useState(""),
     [search, setSearch] = useState(""),
     [revision, setRevision] = useState(0);
+  const [accountBusy, setAccountBusy] = useState(false);
+  const accountBusyRef = useRef(false);
+  const updateAccountBusy = useCallback((value: boolean) => {
+    accountBusyRef.current = value;
+    setAccountBusy(value);
+  }, []);
+  const dirtyRef = useRef(false);
+  const setDirty = (value: boolean) => {
+    dirtyRef.current = value;
+  };
+  const canLeave = () =>
+    !accountBusyRef.current &&
+    (!dirtyRef.current || window.confirm("有尚未儲存的帳號修改，確定離開？"));
   const scopes = me ? reviewerClubs(me) : [];
   useEffect(() => {
     if (me && tab === "review" && !scopes.length) {
@@ -42,6 +56,18 @@ export default function LiveWorkspace() {
       setPage(1);
     }
   }, [me, tab, reviewClub]);
+  function expireSession() {
+    api.forgetSession();
+    dirtyRef.current = false;
+    setMe(null);
+    setDetail(null);
+    setJoins([]);
+    setMembers([]);
+    setReviewClub("");
+    setPage(1);
+    setTab("join");
+    goToPortal("login");
+  }
   function fail(e: unknown) {
     setError(
       e instanceof ApiError
@@ -49,17 +75,31 @@ export default function LiveWorkspace() {
         : "操作未完成，請重試。",
     );
     if (e instanceof ApiError && e.status === 401) {
-      setMe(null);
-      setDetail(null);
-      setJoins([]);
-      setMembers([]);
-      goToPortal("login");
+      expireSession();
     }
   }
   useEffect(() => {
-    const sync = () => setRoute(readPortalRoute());
+    let previousHash = window.location.hash;
+    const sync = () => {
+      if (!canLeave()) {
+        window.history.replaceState(null, "", previousHash || "#/");
+        return;
+      }
+      previousHash = window.location.hash;
+      setRoute(readPortalRoute());
+    };
+    const unload = (event: BeforeUnloadEvent) => {
+      if (dirtyRef.current) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", unload);
     window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
+    return () => {
+      window.removeEventListener("hashchange", sync);
+      window.removeEventListener("beforeunload", unload);
+    };
   }, []);
   useEffect(() => {
     let alive = true;
@@ -79,7 +119,7 @@ export default function LiveWorkspace() {
     };
   }, []);
   useEffect(() => {
-    if (!me) return;
+    if (!me || tab === "account") return;
     let alive = true;
     setLoading(true);
     setError("");
@@ -318,13 +358,16 @@ export default function LiveWorkspace() {
           <nav className="live-tabs" aria-label="會員服務">
             {[
               ["join", "我的入社申請"],
+              ["account", "我的帳號"],
               ["members", "會員名冊"],
               ...(scopes.length ? [["review", "社團入社審核"]] : []),
             ].map(([key, label]) => (
               <button
                 key={key}
+                disabled={accountBusy}
                 aria-current={tab === key ? "page" : undefined}
                 onClick={() => {
+                  if (!canLeave()) return;
                   setTab(key);
                   setDetail(null);
                   setPage(1);
@@ -334,9 +377,11 @@ export default function LiveWorkspace() {
               </button>
             ))}
             <button
-              disabled={busy}
+              disabled={busy || accountBusy}
               onClick={() =>
                 void act(async () => {
+                  if (!canLeave()) return;
+                  dirtyRef.current = false;
                   await api.logout();
                   setMe(null);
                   setJoins([]);
@@ -352,6 +397,16 @@ export default function LiveWorkspace() {
               登出
             </button>
           </nav>
+          {tab === "account" && (
+            <AccountSettings
+              key={me.account.id}
+              me={me}
+              onMe={setMe}
+              onDirty={setDirty}
+              onExpired={expireSession}
+              onBusy={updateAccountBusy}
+            />
+          )}
           {tab === "join" && (
             <section className="live-card">
               <h2>申請加入社團</h2>

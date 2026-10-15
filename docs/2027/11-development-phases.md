@@ -64,7 +64,8 @@
 - [x] 依評估執行[v0.4 UI／UX改善](24-ui-ux-improvements.md)：帳號分頁、閱讀性、任務導引、草稿保護、深連結與操作摘要。
 - [x] 完成[v0.5公開入口與全頁UI／UX升級](25-public-entry-and-page-upgrade.md)，公開根網址獨立載入、管理按需載入及全部角色頁面檢查。
 - [x] [核心 API 與本地串接](26-core-api-integration.md)：13個operation，註冊→登入→入社→核准→名冊，含真實PostgreSQL交易、HTTPS瀏覽器及獨立權限／隱私審查。
-- [ ] 完成其餘46個operation及對應前端串接，包括帳號變更／復原、轉社、年度、角色、歷史與支援。
+- [x] [本人帳號與隱私串接](27-account-and-privacy-integration.md)：新增4個operation，姓名／call name、聯絡隱私、電話／Email密碼驗證與Session輪替，以及一次代號修改／舊碼保留。
+- [ ] 完成其餘42個operation及對應前端串接，包括復原、轉社、年度、角色、歷史、資產與支援；頭像非空資產引用仍未開放。
 - [ ] 完成第一階段其餘交易約束、負載、完整稽核與必要測試。
 - [x] 建立核心流程本地啟動、資料庫測試及HTTPS瀏覽器CI設定。
 - [ ] 完成正式後端部署、監控、備份還原命令與實際演練。

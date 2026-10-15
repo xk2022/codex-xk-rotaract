@@ -26,9 +26,27 @@ export type Member = {
   clubs: (Club & { districtName: string })[];
   annualStatus: string;
 };
+export type MemberSelf = {
+  id: string;
+  accountId: string;
+  name: string;
+  callName: string;
+  avatarAssetId: string | null;
+  phoneVisible: boolean;
+  emailVisible: boolean;
+  version: number;
+};
 export type Me = {
-  account: { id: string; accountCode: string; email: string };
-  member: { id: string; name: string; callName: string } | null;
+  account: {
+    id: string;
+    accountCode: string;
+    email: string;
+    phone: string | null;
+    codeChangeCount: number;
+    version: number;
+  };
+  member: MemberSelf | null;
+  remainingCodeChanges: number;
   roles: {
     role: string;
     scope: { scopeType: string; scopeId: string | null };
@@ -119,9 +137,52 @@ export function createApi(fetcher: typeof fetch = fetch) {
   }
   return {
     request,
+    forgetSession() {
+      token = undefined;
+      mutations.clear();
+    },
     async mutate<T>(path: string, body: unknown): Promise<T> {
       const key = await mutations.keyFor(path, body);
       const result = await request<T>(path, "POST", body, key);
+      mutations.succeeded(path, key);
+      return result;
+    },
+    async updateProfile(body: {
+      version: number;
+      name: string;
+      callName: string;
+    }) {
+      return request<MemberSelf>("/me/profile", "PATCH", body);
+    },
+    async updatePrivacy(body: {
+      version: number;
+      phoneVisible: boolean;
+      emailVisible: boolean;
+    }) {
+      return request<MemberSelf>("/me/privacy", "PATCH", body);
+    },
+    async changeContact(body: {
+      version: number;
+      currentPassword: string;
+      kind: "email" | "phone";
+      newValue: string;
+    }) {
+      const path = "/me/contact-changes";
+      const key = await mutations.keyFor(path, body);
+      const result = await request<Me>(path, "POST", body, key);
+      token = result.csrfToken;
+      mutations.succeeded(path, key);
+      return result;
+    },
+    async changeCode(body: {
+      version: number;
+      currentPassword: string;
+      newCode: string;
+    }) {
+      const path = "/me/account-code-changes";
+      const key = await mutations.keyFor(path, body);
+      const result = await request<Me>(path, "POST", body, key);
+      token = result.csrfToken;
       mutations.succeeded(path, key);
       return result;
     },

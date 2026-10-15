@@ -95,6 +95,7 @@ class CoreService {
     String aad = actor + "\n" + path + "\n" + key + "\n" + status + "\n" + digest;
     return tx.execute(
         t -> {
+          if (s.accountId() != null) lockAccountSession(s);
           db.queryForObject(
               "SELECT pg_advisory_xact_lock(hashtextextended(?,0)) IS NULL",
               Boolean.class,
@@ -116,8 +117,11 @@ class CoreService {
             try {
               return new Result(
                   (Integer) row.get("status"),
-                  redactReplay(
-                      json.readTree(replayCipher.decrypt((String) row.get("response"), aad))));
+                  selfReplay(
+                      req,
+                      redactReplay(
+                          json.readTree(replayCipher.decrypt((String) row.get("response"), aad))),
+                      s));
             } catch (Exception e) {
               throw new IllegalStateException(e);
             }
@@ -140,6 +144,27 @@ class CoreService {
           }
           return new Result(status, result);
         });
+  }
+
+  Object selfReplay(HttpServletRequest req, JsonNode original, SessionService.Session session) {
+    if (Set.of("/api/v1/me/contact-changes", "/api/v1/me/account-code-changes")
+        .contains(req.getRequestURI())) return me(session);
+    return original;
+  }
+
+  Map<String, Object> lockAccountSession(SessionService.Session session) {
+    var account = one("SELECT * FROM accounts WHERE id=? FOR UPDATE", session.accountId());
+    if (!"active".equals(account.get("status"))
+        || db.queryForObject(
+                "SELECT count(*) FROM api_sessions WHERE token_hash=? AND account_id=? AND"
+                    + " created_at>? AND last_seen>?",
+                Integer.class,
+                session.hash(),
+                session.accountId(),
+                java.sql.Timestamp.from(clock.instant().minus(Duration.ofHours(12))),
+                java.sql.Timestamp.from(clock.instant().minus(Duration.ofMinutes(30))))
+            != 1) throw ApiException.auth();
+    return account;
   }
 
   JsonNode canonical(JsonNode node) {
@@ -249,7 +274,14 @@ class CoreService {
             phone)
         > 0) throw new ApiException(409, "IDENTIFIER_UNAVAILABLE", "此識別值無法使用。");
     UUID id = UUID.randomUUID();
-    String code = "M" + UUID.randomUUID().toString().replace("-", "").substring(0, 15);
+    String code;
+    do {
+      code = "M" + UUID.randomUUID().toString().replace("-", "").substring(0, 15);
+    } while (db.queryForObject(
+            "SELECT count(*) FROM account_code_reservations WHERE code_key=?",
+            Integer.class,
+            code.toLowerCase(Locale.ROOT))
+        > 0);
     db.update(
         "INSERT INTO accounts(id,account_code,email,email_key,phone,password_hash)"
             + " VALUES(?,?,?,?,?,?)",
@@ -303,7 +335,20 @@ class CoreService {
     UUID id = (UUID) rows.getFirst().get("id");
     return tx.execute(
         t -> {
-          db.update("DELETE FROM api_sessions WHERE token_hash=?", old.hash());
+          var current = one("SELECT * FROM accounts WHERE id=? FOR UPDATE", id);
+          boolean matches =
+              identifier.contains("@")
+                  ? identifier.equals(current.get("email_key"))
+                  : identifier.startsWith("+")
+                      ? identifier.equals(current.get("phone"))
+                      : identifier.equals(
+                          ((String) current.get("account_code")).toLowerCase(Locale.ROOT));
+          if (!matches
+              || !"active".equals(current.get("status"))
+              || !encoded.equals(current.get("password_hash"))) throw ApiException.auth();
+          if (db.update(
+                  "DELETE FROM api_sessions WHERE token_hash=? AND account_id IS NULL", old.hash())
+              != 1) throw ApiException.auth();
           var fresh = sessions.create(res, id);
           return me(fresh);
         });
@@ -370,7 +415,7 @@ class CoreService {
             "accountCode",
             a.get("account_code"),
             "codeChangeCount",
-            0,
+            a.get("code_change_count"),
             "email",
             a.get("email"),
             "phone",
@@ -380,33 +425,37 @@ class CoreService {
             "version",
             a.get("version")),
         "member",
-        map(
-            "id",
-            m.get("id"),
-            "accountId",
-            a.get("id"),
-            "name",
-            m.get("name"),
-            "callName",
-            m.get("call_name"),
-            "avatarAssetId",
-            null,
-            "phoneVisible",
-            m.get("phone_visible"),
-            "emailVisible",
-            m.get("email_visible"),
-            "version",
-            m.get("version")),
+        memberSelf(m),
         "roles",
         roles,
         "availableScopes",
         roles.stream().map(r -> r.get("scope")).distinct().toList(),
         "remainingCodeChanges",
-        1,
+        1 - (Integer) a.get("code_change_count"),
         "csrfToken",
         session.csrf(),
         "mfaAuthenticated",
         false);
+  }
+
+  Object memberSelf(Map<String, Object> m) {
+    return map(
+        "id",
+        m.get("id"),
+        "accountId",
+        m.get("account_id"),
+        "name",
+        m.get("name"),
+        "callName",
+        m.get("call_name"),
+        "avatarAssetId",
+        null,
+        "phoneVisible",
+        m.get("phone_visible"),
+        "emailVisible",
+        m.get("email_visible"),
+        "version",
+        m.get("version"));
   }
 
   void reviewer(UUID account, UUID club) {

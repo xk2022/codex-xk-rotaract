@@ -1,4 +1,4 @@
-# 第一條核心 API 流程 v0.6
+# 核心 API 與本人帳號設定 v0.7
 
 已實作 Java 21、Spring Boot 3.5.13、Spring Security、JDBC、PostgreSQL 17 與 Flyway。這是第一階段的核心串接切片，並非完整第一階段後端。
 
@@ -32,6 +32,9 @@ SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
 - `GET /csrf-token`：匿名 pre-session 或目前登入 Session 綁定 token。
 - `POST /accounts`：註冊、不自動登入；Email、選填 E.164 電話唯一；亂數帳號代號。
 - `POST /sessions`、`DELETE /sessions/current`、`GET /me`：伺服器 Session、登入輪替、到期與停權檢查。
+- `PATCH /me/profile`、`PATCH /me/privacy`：本人白名單、會員資料版本、即時更新查詢投影；不接受角色、Email、電話或 accountId。
+- `POST /me/contact-changes`：目前密碼確認後，一次只改 Email 或 E.164 電話；原子唯一性及帳號版本、撤銷其他工作階段、輪替目前 Cookie／CSRF，保留原登入的12小時絕對到期時間。
+- `POST /me/account-code-changes`：目前密碼確認後只可改一次；不分大小寫唯一，舊代號永久保留且不能登入、被重新分配；UUID 與關聯不變。
 - `GET /clubs`：登入後的啟用社團公開欄位選單。
 - `GET/POST /join-applications`、`POST /join-applications/{id}/approve|reject|withdraw`：本人與有效本社管理者範圍、版本、30 日到期、每日五筆、拒絕後24小時冷卻、交易唯一上限、核准日期與重疊檢查。
 - `GET /members`、`GET /members/{id}`：登入後投影；未曾核准入社者不出現在名冊；列表無聯絡資訊、詳情依隱私開關省略欄位。
@@ -48,10 +51,22 @@ SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
 CORE_TEST_ALLOW_RESET=true DATABASE_URL=jdbc:postgresql://127.0.0.1:55432/xk_rotaract_test mvn verify
 ```
 
-整合案例涵蓋註冊登入核准至名冊、匿名 CSRF 與 Origin、Cookie 屬性、冪等重放／內容衝突、跨社／撤權、版本、隱私、唯一與密碼空白、待審上限、撤回、拒絕冷卻、停權及核准競爭。本次在 PostgreSQL 17.11 執行 `mvn verify`：19 項整合測試通過，0 失敗、0 錯誤、0 跳過；測試包含年度查詢 7/1、8/1 台北日期邊界，並不代表年度寫入與排程已實作。
+整合案例涵蓋註冊登入核准至名冊、匿名 CSRF 與 Origin、Cookie 屬性、冪等重放／內容衝突、跨社／撤權、版本、隱私、唯一與密碼空白、待審上限、撤回、拒絕冷卻、停權及核准競爭。本次在 PostgreSQL 17.11 執行 `mvn verify`：29 項整合測試通過，0 失敗、0 錯誤、0 跳過；測試包含年度查詢 7/1、8/1 台北日期邊界，並不代表年度寫入與排程已實作。
+
+## 本人帳號修改與重試
+
+個人姓名／call name 及隱私使用 `member.version`；識別變更使用 `account.version`。空 PATCH、額外欄位、錯誤型別與格式均拒絕；409 不覆寫。頭像僅支援 `avatarAssetId: null` 清除；尚無資產服務，非空 UUID 一律404，不接受任意他人或未檢查資產。
+
+聯絡值／代號 POST 必填 `Idempotency-Key`，profile／privacy PATCH 不要求此標頭。錯目前密碼回401 `AUTHENTICATION_FAILED`，不登出目前工作階段；前端應再查 `GET /me`，仍為200則保留登入並顯示密碼錯誤，401才要求重新登入。本人驗證失敗以帳號及 IP 各15分鐘10次限流，之後429；密碼保留所有空白，不寫入稽核／冪等原文。Email 僅去首尾空白、全地址不分大小寫比對，保留 `+` 與點號；電話透過 libphonenumber 驗證實際有效號碼。成功聯絡值變更才撤其他工作階段及更新 Cookie。
+
+帳號資料列鎖序列化識別變更、同帳號競爭與登入最終檢查。登入在鎖後重新核對目前識別、密碼雜湊及狀態；變更在鎖後重新確認工作階段仍存在及未到期，不能以撤銷前的請求快照復活工作階段。V4 以資料庫 trigger 為初始與新代號建立保留紀錄，唯一索引阻擋大小寫與已保留代號競爭。成功 Cookie 只在外層交易提交後送出；業務、工作階段、稽核或冪等保存失敗均回滾。
+
+聯絡／代號變更的冪等重送不重做業務或額外輪替，回覆使用目前有效工作階段重新產生的 `Me`（最新角色、聯絡、版本與 CSRF），不重新交付過期快照。其他操作仍維持原有回放／隱私遮罩規則。若首次回覆遺失而新 Cookie 未抵達瀏覽器，已撤銷的舊 Cookie 不能回放；需以新識別或既有帳號代號重新登入後，以同帳號、同 key／body 重試。這不是新的電話／Email OTP 驗證；兩者仍為後續可選功能。
+
+新增測試覆蓋 PATCH／聯絡／代號白名單及版本、頭像 fail-closed、聯絡唯一與電話解析、舊識別立即失效、Cookie／CSRF 輪替與撤其他 Session、絕對到期保留、冪等回放最新投影、密碼空白與失敗限流、同帳號代號與聯絡競爭、跨帳號 Email 競爭，以及強制保存失敗時的交易回滾與不發送新 Cookie。未驗證大量並發負載，獨立交易限流在連線池高壓下的容量仍需壓測。
 
 ## 尚未實作
 
-帳號代號修改、聯絡值變更、本人資料與隱私修改端點、密碼復原、TOTP、轉社／退社／OB、年度確認與補跑排程、組織／角色管理、歷史公開、支援案件、資產、SMTP outbox、備份還原與負載驗收仍待後續切片。本次僅讀取年度資格日期；未提供年度寫入或排程。讀取列表目前採應用層投影篩選，1萬會員負載目標尚未驗證，不應直接當正式上線版本。Mailpit 已規劃本地服務，但本切片不寄信，沒有假回「已寄達」。
+密碼復原、TOTP、轉社／退社／OB、年度確認與補跑排程、組織／角色管理、歷史公開、支援案件、資產、SMTP outbox、備份還原與負載驗收仍待後續切片。本次僅讀取年度資格日期；未提供年度寫入或排程。讀取列表目前採應用層投影篩選，1萬會員負載目標尚未驗證，不應直接當正式上線版本。Mailpit 已規劃本地服務，但本切片不寄信，沒有假回「已寄達」。
 
 尚未部署正式 API，GitHub Pages 預設維持合成資料展示。正式部署仍需 TLS 反向代理、資料庫權限隔離、環境秘密管理與後續驗收。

@@ -12,11 +12,14 @@ class ApiController {
   final CoreService core;
   final SessionService sessions;
   final Queries queries;
+  final AccountService accounts;
 
-  ApiController(CoreService core, SessionService sessions, Queries queries) {
+  ApiController(
+      CoreService core, SessionService sessions, Queries queries, AccountService accounts) {
     this.core = core;
     this.sessions = sessions;
     this.queries = queries;
+    this.accounts = accounts;
   }
 
   @GetMapping("/csrf-token")
@@ -47,6 +50,32 @@ class ApiController {
   @GetMapping("/me")
   Object me(HttpServletRequest req) {
     return core.me(sessions.require(req));
+  }
+
+  @PatchMapping("/me/profile")
+  Object profile(@RequestBody JsonNode body, HttpServletRequest req) {
+    return accounts.profile(body, req, false);
+  }
+
+  @PatchMapping("/me/privacy")
+  Object privacy(@RequestBody JsonNode body, HttpServletRequest req) {
+    return accounts.profile(body, req, true);
+  }
+
+  @PostMapping("/me/contact-changes")
+  ResponseEntity<?> contact(
+      @RequestBody JsonNode body, HttpServletRequest req, HttpServletResponse res) {
+    sessions.require(req);
+    var result = core.idempotent(req, body, 200, () -> accounts.contact(body, req));
+    String token = (String) req.getAttribute("rotatedSessionToken");
+    if (token != null) sessions.cookie(res, token);
+    return result(result);
+  }
+
+  @PostMapping("/me/account-code-changes")
+  ResponseEntity<?> code(@RequestBody JsonNode body, HttpServletRequest req) {
+    sessions.require(req);
+    return result(core.idempotent(req, body, 200, () -> accounts.code(body, req)));
   }
 
   @GetMapping("/clubs")

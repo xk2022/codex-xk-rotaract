@@ -70,7 +70,7 @@ jobs:
         run: |
           npm ci
           npx playwright install --with-deps chromium
-      - name: Verify live HTTPS enrollment flow
+      - name: Verify live HTTPS enrollment and account flows
         env:
           LIVE_REVIEWER_EMAIL: reviewer@example.test
         run: |
@@ -85,3 +85,4 @@ jobs:
           curl --retry 20 --retry-all-errors --retry-delay 1 --fail --silent --output /dev/null http://127.0.0.1:8080/api/v1/csrf-token
           curl --cacert "$GITHUB_WORKSPACE/.local/tls/cert.pem" --retry 10 --retry-connrefused --retry-delay 1 --fail --silent --output /dev/null https://localhost:5173/
           BASE_URL=https://localhost:5173/ LIVE_REVIEWER_PASSWORD="$LOCAL_REVIEWER_PASSWORD" npm run test:browser:live
+          BASE_URL=https://localhost:5173/ npm run test:browser:live:account

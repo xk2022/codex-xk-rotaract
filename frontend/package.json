@@ -14,7 +14,8 @@
     "test:browser:ux": "node scripts/browser-ux.mjs",
     "test:browser:enhancements": "node scripts/browser-enhancements.mjs",
     "test:browser:all": "node scripts/browser-all-pages.mjs",
-    "test:browser:live": "node scripts/browser-live.mjs"
+    "test:browser:live": "node scripts/browser-live.mjs",
+    "test:browser:live:account": "node scripts/browser-live-account.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.0",
