@@ -26,6 +26,8 @@ GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rota
 
 已確認事項與待決策項目見 [架構紀錄](docs/architecture.md)。
 
+[UI／UX 畫面規格](docs/2027/21-ui-ux-spec.md) · [UI／UX 檢查與修正](docs/2027/22-ui-ux-qa.md)
+
 ## 體驗第一版
 
 ```sh

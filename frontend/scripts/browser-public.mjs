@@ -65,6 +65,10 @@ try {
     await page.reload();
     assert.equal(new URL(page.url()).hash, `#/${route}`);
     await noPrivateData();
+    await page.screenshot({
+      path: `${dir}/public-${route}-desktop.png`,
+      fullPage: true,
+    });
   }
   // Entry links, public filters, detail keyboard behavior and browser back.
   await page.goto(base);
@@ -111,6 +115,10 @@ try {
   await page.keyboard.press("Escape");
   await page.goto(`${base}#/login`);
   await page.getByRole("heading", { name: "歡迎回來" }).waitFor();
+  await page.screenshot({
+    path: `${dir}/public-login-desktop.png`,
+    fullPage: true,
+  });
   await skip("auth-main");
   await page.getByLabel("Email、國碼電話或帳號代號").fill("cora@example.test");
   await page.getByLabel("示範密碼", { exact: true }).fill("DemoPass2026!");

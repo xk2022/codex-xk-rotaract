@@ -1168,7 +1168,7 @@ export default function App() {
               </button>
             </div>
           )}
-          {feedbackMode !== "normal" ? (
+          {feedbackMode !== "normal" && (
             <section className="panel empty" role="status">
               <ShieldCheck size={30} />
               <h3>
@@ -1200,958 +1200,978 @@ export default function App() {
                 {feedbackMode === "expired" ? "返回登入" : "重新取得資料"}
               </button>
             </section>
-          ) : actor === "visitor" ? (
-            visitorGate
-          ) : (
-            <>
-              {page === "account" && (
-                <AccountView
-                  key={current.id}
-                  member={current}
-                  members={state.members}
-                  onUpdate={(patch) => {
-                    const id = current.id;
-                    const now = stateRef.current;
-                    setState({
-                      ...now,
-                      members: now.members.map((m) =>
-                        m.id === id ? { ...m, ...patch } : m,
-                      ),
-                    });
-                  }}
-                  onAudit={addAudit}
-                />
-              )}
-              {page === "roles" && (
-                <RolesView
-                  actor={actor}
-                  organization={organization}
-                  members={state.members}
-                />
-              )}
-              {page === "district" && (
-                <DistrictView
-                  actor={actor}
-                  organization={organization}
-                  members={state.members}
-                />
-              )}
-              {page === "annual" && (
-                <AnnualView key={actor} state={state} actor={actor} run={run} />
-              )}
-              {page === "membership" && (
-                <MembershipView
-                  key={`${actor}-${current.id}`}
-                  state={state}
-                  actor={actor}
-                  run={run}
-                />
-              )}
-              {page === "history" && (
-                <HistoryView
-                  key={`${actor}-${current.id}`}
-                  catalog={organization.state.clubs}
-                  district={organization.district}
-                  state={state}
-                  actor={actor}
-                  onChangeState={setState}
-                  onAudit={addAudit}
-                  demo={cases}
-                />
-              )}
-              {page === "support" && (
-                <SupportView
-                  state={state}
-                  actor={actor}
-                  onChangeState={setState}
-                  onAudit={addAudit}
-                  demo={cases}
-                />
-              )}
-              {page === "audit" && (
-                <AuditView entries={auditEntries} state={state} actor={actor} />
-              )}
+          )}
+          <div
+            hidden={feedbackMode !== "normal"}
+            inert={feedbackMode !== "normal"}
+          >
+            {actor === "visitor" ? (
+              visitorGate
+            ) : (
+              <>
+                {page === "account" && (
+                  <AccountView
+                    key={current.id}
+                    member={current}
+                    members={state.members}
+                    onUpdate={(patch) => {
+                      const id = current.id;
+                      const now = stateRef.current;
+                      setState({
+                        ...now,
+                        members: now.members.map((m) =>
+                          m.id === id ? { ...m, ...patch } : m,
+                        ),
+                      });
+                    }}
+                    onAudit={addAudit}
+                  />
+                )}
+                {page === "roles" && (
+                  <RolesView
+                    actor={actor}
+                    organization={organization}
+                    members={state.members}
+                  />
+                )}
+                {page === "district" && (
+                  <DistrictView
+                    actor={actor}
+                    organization={organization}
+                    members={state.members}
+                  />
+                )}
+                {page === "annual" && (
+                  <AnnualView
+                    key={actor}
+                    state={state}
+                    actor={actor}
+                    run={run}
+                  />
+                )}
+                {page === "membership" && (
+                  <MembershipView
+                    key={`${actor}-${current.id}`}
+                    state={state}
+                    actor={actor}
+                    run={run}
+                  />
+                )}
+                {page === "history" && (
+                  <HistoryView
+                    key={`${actor}-${current.id}`}
+                    catalog={organization.state.clubs}
+                    district={organization.district}
+                    state={state}
+                    actor={actor}
+                    onChangeState={setState}
+                    onAudit={addAudit}
+                    demo={cases}
+                  />
+                )}
+                {page === "support" && (
+                  <SupportView
+                    state={state}
+                    actor={actor}
+                    onChangeState={setState}
+                    onAudit={addAudit}
+                    demo={cases}
+                  />
+                )}
+                {page === "audit" && (
+                  <AuditView
+                    entries={auditEntries}
+                    state={state}
+                    actor={actor}
+                  />
+                )}
 
-              {page === "overview" && (
-                <>
-                  <div className="overview-grid">
-                    <section className="welcome-card">
-                      <div className="welcome-content">
-                        <span className="welcome-label">
-                          <span /> CONNECT · SERVE · GROW
-                        </span>
-                        <h2>
-                          {manager ? "讓社團的每一步，" : "你的扶青旅程，"}
-                          <br />
-                          都走得更有力量。
-                        </h2>
-                        <p>
-                          {manager
-                            ? "掌握社員狀態、迎接新夥伴。"
-                            : "從認識夥伴，到一起創造改變。"}
-                          <br />
-                          讓每一次相遇，成為下一次行動的起點。
-                        </p>
-                        <button
-                          onClick={() =>
-                            navigate(manager ? "members" : "profile")
-                          }
-                          className="welcome-link"
-                        >
-                          {manager ? "前往會員名冊" : "查看我的資料"}{" "}
-                          <ArrowUpRight size={16} />
-                        </button>
-                      </div>
-                      <div className="hero-art" aria-hidden="true">
-                        <div className="art-ring ring-one" />
-                        <div className="art-ring ring-two" />
-                        <div className="art-ring ring-three" />
-                        <div className="art-core">
-                          <Flower2 size={66} strokeWidth={0.85} />
+                {page === "overview" && (
+                  <>
+                    <div className="overview-grid">
+                      <section className="welcome-card">
+                        <div className="welcome-content">
+                          <span className="welcome-label">
+                            <span /> CONNECT · SERVE · GROW
+                          </span>
+                          <h2>
+                            {manager ? "讓社團的每一步，" : "你的扶青旅程，"}
+                            <br />
+                            都走得更有力量。
+                          </h2>
+                          <p>
+                            {manager
+                              ? "掌握社員狀態、迎接新夥伴。"
+                              : "從認識夥伴，到一起創造改變。"}
+                            <br />
+                            讓每一次相遇，成為下一次行動的起點。
+                          </p>
+                          <button
+                            onClick={() =>
+                              navigate(manager ? "members" : "profile")
+                            }
+                            className="welcome-link"
+                          >
+                            {manager ? "前往會員名冊" : "查看我的資料"}{" "}
+                            <ArrowUpRight size={16} />
+                          </button>
                         </div>
-                        <span className="art-spark spark-one">✧</span>
-                        <span className="art-spark spark-two">✧</span>
-                        <div className="art-caption">
-                          PEOPLE MAKE
-                          <br />
-                          <b>THE DIFFERENCE.</b>
+                        <div className="hero-art" aria-hidden="true">
+                          <div className="art-ring ring-one" />
+                          <div className="art-ring ring-two" />
+                          <div className="art-ring ring-three" />
+                          <div className="art-core">
+                            <Flower2 size={66} strokeWidth={0.85} />
+                          </div>
+                          <span className="art-spark spark-one">✧</span>
+                          <span className="art-spark spark-two">✧</span>
+                          <div className="art-caption">
+                            PEOPLE MAKE
+                            <br />
+                            <b>THE DIFFERENCE.</b>
+                          </div>
                         </div>
-                      </div>
-                      <span className="welcome-number">01 /</span>
-                    </section>
-                    <section className="year-card">
-                      <div className="card-topline">
-                        <span className="eyebrow">THIS ROTARY YEAR</span>
-                        <CalendarDays size={18} />
-                      </div>
-                      <h3>
-                        2026 <span>—</span> 2027
-                      </h3>
-                      <p>一起，讓服務持續發生。</p>
-                      <div className="year-progress">
-                        <span />
-                      </div>
-                      <div className="year-dates">
-                        <span>2026.07.01</span>
-                        <span>2027.06.30</span>
-                      </div>
-                      <div className="year-note">
-                        <ShieldCheck size={19} />
-                        <span>
-                          <strong>年度名冊確認</strong>
-                          <small>8/1 起未確認者隱藏免費地圖曝光</small>
-                        </span>
-                      </div>
-                    </section>
-                  </div>
-                  <div className="stat-grid">
-                    {[
-                      {
-                        label: "社團社員",
-                        value: scoped.length,
-                        note: "含 OB 與待確認社員",
-                        icon: Users,
-                        color: "rose",
-                      },
-                      {
-                        label: "正常社籍",
-                        value: scoped.filter((m) => m.status === "confirmed")
-                          .length,
-                        note: "已完成本年度確認",
-                        icon: ShieldCheck,
-                        color: "green",
-                      },
-                      {
-                        label: "待審申請",
-                        value: pending.length,
-                        note: pending.length
-                          ? "新夥伴正在等待你的回覆"
-                          : "所有申請皆已處理",
-                        icon: ClipboardCheck,
-                        color: "amber",
-                      },
-                      {
-                        label: "待年度確認",
-                        value: scoped.filter((m) => m.status === "unconfirmed")
-                          .length,
-                        note: "確認後恢復免費曝光資格",
-                        icon: Clock3,
-                        color: "blue",
-                      },
-                    ].map((s) => (
-                      <section className="stat-card" key={s.label}>
-                        <div className={`stat-icon ${s.color}`}>
-                          <s.icon size={20} />
-                        </div>
-                        <span>{s.label}</span>
-                        <strong>
-                          {String(s.value).padStart(2, "0")}
-                          <small>位</small>
-                        </strong>
-                        <p>{s.note}</p>
+                        <span className="welcome-number">01 /</span>
                       </section>
-                    ))}
-                  </div>
-                  <div className="lower-grid">
+                      <section className="year-card">
+                        <div className="card-topline">
+                          <span className="eyebrow">THIS ROTARY YEAR</span>
+                          <CalendarDays size={18} />
+                        </div>
+                        <h3>
+                          2026 <span>—</span> 2027
+                        </h3>
+                        <p>一起，讓服務持續發生。</p>
+                        <div className="year-progress">
+                          <span />
+                        </div>
+                        <div className="year-dates">
+                          <span>2026.07.01</span>
+                          <span>2027.06.30</span>
+                        </div>
+                        <div className="year-note">
+                          <ShieldCheck size={19} />
+                          <span>
+                            <strong>年度名冊確認</strong>
+                            <small>8/1 起未確認者隱藏免費地圖曝光</small>
+                          </span>
+                        </div>
+                      </section>
+                    </div>
+                    <div className="stat-grid">
+                      {[
+                        {
+                          label: "社團社員",
+                          value: scoped.length,
+                          note: "含 OB 與待確認社員",
+                          icon: Users,
+                          color: "rose",
+                        },
+                        {
+                          label: "正常社籍",
+                          value: scoped.filter((m) => m.status === "confirmed")
+                            .length,
+                          note: "已完成本年度確認",
+                          icon: ShieldCheck,
+                          color: "green",
+                        },
+                        {
+                          label: "待審申請",
+                          value: pending.length,
+                          note: pending.length
+                            ? "新夥伴正在等待你的回覆"
+                            : "所有申請皆已處理",
+                          icon: ClipboardCheck,
+                          color: "amber",
+                        },
+                        {
+                          label: "待年度確認",
+                          value: scoped.filter(
+                            (m) => m.status === "unconfirmed",
+                          ).length,
+                          note: "確認後恢復免費曝光資格",
+                          icon: Clock3,
+                          color: "blue",
+                        },
+                      ].map((s) => (
+                        <section className="stat-card" key={s.label}>
+                          <div className={`stat-icon ${s.color}`}>
+                            <s.icon size={20} />
+                          </div>
+                          <span>{s.label}</span>
+                          <strong>
+                            {String(s.value).padStart(2, "0")}
+                            <small>位</small>
+                          </strong>
+                          <p>{s.note}</p>
+                        </section>
+                      ))}
+                    </div>
+                    <div className="lower-grid">
+                      <section className="panel">
+                        <div className="panel-header">
+                          <div>
+                            <h2>
+                              社員一覽{" "}
+                              <span className="sub-count">{scoped.length}</span>
+                            </h2>
+                            <p>{getClubName(managedClub)} · 本年度社員狀態</p>
+                          </div>
+                          <button
+                            className="text-button"
+                            onClick={() => {
+                              setIncludeNonRegular(true);
+                              navigate("members");
+                            }}
+                          >
+                            查看全部 <ArrowRight size={15} />
+                          </button>
+                        </div>
+                        {list(scoped.slice(0, 4))}
+                        <div className="panel-footnote">
+                          <ShieldCheck size={14} />{" "}
+                          私人聯絡資料依會員隱私設定，於詳情中呈現。
+                        </div>
+                      </section>
+                      <section className="panel todos">
+                        <div className="panel-header">
+                          <div>
+                            <h2>值得留意的事</h2>
+                            <p>讓每一件小事，都有著落。</p>
+                          </div>
+                          <span className="tiny-dot" />
+                        </div>
+                        <button
+                          className="todo"
+                          onClick={() => navigate("applications")}
+                        >
+                          <span className="todo-icon amber">
+                            <ClipboardCheck size={19} />
+                          </span>
+                          <span>
+                            <strong>迎接新的社團夥伴</strong>
+                            <small>{pending.length} 筆入社申請待處理</small>
+                          </span>
+                          <ChevronRight size={16} />
+                        </button>
+                        <button
+                          className="todo"
+                          onClick={() => {
+                            setIncludeNonRegular(true);
+                            setStatusFilter("unconfirmed");
+                            navigate("members");
+                          }}
+                        >
+                          <span className="todo-icon blue">
+                            <CalendarDays size={19} />
+                          </span>
+                          <span>
+                            <strong>完成年度社員確認</strong>
+                            <small>
+                              {
+                                scoped.filter((m) => m.status === "unconfirmed")
+                                  .length
+                              }{" "}
+                              位社員待年度確認
+                            </small>
+                          </span>
+                          <ChevronRight size={16} />
+                        </button>
+                        <button
+                          className="todo"
+                          onClick={() => navigate("transfers")}
+                        >
+                          <span className="todo-icon green">
+                            <ArrowDownLeft size={19} />
+                          </span>
+                          <span>
+                            <strong>讓轉社交接更清楚</strong>
+                            <small>雙方核准後，由本人最終確認</small>
+                          </span>
+                          <ChevronRight size={16} />
+                        </button>
+                        <div className="gentle-note">
+                          <Flower2 size={22} />
+                          <p>
+                            每一份認真，
+                            <br />
+                            都讓社團變得更好一點。
+                          </p>
+                        </div>
+                      </section>
+                    </div>
+                  </>
+                )}
+                {page === "members" &&
+                  (!selected || !canSeeSelected ? (
                     <section className="panel">
                       <div className="panel-header">
                         <div>
                           <h2>
-                            社員一覽{" "}
-                            <span className="sub-count">{scoped.length}</span>
+                            會員名冊{" "}
+                            <span className="sub-count">{members.length}</span>
                           </h2>
-                          <p>{getClubName(managedClub)} · 本年度社員狀態</p>
+                          <p>
+                            {manager
+                              ? `${getClubName(actorClub(actor))} · 僅顯示管理範圍`
+                              : "已核准入社的會員 · 遵守個人隱私設定"}
+                          </p>
                         </div>
+                        <ListFilter size={19} className="muted" />
+                      </div>
+                      <div className="filters">
+                        <label className="search">
+                          <Search size={17} />
+                          <input
+                            aria-label="搜尋會員"
+                            placeholder="搜尋姓名或 call name"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                          />
+                        </label>
+                        <select
+                          aria-label="社籍狀態篩選"
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                          <option value="all">所有狀態</option>
+                          <option value="confirmed">正常社籍</option>
+                          {includeNonRegular && (
+                            <>
+                              <option value="unconfirmed">待年度確認</option>
+                              <option value="ob">OB</option>
+                              <option value="resigned">已退出</option>
+                            </>
+                          )}
+                        </select>
+                        <select
+                          aria-label="社團篩選"
+                          value={clubFilter}
+                          onChange={(e) => setClubFilter(e.target.value)}
+                        >
+                          <option value="all">所有可見社團</option>
+                          {organization.state.clubs
+                            .filter((c) =>
+                              manager
+                                ? c.id === actorClub(actor)
+                                : actor === "district"
+                                  ? c.district === organization.district
+                                  : true,
+                            )
+                            .map((c) => (
+                              <option value={c.id} key={c.id}>
+                                {c.name}
+                              </option>
+                            ))}
+                        </select>
+                        <select
+                          aria-label="社團類型篩選"
+                          value={typeFilter}
+                          onChange={(e) => setTypeFilter(e.target.value)}
+                        >
+                          <option value="all">所有類型</option>
+                          <option value="ROTARACT">扶青社</option>
+                          <option value="ROTARY">扶輪社</option>
+                        </select>
+                        <label className="checkbox">
+                          <input
+                            type="checkbox"
+                            checked={includeNonRegular}
+                            onChange={(e) => {
+                              setIncludeNonRegular(e.target.checked);
+                              setStatusFilter("all");
+                            }}
+                          />
+                          包含非正常／待確認社籍
+                        </label>
+                      </div>
+                      {list(pagedMembers)}
+                      <div className="pagination">
+                        <span>
+                          共 {members.length} 位 · 第 {currentPage} /{" "}
+                          {pageCount} 頁
+                        </span>
+                        <label>
+                          每頁
+                          <select
+                            aria-label="每頁筆數"
+                            value={pageSize}
+                            onChange={(e) => {
+                              setPageSize(Number(e.target.value));
+                              setListPage(1);
+                            }}
+                          >
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                          </select>
+                        </label>
+                        <button
+                          className="button secondary"
+                          disabled={currentPage <= 1}
+                          onClick={() => setListPage(currentPage - 1)}
+                        >
+                          上一頁
+                        </button>
+                        <button
+                          className="button secondary"
+                          disabled={currentPage >= pageCount}
+                          onClick={() => setListPage(currentPage + 1)}
+                        >
+                          下一頁
+                        </button>
                         <button
                           className="text-button"
                           onClick={() => {
-                            setIncludeNonRegular(true);
-                            navigate("members");
+                            const now = stateRef.current;
+                            const demo = Array.from({ length: 24 }, (_, i) => ({
+                              ...current,
+                              id: `demo-${now.members.length}-${i}`,
+                              name: `合成社友${i + 1}`,
+                              callName: `Friend ${String(i + 1).padStart(2, "0")}`,
+                              email: `friend-${now.members.length}-${i}@example.test`,
+                              phone: "",
+                              code: `rot_demo${now.members.length}_${i}`,
+                              clubId: manager ? actorClub(actor) : "taipei",
+                              status: "confirmed" as const,
+                              avatarUrl: undefined,
+                            }));
+                            setState({
+                              ...now,
+                              members: [...now.members, ...demo],
+                            });
                           }}
                         >
-                          查看全部 <ArrowRight size={15} />
+                          載入分頁示範資料
                         </button>
                       </div>
-                      {list(scoped.slice(0, 4))}
-                      <div className="panel-footnote">
-                        <ShieldCheck size={14} />{" "}
-                        私人聯絡資料依會員隱私設定，於詳情中呈現。
-                      </div>
                     </section>
-                    <section className="panel todos">
-                      <div className="panel-header">
+                  ) : (
+                    <section className="panel">
+                      <div className="profile-header">
+                        <Avatar member={selectedMember!} large />
                         <div>
-                          <h2>值得留意的事</h2>
-                          <p>讓每一件小事，都有著落。</p>
+                          <h2>
+                            {selectedMember!.callName}{" "}
+                            <span className="profile-name">
+                              {selectedMember!.name}
+                            </span>
+                          </h2>
+                          <p>{getClubName(selectedMember!.clubId)} · 扶青社</p>
+                          <Badge status={selectedMember!.status} />
                         </div>
-                        <span className="tiny-dot" />
+                        {manager &&
+                          selectedMember!.status === "unconfirmed" && (
+                            <button
+                              className="button primary"
+                              onClick={() =>
+                                run(
+                                  {
+                                    type: "confirmYear",
+                                    memberId: selectedMember!.id,
+                                  },
+                                  "年度確認完成，已恢復免費地圖曝光資格。",
+                                )
+                              }
+                            >
+                              <Check size={16} />
+                              確認本年度社員
+                            </button>
+                          )}
                       </div>
-                      <button
-                        className="todo"
-                        onClick={() => navigate("applications")}
+                      <div
+                        className="tabs"
+                        role="tablist"
+                        aria-label="會員詳情分頁"
                       >
-                        <span className="todo-icon amber">
-                          <ClipboardCheck size={19} />
-                        </span>
-                        <span>
-                          <strong>迎接新的社團夥伴</strong>
-                          <small>{pending.length} 筆入社申請待處理</small>
-                        </span>
-                        <ChevronRight size={16} />
-                      </button>
-                      <button
-                        className="todo"
-                        onClick={() => {
-                          setIncludeNonRegular(true);
-                          setStatusFilter("unconfirmed");
-                          navigate("members");
-                        }}
+                        {["基本資料", "社籍", "歷史經歷"].map((tab) => (
+                          <button
+                            key={tab}
+                            role="tab"
+                            id={`tab-${tab}`}
+                            aria-controls="member-panel"
+                            tabIndex={detailTab === tab ? 0 : -1}
+                            onKeyDown={(e) => {
+                              const tabs = ["基本資料", "社籍", "歷史經歷"];
+                              const index = tabs.indexOf(tab);
+                              const next =
+                                e.key === "ArrowRight"
+                                  ? tabs[(index + 1) % tabs.length]
+                                  : e.key === "ArrowLeft"
+                                    ? tabs[
+                                        (index + tabs.length - 1) % tabs.length
+                                      ]
+                                    : e.key === "Home"
+                                      ? tabs[0]
+                                      : e.key === "End"
+                                        ? tabs.at(-1)!
+                                        : null;
+                              if (next) {
+                                e.preventDefault();
+                                setDetailTab(next);
+                                document.getElementById(`tab-${next}`)?.focus();
+                              }
+                            }}
+                            aria-selected={detailTab === tab}
+                            onClick={() => setDetailTab(tab)}
+                          >
+                            {tab}
+                          </button>
+                        ))}
+                      </div>
+                      <div
+                        className="detail-body"
+                        role="tabpanel"
+                        id="member-panel"
+                        aria-labelledby={`tab-${detailTab}`}
                       >
-                        <span className="todo-icon blue">
-                          <CalendarDays size={19} />
-                        </span>
-                        <span>
-                          <strong>完成年度社員確認</strong>
-                          <small>
-                            {
-                              scoped.filter((m) => m.status === "unconfirmed")
-                                .length
-                            }{" "}
-                            位社員待年度確認
-                          </small>
-                        </span>
-                        <ChevronRight size={16} />
-                      </button>
-                      <button
-                        className="todo"
-                        onClick={() => navigate("transfers")}
-                      >
-                        <span className="todo-icon green">
-                          <ArrowDownLeft size={19} />
-                        </span>
-                        <span>
-                          <strong>讓轉社交接更清楚</strong>
-                          <small>雙方核准後，由本人最終確認</small>
-                        </span>
-                        <ChevronRight size={16} />
-                      </button>
-                      <div className="gentle-note">
-                        <Flower2 size={22} />
-                        <p>
-                          每一份認真，
-                          <br />
-                          都讓社團變得更好一點。
-                        </p>
+                        {detailTab === "基本資料" ? (
+                          <>
+                            <h3>
+                              聯絡資料 <ShieldCheck size={16} />
+                            </h3>
+                            <p className="muted">
+                              電話與信箱由會員決定可見範圍，不因管理身分自動公開。
+                            </p>
+                            <dl className="details">
+                              <div>
+                                <dt>姓名</dt>
+                                <dd>{selectedMember!.name}</dd>
+                              </div>
+                              <div>
+                                <dt>Call name</dt>
+                                <dd>{selectedMember!.callName}</dd>
+                              </div>
+                              <div>
+                                <dt>Email</dt>
+                                <dd>
+                                  {contactValue(
+                                    selectedMember!,
+                                    actor,
+                                    state,
+                                    "email",
+                                  ) ?? (
+                                    <span className="hidden-value">
+                                      <EyeOff size={15} />
+                                      會員已隱藏
+                                    </span>
+                                  )}
+                                </dd>
+                              </div>
+                              <div>
+                                <dt>電話</dt>
+                                <dd>
+                                  {contactValue(
+                                    selectedMember!,
+                                    actor,
+                                    state,
+                                    "phone",
+                                  ) ?? (
+                                    <span className="hidden-value">
+                                      <EyeOff size={15} />
+                                      會員已隱藏
+                                    </span>
+                                  )}
+                                </dd>
+                              </div>
+                            </dl>
+                          </>
+                        ) : detailTab === "社籍" ? (
+                          <div className="membership-card">
+                            <Building2 size={25} />
+                            <div>
+                              <h3>{getClubName(selectedMember!.clubId)}</h3>
+                              <p>扶青社 · {selectedMember!.startsOn} 起</p>
+                              <Badge status={selectedMember!.status} />
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            {state.history
+                              .filter(
+                                (h) =>
+                                  h.memberId === selectedMember!.id &&
+                                  (h.visible ||
+                                    (actor === "member" &&
+                                      selectedMember!.id === current.id) ||
+                                    (manager && h.clubId === actorClub(actor))),
+                              )
+                              .map((h, index) => (
+                                <div className="history-card" key={index}>
+                                  <FileClock size={22} />
+                                  <div>
+                                    <strong>{getClubName(h.clubId)}</strong>
+                                    <p>
+                                      {h.startsOn} — {h.endsOn}
+                                    </p>
+                                    <small>
+                                      {h.visible
+                                        ? "本人已公開"
+                                        : "僅本人或原社授權備查可見"}
+                                    </small>
+                                  </div>
+                                </div>
+                              ))}
+                            <p className="muted">
+                              歷史只呈現本人已公開或有權備查的經歷。
+                            </p>
+                          </>
+                        )}
                       </div>
                     </section>
-                  </div>
-                </>
-              )}
-              {page === "members" &&
-                (!selected || !canSeeSelected ? (
+                  ))}
+                {page === "applications" && (
                   <section className="panel">
                     <div className="panel-header">
                       <div>
-                        <h2>
-                          會員名冊{" "}
-                          <span className="sub-count">{members.length}</span>
-                        </h2>
-                        <p>
-                          {manager
-                            ? `${getClubName(actorClub(actor))} · 僅顯示管理範圍`
-                            : "已核准入社的會員 · 遵守個人隱私設定"}
-                        </p>
+                        <h2>{manager ? "待你回覆的申請" : "我的入社申請"}</h2>
+                        <p>核准前不建立有效社籍；拒絕時請填寫原因。</p>
                       </div>
-                      <ListFilter size={19} className="muted" />
-                    </div>
-                    <div className="filters">
-                      <label className="search">
-                        <Search size={17} />
-                        <input
-                          aria-label="搜尋會員"
-                          placeholder="搜尋姓名或 call name"
-                          value={query}
-                          onChange={(e) => setQuery(e.target.value)}
-                        />
-                      </label>
-                      <select
-                        aria-label="社籍狀態篩選"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                      >
-                        <option value="all">所有狀態</option>
-                        <option value="confirmed">正常社籍</option>
-                        {includeNonRegular && (
-                          <>
-                            <option value="unconfirmed">待年度確認</option>
-                            <option value="ob">OB</option>
-                            <option value="resigned">已退出</option>
-                          </>
-                        )}
-                      </select>
-                      <select
-                        aria-label="社團篩選"
-                        value={clubFilter}
-                        onChange={(e) => setClubFilter(e.target.value)}
-                      >
-                        <option value="all">所有可見社團</option>
-                        {organization.state.clubs
-                          .filter((c) =>
-                            manager
-                              ? c.id === actorClub(actor)
-                              : actor === "district"
-                                ? c.district === organization.district
-                                : true,
-                          )
-                          .map((c) => (
-                            <option value={c.id} key={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                      </select>
-                      <select
-                        aria-label="社團類型篩選"
-                        value={typeFilter}
-                        onChange={(e) => setTypeFilter(e.target.value)}
-                      >
-                        <option value="all">所有類型</option>
-                        <option value="ROTARACT">扶青社</option>
-                        <option value="ROTARY">扶輪社</option>
-                      </select>
-                      <label className="checkbox">
-                        <input
-                          type="checkbox"
-                          checked={includeNonRegular}
-                          onChange={(e) => {
-                            setIncludeNonRegular(e.target.checked);
-                            setStatusFilter("all");
-                          }}
-                        />
-                        包含非正常／待確認社籍
-                      </label>
-                    </div>
-                    {list(pagedMembers)}
-                    <div className="pagination">
-                      <span>
-                        共 {members.length} 位 · 第 {currentPage} / {pageCount}{" "}
-                        頁
-                      </span>
-                      <label>
-                        每頁
-                        <select
-                          aria-label="每頁筆數"
-                          value={pageSize}
-                          onChange={(e) => {
-                            setPageSize(Number(e.target.value));
-                            setListPage(1);
+                      {actor === "member" && (
+                        <button
+                          className="button secondary"
+                          onClick={() => {
+                            setError("");
+                            setModal("join");
                           }}
                         >
-                          <option value={20}>20</option>
-                          <option value={50}>50</option>
-                          <option value={100}>100</option>
-                        </select>
-                      </label>
-                      <button
-                        className="button secondary"
-                        disabled={currentPage <= 1}
-                        onClick={() => setListPage(currentPage - 1)}
-                      >
-                        上一頁
-                      </button>
-                      <button
-                        className="button secondary"
-                        disabled={currentPage >= pageCount}
-                        onClick={() => setListPage(currentPage + 1)}
-                      >
-                        下一頁
-                      </button>
-                      <button
-                        className="text-button"
-                        onClick={() => {
-                          const now = stateRef.current;
-                          const demo = Array.from({ length: 24 }, (_, i) => ({
-                            ...current,
-                            id: `demo-${now.members.length}-${i}`,
-                            name: `合成社友${i + 1}`,
-                            callName: `Friend ${String(i + 1).padStart(2, "0")}`,
-                            email: `friend-${now.members.length}-${i}@example.test`,
-                            phone: "",
-                            code: `rot_demo${now.members.length}_${i}`,
-                            clubId: manager ? actorClub(actor) : "taipei",
-                            status: "confirmed" as const,
-                            avatarUrl: undefined,
-                          }));
-                          setState({
-                            ...now,
-                            members: [...now.members, ...demo],
-                          });
-                        }}
-                      >
-                        載入分頁示範資料
-                      </button>
+                          <Plus size={15} />
+                          新增申請
+                        </button>
+                      )}
                     </div>
-                  </section>
-                ) : (
-                  <section className="panel">
-                    <div className="profile-header">
-                      <Avatar member={selectedMember!} large />
-                      <div>
-                        <h2>
-                          {selectedMember!.callName}{" "}
-                          <span className="profile-name">
-                            {selectedMember!.name}
-                          </span>
-                        </h2>
-                        <p>{getClubName(selectedMember!.clubId)} · 扶青社</p>
-                        <Badge status={selectedMember!.status} />
+                    {applications.length ? (
+                      <div className="request-list">
+                        {applications.map((a) => (
+                          <ApplicationCard
+                            getClubName={getClubName}
+                            key={a.id}
+                            application={a}
+                            member={state.members.find(
+                              (m) => m.id === a.memberId,
+                            )!}
+                            manager={manager}
+                            onReview={(approve, reason, startsOn) =>
+                              run(
+                                {
+                                  type: "review",
+                                  id: a.id,
+                                  approve,
+                                  reason,
+                                  startsOn,
+                                },
+                                approve
+                                  ? "已核准入社，會員已加入該社名冊。"
+                                  : "已拒絕申請，原因已提供給會員。",
+                              )
+                            }
+                            onExpire={() =>
+                              run(
+                                { type: "expireApplication", id: a.id },
+                                "已模擬入社申請逾期，可重新提出。",
+                              )
+                            }
+                            onWithdraw={() =>
+                              run(
+                                { type: "withdrawApplication", id: a.id },
+                                "已撤回申請。",
+                              )
+                            }
+                          />
+                        ))}
                       </div>
-                      {manager && selectedMember!.status === "unconfirmed" && (
+                    ) : (
+                      <Empty title="目前沒有入社申請">
+                        切換至訪客，註冊合成會員後可以體驗完整入社流程。
+                      </Empty>
+                    )}
+                  </section>
+                )}
+                {page === "transfers" && (
+                  <section className="panel">
+                    <div className="panel-header">
+                      <div>
+                        <h2>每一段交接，都有清楚的確認</h2>
+                        <p>原社籍保留至本人最終確認，雙方核准不會自動轉社。</p>
+                      </div>
+                      {actor === "member" && !activeTransfer && (
                         <button
                           className="button primary"
-                          onClick={() =>
-                            run(
-                              {
-                                type: "confirmYear",
-                                memberId: selectedMember!.id,
-                              },
-                              "年度確認完成，已恢復免費地圖曝光資格。",
-                            )
-                          }
-                        >
-                          <Check size={16} />
-                          確認本年度社員
-                        </button>
-                      )}
-                    </div>
-                    <div
-                      className="tabs"
-                      role="tablist"
-                      aria-label="會員詳情分頁"
-                    >
-                      {["基本資料", "社籍", "歷史經歷"].map((tab) => (
-                        <button
-                          key={tab}
-                          role="tab"
-                          id={`tab-${tab}`}
-                          aria-controls="member-panel"
-                          tabIndex={detailTab === tab ? 0 : -1}
-                          onKeyDown={(e) => {
-                            const tabs = ["基本資料", "社籍", "歷史經歷"];
-                            const index = tabs.indexOf(tab);
-                            const next =
-                              e.key === "ArrowRight"
-                                ? tabs[(index + 1) % tabs.length]
-                                : e.key === "ArrowLeft"
-                                  ? tabs[
-                                      (index + tabs.length - 1) % tabs.length
-                                    ]
-                                  : e.key === "Home"
-                                    ? tabs[0]
-                                    : e.key === "End"
-                                      ? tabs.at(-1)!
-                                      : null;
-                            if (next) {
-                              e.preventDefault();
-                              setDetailTab(next);
-                              document.getElementById(`tab-${next}`)?.focus();
-                            }
+                          onClick={() => {
+                            setError("");
+                            setModal("transfer");
                           }}
-                          aria-selected={detailTab === tab}
-                          onClick={() => setDetailTab(tab)}
                         >
-                          {tab}
+                          <Plus size={15} />
+                          申請轉社
                         </button>
-                      ))}
-                    </div>
-                    <div
-                      className="detail-body"
-                      role="tabpanel"
-                      id="member-panel"
-                      aria-labelledby={`tab-${detailTab}`}
-                    >
-                      {detailTab === "基本資料" ? (
-                        <>
-                          <h3>
-                            聯絡資料 <ShieldCheck size={16} />
-                          </h3>
-                          <p className="muted">
-                            電話與信箱由會員決定可見範圍，不因管理身分自動公開。
-                          </p>
-                          <dl className="details">
-                            <div>
-                              <dt>姓名</dt>
-                              <dd>{selectedMember!.name}</dd>
-                            </div>
-                            <div>
-                              <dt>Call name</dt>
-                              <dd>{selectedMember!.callName}</dd>
-                            </div>
-                            <div>
-                              <dt>Email</dt>
-                              <dd>
-                                {contactValue(
-                                  selectedMember!,
-                                  actor,
-                                  state,
-                                  "email",
-                                ) ?? (
-                                  <span className="hidden-value">
-                                    <EyeOff size={15} />
-                                    會員已隱藏
-                                  </span>
-                                )}
-                              </dd>
-                            </div>
-                            <div>
-                              <dt>電話</dt>
-                              <dd>
-                                {contactValue(
-                                  selectedMember!,
-                                  actor,
-                                  state,
-                                  "phone",
-                                ) ?? (
-                                  <span className="hidden-value">
-                                    <EyeOff size={15} />
-                                    會員已隱藏
-                                  </span>
-                                )}
-                              </dd>
-                            </div>
-                          </dl>
-                        </>
-                      ) : detailTab === "社籍" ? (
-                        <div className="membership-card">
-                          <Building2 size={25} />
-                          <div>
-                            <h3>{getClubName(selectedMember!.clubId)}</h3>
-                            <p>扶青社 · {selectedMember!.startsOn} 起</p>
-                            <Badge status={selectedMember!.status} />
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          {state.history
-                            .filter(
-                              (h) =>
-                                h.memberId === selectedMember!.id &&
-                                (h.visible ||
-                                  (actor === "member" &&
-                                    selectedMember!.id === current.id) ||
-                                  (manager && h.clubId === actorClub(actor))),
-                            )
-                            .map((h, index) => (
-                              <div className="history-card" key={index}>
-                                <FileClock size={22} />
-                                <div>
-                                  <strong>{getClubName(h.clubId)}</strong>
-                                  <p>
-                                    {h.startsOn} — {h.endsOn}
-                                  </p>
-                                  <small>
-                                    {h.visible
-                                      ? "本人已公開"
-                                      : "僅本人或原社授權備查可見"}
-                                  </small>
-                                </div>
-                              </div>
-                            ))}
-                          <p className="muted">
-                            歷史只呈現本人已公開或有權備查的經歷。
-                          </p>
-                        </>
                       )}
                     </div>
-                  </section>
-                ))}
-              {page === "applications" && (
-                <section className="panel">
-                  <div className="panel-header">
-                    <div>
-                      <h2>{manager ? "待你回覆的申請" : "我的入社申請"}</h2>
-                      <p>核准前不建立有效社籍；拒絕時請填寫原因。</p>
+                    <div className="transfer-explainer">
+                      <span>01 本人申請</span>
+                      <ArrowRight size={16} />
+                      <span>02 雙方管理者核准</span>
+                      <ArrowRight size={16} />
+                      <span>03 本人確認生效</span>
                     </div>
-                    {actor === "member" && (
+                    {transfers.length ? (
+                      <div className="request-list">
+                        {transfers.map((t) => (
+                          <TransferCard
+                            getClubName={getClubName}
+                            key={t.id}
+                            transfer={t}
+                            member={state.members.find(
+                              (m) => m.id === t.memberId,
+                            )!}
+                            actor={actor}
+                            onExpire={() =>
+                              run(
+                                { type: "expireTransfer", id: t.id },
+                                "已模擬轉社逾期，原社籍保留。",
+                              )
+                            }
+                            onViewHistory={() => setHistoryMemberId(t.memberId)}
+                            onApprove={() =>
+                              run(
+                                { type: "approveTransfer", id: t.id },
+                                "已代表該社團核准，仍需完成其餘確認步驟。",
+                              )
+                            }
+                            onExecute={() =>
+                              run(
+                                { type: "executeTransfer", id: t.id },
+                                "轉社已完成，原社籍已轉為預設隱藏的歷史經歷。",
+                              )
+                            }
+                            onWithdraw={() =>
+                              run(
+                                { type: "withdrawTransfer", id: t.id },
+                                "已撤回轉社，原社籍保留。",
+                              )
+                            }
+                            onReject={(reason) =>
+                              run(
+                                { type: "rejectTransfer", id: t.id, reason },
+                                "轉社申請已拒絕，原社籍保留。",
+                              )
+                            }
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <Empty title="目前沒有轉社申請">
+                        切換至會員本人，可申請從台北星光轉至台中山海扶青社。
+                      </Empty>
+                    )}
+                  </section>
+                )}
+                {page === "club" && (
+                  <OrganizationView
+                    actor={actor}
+                    organization={organization}
+                    members={state.members}
+                  />
+                )}
+                {page === "profile" &&
+                  (actor !== "member" ? (
+                    <Empty title="請切換至會員本人體驗">
+                      社團管理身分不會自動取得修改他人個資的權限。
+                      <br />
                       <button
                         className="button secondary"
-                        onClick={() => {
-                          setError("");
-                          setModal("join");
-                        }}
+                        onClick={() => switchActor("member")}
                       >
-                        <Plus size={15} />
-                        新增申請
+                        切換至 {current.callName}
                       </button>
-                    )}
-                  </div>
-                  {applications.length ? (
-                    <div className="request-list">
-                      {applications.map((a) => (
-                        <ApplicationCard
-                          getClubName={getClubName}
-                          key={a.id}
-                          application={a}
-                          member={state.members.find(
-                            (m) => m.id === a.memberId,
-                          )!}
-                          manager={manager}
-                          onReview={(approve, reason, startsOn) =>
-                            run(
-                              {
-                                type: "review",
-                                id: a.id,
-                                approve,
-                                reason,
-                                startsOn,
-                              },
-                              approve
-                                ? "已核准入社，會員已加入該社名冊。"
-                                : "已拒絕申請，原因已提供給會員。",
-                            )
-                          }
-                          onExpire={() =>
-                            run(
-                              { type: "expireApplication", id: a.id },
-                              "已模擬入社申請逾期，可重新提出。",
-                            )
-                          }
-                          onWithdraw={() =>
-                            run(
-                              { type: "withdrawApplication", id: a.id },
-                              "已撤回申請。",
-                            )
-                          }
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <Empty title="目前沒有入社申請">
-                      切換至訪客，註冊合成會員後可以體驗完整入社流程。
                     </Empty>
-                  )}
-                </section>
-              )}
-              {page === "transfers" && (
-                <section className="panel">
-                  <div className="panel-header">
-                    <div>
-                      <h2>每一段交接，都有清楚的確認</h2>
-                      <p>原社籍保留至本人最終確認，雙方核准不會自動轉社。</p>
-                    </div>
-                    {actor === "member" && !activeTransfer && (
-                      <button
-                        className="button primary"
-                        onClick={() => {
-                          setError("");
-                          setModal("transfer");
-                        }}
-                      >
-                        <Plus size={15} />
-                        申請轉社
-                      </button>
-                    )}
-                  </div>
-                  <div className="transfer-explainer">
-                    <span>01 本人申請</span>
-                    <ArrowRight size={16} />
-                    <span>02 雙方管理者核准</span>
-                    <ArrowRight size={16} />
-                    <span>03 本人確認生效</span>
-                  </div>
-                  {transfers.length ? (
-                    <div className="request-list">
-                      {transfers.map((t) => (
-                        <TransferCard
-                          getClubName={getClubName}
-                          key={t.id}
-                          transfer={t}
-                          member={state.members.find(
-                            (m) => m.id === t.memberId,
-                          )!}
-                          actor={actor}
-                          onExpire={() =>
-                            run(
-                              { type: "expireTransfer", id: t.id },
-                              "已模擬轉社逾期，原社籍保留。",
-                            )
-                          }
-                          onViewHistory={() => setHistoryMemberId(t.memberId)}
-                          onApprove={() =>
-                            run(
-                              { type: "approveTransfer", id: t.id },
-                              "已代表該社團核准，仍需完成其餘確認步驟。",
-                            )
-                          }
-                          onExecute={() =>
-                            run(
-                              { type: "executeTransfer", id: t.id },
-                              "轉社已完成，原社籍已轉為預設隱藏的歷史經歷。",
-                            )
-                          }
-                          onWithdraw={() =>
-                            run(
-                              { type: "withdrawTransfer", id: t.id },
-                              "已撤回轉社，原社籍保留。",
-                            )
-                          }
-                          onReject={(reason) =>
-                            run(
-                              { type: "rejectTransfer", id: t.id, reason },
-                              "轉社申請已拒絕，原社籍保留。",
-                            )
-                          }
-                        />
-                      ))}
-                    </div>
                   ) : (
-                    <Empty title="目前沒有轉社申請">
-                      切換至會員本人，可申請從台北星光轉至台中山海扶青社。
-                    </Empty>
-                  )}
-                </section>
-              )}
-              {page === "club" && (
-                <OrganizationView
-                  actor={actor}
-                  organization={organization}
-                  members={state.members}
-                />
-              )}
-              {page === "profile" &&
-                (actor !== "member" ? (
-                  <Empty title="請切換至會員本人體驗">
-                    社團管理身分不會自動取得修改他人個資的權限。
-                    <br />
-                    <button
-                      className="button secondary"
-                      onClick={() => switchActor("member")}
-                    >
-                      切換至 {current.callName}
-                    </button>
-                  </Empty>
-                ) : (
-                  <div className="profile-layout">
-                    <section className="panel">
-                      <div className="profile-header">
-                        <Avatar member={current} large />
-                        <div>
-                          <h2>{current.callName}</h2>
-                          <p>{current.code}</p>
-                          <Badge status={current.status} />
-                        </div>
-                      </div>
-                      <form
-                        className="form detail-body"
-                        key={current.id}
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const data = new FormData(e.currentTarget);
-                          run(
-                            {
-                              type: "profile",
-                              name: String(data.get("name")),
-                              callName: String(data.get("callName")),
-                            },
-                            "個人資料已更新。",
-                          );
-                        }}
-                      >
-                        <div className="two-fields">
-                          <label>
-                            姓名
-                            <input
-                              name="name"
-                              defaultValue={current.name}
-                              required
-                              maxLength={100}
-                            />
-                          </label>
-                          <label>
-                            Call name
-                            <input
-                              name="callName"
-                              defaultValue={current.callName}
-                              required
-                              maxLength={100}
-                            />
-                          </label>
-                        </div>
-                        <label>
-                          Email
-                          <input value={current.email} readOnly />
-                          <small>
-                            可前往帳號設定體驗單項變更與示範密碼驗證。
-                          </small>
-                        </label>
-                        <label>
-                          電話
-                          <input value={current.phone || "尚未填寫"} readOnly />
-                        </label>
-                        <div className="transfer-actions">
-                          <button className="button primary" type="submit">
-                            <Check size={16} />
-                            儲存基本資料
-                          </button>
-                          <button
-                            className="button secondary"
-                            type="button"
-                            onClick={() => navigate("account")}
-                          >
-                            變更電話／Email／帳號代號
-                          </button>
-                        </div>
-                      </form>
-                    </section>
-                    <div>
-                      <section className="panel privacy-panel">
-                        <div className="panel-header">
+                    <div className="profile-layout">
+                      <section className="panel">
+                        <div className="profile-header">
+                          <Avatar member={current} large />
                           <div>
-                            <h2>
-                              <ShieldCheck size={19} />
-                              你的隱私，由你決定
-                            </h2>
-                            <p>以下設定適用於登入後的會員詳情。</p>
+                            <h2>{current.callName}</h2>
+                            <p>{current.code}</p>
+                            <Badge status={current.status} />
                           </div>
                         </div>
-                        <div className="privacy-options">
+                        <form
+                          className="form detail-body"
+                          key={current.id}
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            const data = new FormData(e.currentTarget);
+                            run(
+                              {
+                                type: "profile",
+                                name: String(data.get("name")),
+                                callName: String(data.get("callName")),
+                              },
+                              "個人資料已更新。",
+                            );
+                          }}
+                        >
+                          <div className="two-fields">
+                            <label>
+                              姓名
+                              <input
+                                name="name"
+                                defaultValue={current.name}
+                                required
+                                maxLength={100}
+                              />
+                            </label>
+                            <label>
+                              Call name
+                              <input
+                                name="callName"
+                                defaultValue={current.callName}
+                                required
+                                maxLength={100}
+                              />
+                            </label>
+                          </div>
                           <label>
-                            <span>
-                              <strong>顯示我的電話</strong>
-                              <small>預設隱藏，開啟後其他登入會員可見</small>
-                            </span>
-                            <input
-                              type="checkbox"
-                              checked={current.phoneVisible}
-                              onChange={(e) =>
-                                run(
-                                  {
-                                    type: "privacy",
-                                    phoneVisible: e.target.checked,
-                                    emailVisible: current.emailVisible,
-                                  },
-                                  "電話隱私設定已更新。",
-                                )
-                              }
-                            />
+                            Email
+                            <input value={current.email} readOnly />
+                            <small>
+                              可前往帳號設定體驗單項變更與示範密碼驗證。
+                            </small>
                           </label>
                           <label>
-                            <span>
-                              <strong>顯示我的 Email</strong>
-                              <small>可隨時取消勾選，保留聯絡隱私</small>
-                            </span>
+                            電話
                             <input
-                              type="checkbox"
-                              checked={current.emailVisible}
-                              onChange={(e) =>
-                                run(
-                                  {
-                                    type: "privacy",
-                                    phoneVisible: current.phoneVisible,
-                                    emailVisible: e.target.checked,
-                                  },
-                                  "Email 隱私設定已更新。",
-                                )
-                              }
+                              value={current.phone || "尚未填寫"}
+                              readOnly
                             />
                           </label>
-                        </div>
+                          <div className="transfer-actions">
+                            <button className="button primary" type="submit">
+                              <Check size={16} />
+                              儲存基本資料
+                            </button>
+                            <button
+                              className="button secondary"
+                              type="button"
+                              onClick={() => navigate("account")}
+                            >
+                              變更電話／Email／帳號代號
+                            </button>
+                          </div>
+                        </form>
                       </section>
-                      <section className="panel journey">
-                        <h3>我的社籍旅程</h3>
-                        <p>{getClubName(current.clubId)}</p>
-                        {current.status === "unaffiliated" ? (
-                          <button
-                            className="text-button"
-                            onClick={() => {
-                              setError("");
-                              setModal("join");
-                            }}
-                          >
-                            申請加入社團 <ArrowRight size={15} />
-                          </button>
-                        ) : (
-                          <button
-                            className="text-button"
-                            onClick={() => navigate("transfers")}
-                          >
-                            前往轉社作業 <ArrowRight size={15} />
-                          </button>
-                        )}
-                        {state.history.map(
-                          (h, index) =>
-                            h.memberId === current.id && (
-                              <label className="history-toggle" key={index}>
-                                <span>
-                                  {getClubName(h.clubId)}
-                                  <small>
-                                    {h.startsOn} — {h.endsOn}
-                                  </small>
-                                </span>
-                                <input
-                                  type="checkbox"
-                                  aria-label={`公開 ${getClubName(h.clubId)} 歷史`}
-                                  checked={h.visible}
-                                  onChange={(e) =>
-                                    run(
-                                      {
-                                        type: "historyVisibility",
-                                        index,
-                                        visible: e.target.checked,
-                                      },
-                                      "該筆歷史的公開設定已更新。",
-                                    )
-                                  }
-                                />{" "}
-                                公開
-                              </label>
-                            ),
-                        )}
-                      </section>
+                      <div>
+                        <section className="panel privacy-panel">
+                          <div className="panel-header">
+                            <div>
+                              <h2>
+                                <ShieldCheck size={19} />
+                                你的隱私，由你決定
+                              </h2>
+                              <p>以下設定適用於登入後的會員詳情。</p>
+                            </div>
+                          </div>
+                          <div className="privacy-options">
+                            <label>
+                              <span>
+                                <strong>顯示我的電話</strong>
+                                <small>預設隱藏，開啟後其他登入會員可見</small>
+                              </span>
+                              <input
+                                type="checkbox"
+                                checked={current.phoneVisible}
+                                onChange={(e) =>
+                                  run(
+                                    {
+                                      type: "privacy",
+                                      phoneVisible: e.target.checked,
+                                      emailVisible: current.emailVisible,
+                                    },
+                                    "電話隱私設定已更新。",
+                                  )
+                                }
+                              />
+                            </label>
+                            <label>
+                              <span>
+                                <strong>顯示我的 Email</strong>
+                                <small>可隨時取消勾選，保留聯絡隱私</small>
+                              </span>
+                              <input
+                                type="checkbox"
+                                checked={current.emailVisible}
+                                onChange={(e) =>
+                                  run(
+                                    {
+                                      type: "privacy",
+                                      phoneVisible: current.phoneVisible,
+                                      emailVisible: e.target.checked,
+                                    },
+                                    "Email 隱私設定已更新。",
+                                  )
+                                }
+                              />
+                            </label>
+                          </div>
+                        </section>
+                        <section className="panel journey">
+                          <h3>我的社籍旅程</h3>
+                          <p>{getClubName(current.clubId)}</p>
+                          {current.status === "unaffiliated" ? (
+                            <button
+                              className="text-button"
+                              onClick={() => {
+                                setError("");
+                                setModal("join");
+                              }}
+                            >
+                              申請加入社團 <ArrowRight size={15} />
+                            </button>
+                          ) : (
+                            <button
+                              className="text-button"
+                              onClick={() => navigate("transfers")}
+                            >
+                              前往轉社作業 <ArrowRight size={15} />
+                            </button>
+                          )}
+                          {state.history.map(
+                            (h, index) =>
+                              h.memberId === current.id && (
+                                <label className="history-toggle" key={index}>
+                                  <span>
+                                    {getClubName(h.clubId)}
+                                    <small>
+                                      {h.startsOn} — {h.endsOn}
+                                    </small>
+                                  </span>
+                                  <input
+                                    type="checkbox"
+                                    aria-label={`公開 ${getClubName(h.clubId)} 歷史`}
+                                    checked={h.visible}
+                                    onChange={(e) =>
+                                      run(
+                                        {
+                                          type: "historyVisibility",
+                                          index,
+                                          visible: e.target.checked,
+                                        },
+                                        "該筆歷史的公開設定已更新。",
+                                      )
+                                    }
+                                  />{" "}
+                                  公開
+                                </label>
+                              ),
+                          )}
+                        </section>
+                      </div>
                     </div>
-                  </div>
-                ))}
-            </>
-          )}
+                  ))}
+              </>
+            )}
+          </div>
           <footer className="main-footer">
             <span>© 2026 Rotaract 萬花筒</span>
             <span>

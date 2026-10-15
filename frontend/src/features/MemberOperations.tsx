@@ -22,13 +22,17 @@ export function MembershipView({ state, actor, run }: MemberOperationsProps) {
   const manager = isManager(actor);
   const members = state.members.filter((m) =>
     manager
-      ? m.clubId === actorClub(actor) && ["confirmed", "unconfirmed"].includes(m.status)
+      ? m.clubId === actorClub(actor) &&
+        ["confirmed", "unconfirmed"].includes(m.status)
       : m.id === self.id && ["confirmed", "unconfirmed"].includes(m.status),
   );
   const requests = state.endRequests.filter((r) =>
     manager ? r.clubId === actorClub(actor) : r.memberId === self.id,
   );
   const [memberId, setMemberId] = useState(members[0]?.id ?? "");
+  const selectedMemberId = members.some((m) => m.id === memberId)
+    ? memberId
+    : (members[0]?.id ?? "");
   const [kind, setKind] = useState<"resigned" | "ob">("ob");
   const direct = manager;
   const [reason, setReason] = useState("");
@@ -50,7 +54,7 @@ export function MembershipView({ state, actor, run }: MemberOperationsProps) {
         {
           type: "requestEnd",
           id: crypto.randomUUID(),
-          memberId: manager ? memberId : self.id,
+          memberId: manager ? selectedMemberId : self.id,
           reason: kind,
           explanation: reason,
           endsOn: date,
@@ -90,7 +94,7 @@ export function MembershipView({ state, actor, run }: MemberOperationsProps) {
                     <label>
                       辦理社員
                       <select
-                        value={memberId}
+                        value={selectedMemberId}
                         onChange={(e) => setMemberId(e.target.value)}
                         required
                       >
@@ -138,11 +142,7 @@ export function MembershipView({ state, actor, run }: MemberOperationsProps) {
                 </label>
                 {manager && (
                   <label className="check-row">
-                    <input
-                      type="checkbox"
-                      checked={direct}
-                      disabled
-                    />
+                    <input type="checkbox" checked={direct} disabled />
                     由管理者直接辦理，不建立待審申請
                   </label>
                 )}
