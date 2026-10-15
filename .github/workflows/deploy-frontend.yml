@@ -58,6 +58,7 @@ jobs:
           BASE_URL=http://127.0.0.1:4173/codex-xk-rotaract/ npm run test:browser:business
           BASE_URL=http://127.0.0.1:4173/codex-xk-rotaract/ npm run test:browser:business-exposure
           BASE_URL=http://127.0.0.1:4173/codex-xk-rotaract/ npm run test:browser:coupons
+          BASE_URL=http://127.0.0.1:4173/codex-xk-rotaract/ npm run test:browser:engagement
       - name: Upload frontend only
         uses: actions/upload-pages-artifact@v3
         with:

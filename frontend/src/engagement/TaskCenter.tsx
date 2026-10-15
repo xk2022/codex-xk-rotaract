@@ -1,0 +1,13 @@
+import { useState } from 'react';
+import type { Actor, State } from '../domain';
+import type { SupportCase } from '../features/historySupportModel';
+import { useBusinessDemo } from '../phase3/businessStore';
+import { useCommunityDemo } from '../phase2/store';
+import { exposureTasks, membershipTasks, type TaskItem } from './taskModel';
+import './task-center.css';
+export function taskCenterItems(state: State, actor: Actor, cases: SupportCase[], business: ReturnType<typeof useBusinessDemo>, clubs: ReturnType<typeof useCommunityDemo>['clubs'], businessMemberId = '') { return [...membershipTasks(state,actor,cases),...exposureTasks(business.companies,businessMemberId,business.members,clubs,business.grants,business.asOf)]; }
+export function TaskCenter({items,onOpen,businessMemberId,onBusinessMemberChange}:{items:TaskItem[];onOpen:(item:TaskItem)=>void;businessMemberId:string;onBusinessMemberChange:(id:string)=>void}) {
+ const business=useBusinessDemo();
+ const [filter,setFilter]=useState('all'); const visible=items.filter(t=>filter==='all'||t.priority===filter); const labels={action:'需要處理',waiting:'等待回覆',reminder:'即將到期'};
+ return <section className="tc-center" aria-label="統一待辦與曝光提醒"><header><p>YOUR NEXT STEP</p><h2>讓每件事，都有下一步</h2><p>整合目前身分可見的申請、補件、年度確認與商家曝光狀態。</p></header><label className="tc-identity">商家提醒身分（假資料，獨立於管理角色）<select aria-label="商家提醒身分" value={businessMemberId} onChange={e=>onBusinessMemberChange(e.target.value)}><option value="">尚未選擇，不載入商家私人提醒</option>{business.members.filter(m=>business.companies.some(c=>c.ownerId===m.id||c.acceptedMaintainerIds.includes(m.id))).map(m=><option key={m.id} value={m.id}>{m.callName}（商家示範）</option>)}</select></label><div className="tc-filters" aria-label="待辦篩選">{(['all','action','waiting','reminder'] as const).map(k=><button key={k} aria-pressed={filter===k} onClick={()=>setFilter(k)}>{k==='all'?'全部':labels[k]}（{items.filter(t=>k==='all'||t.priority===k).length}）</button>)}</div><p role="status">共 {visible.length} 筆</p><div className="tc-list">{visible.map(t=><article key={t.id}><span>{labels[t.priority]}</span><h3>{t.title}</h3><p>{t.detail}</p><button onClick={()=>onOpen(t)}>{t.view==='businesses'?'處理曝光資格／查看商家':t.view==='support'?'查看案件與補件':'查看並接續處理'}</button></article>)}</div>{!visible.length&&<div className="tc-empty"><h3>這個分類目前沒有待辦</h3><p>狀態變更後會在這裡更新，不代表其他身分也沒有待辦。</p></div>}<p className="tc-note">目前為記憶體假資料彙整，並非正式推播或排程通知。曝光倒數以商家示範時間計算；重新整理重設。</p></section>;
+}

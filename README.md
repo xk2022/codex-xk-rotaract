@@ -4,7 +4,9 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：[會員優惠、兌換碼與商家核銷](docs/2027/35-coupon-redemption-ui-ux.md)已完成第四階段前端假資料初版。
+最新：[全站銜接工具與八項實作安排](docs/2027/36-engagement-roadmap-and-ui-ux.md)：待辦提醒、商家回報與本人確認紀錄。
+
+[會員優惠、兌換碼與商家核銷](docs/2027/35-coupon-redemption-ui-ux.md)已完成第四階段前端假資料初版。
 
 [三日暫時曝光與社友確認](docs/2027/34-business-exposure-and-community-confirmation.md)，商家改為自行發布，取代前置審核。
 

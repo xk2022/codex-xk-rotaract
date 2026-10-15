@@ -13,6 +13,7 @@ const identities: { label: string; actor: BusinessActor }[] = [
   { label: 'Jo｜待確認會員（72 小時示範）', actor: { memberId: 'm7', role: 'member' } },
   { label: '廣告帳號｜無社籍公司建立者', actor: { memberId: 'account-only', role: 'member' } },
   { label: '商家內容管理員｜事後治理', actor: { memberId: 'content-admin', role: 'content_admin' } },
+  { label: 'OB｜無當年度社籍建立者', actor: { memberId: 'm-ob', role: 'member' } },
 ];
 const blank = (): BusinessInput => ({ name: '', description: '', industryIds: [], city: '', phone: '', email: '', website: '', address: '', publicFlags: { phone: false, email: false, website: false, address: false }, locationConsent: false, latitude: null, longitude: null });
 function inputOf(company: BusinessCompany): BusinessInput {
@@ -37,7 +38,7 @@ function displayInstant(value: string): string {
 export function BusinessWorkspace() {
   const store = useBusinessDemo();
   const { clubs } = useCommunityDemo();
-  const [identity, setIdentity] = useState(0);
+  const [identity, setIdentity] = useState(() => { const id = new URLSearchParams(window.location.hash.split('?')[1]).get('businessMember'); return Math.max(0, identities.findIndex(i => i.actor.memberId === id)); });
   const actor = identities[identity].actor;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -67,6 +68,7 @@ export function BusinessWorkspace() {
     setSelectedId(company?.id ?? null); setInput(next); setBaseline(JSON.stringify(next)); setVersion(company?.version ?? 0);
     setEditing(true); setErrors([]); setNotice(''); setConflicted(false);
   }
+  useEffect(() => { const id = new URLSearchParams(window.location.hash.split('?')[1]).get('company'); const company = store.companies.find(c => c.id === id && (isReviewer || canMaintainBusiness(c, actor))); if (company) open(company); }, []);
   function update<K extends keyof BusinessInput>(key: K, value: BusinessInput[K]) { setInput(current => ({ ...current, [key]: value })); }
   function save(event: FormEvent) {
     event.preventDefault(); setErrors([]);

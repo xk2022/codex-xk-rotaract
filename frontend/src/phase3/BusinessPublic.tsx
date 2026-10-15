@@ -3,6 +3,7 @@ import { ArrowRight, Building2, ChevronLeft, ExternalLink, MapPin, Search } from
 import { useCommunityDemo } from '../phase2/store';
 import { useBusinessDemo } from './businessStore';
 import { filterBusinesses, industries, safeBusinessWebsite, type PublicBusiness } from './businessModel';
+import { BusinessReports } from '../engagement/BusinessReports';
 import './business-public.css';
 
 type Filters = { keyword: string; districtId: string; city: string; clubId: string; industryId: string; view: 'map' | 'list' };
@@ -43,7 +44,7 @@ function CommunityConfirmation({ business }: { business: PublicBusiness }) {
     <div className="bp-confirm-controls"><label>確認身分示範<select aria-label="確認身分示範" value={memberId} onChange={event => { setMemberId(event.target.value); setNotice(''); }}><option value="">匿名訪客</option>{members.filter(member => member.id.startsWith('peer-')).map(member => <option key={member.id} value={member.id}>{member.callName}（合成社友）</option>)}</select></label>
     <p className="bp-note">純展示身分切換，並非真實登入或授權。商家本人及維護者不可替自己的商家計次；每位社友僅計一次，可撤回。</p>
     {memberId ? <div className="bp-confirm-actions"><button className="bp-primary" onClick={() => confirm('endorse')}>我曾到訪／使用服務，確認商家存在</button><button className="bp-confirm-withdraw" onClick={() => confirm('unendorse')}>撤回我的確認</button></div> : <p><a href="#/login">登入後確認商家</a>，或選擇上方示範身分體驗。</p>}
-    <p role="status" aria-live="polite">{notice}</p></div>
+    <p><a href="#/demo?view=confirmations">查看／撤回我的商家確認（假資料）</a></p><p role="status" aria-live="polite">{notice}</p></div>
   </section>;
 }
 export function BusinessPublic({ page }: { page: 'map' | 'business' }) {
@@ -71,7 +72,7 @@ export function BusinessPublic({ page }: { page: 'map' | 'business' }) {
   }
   if (page === 'business') return <section className="bp-page ph-container">
     <a className="bp-back" href="#/map"><ChevronLeft size={18} /> 返回商家地圖與名錄</a>
-    {!business ? <div className="bp-empty"><h1>找不到公開商家</h1><p>這間商家目前沒有公開資料，或連結已失效。</p><a href="#/map">瀏覽公開商家</a></div> : <>
+    {!business ? <div className="bp-empty"><h1>找不到公開商家</h1><p>這間商家目前沒有公開資料，或連結已失效。</p><a href="#/map">瀏覽公開商家</a><p><a href="#/demo?view=confirmations">查看／撤回本人既有確認（假資料）</a> · <a href="#/demo?view=reports">追蹤既有回報（假資料）</a></p></div> : <>
       <header className="bp-detail-hero"><div className="bp-detail-art" aria-hidden="true"><Building2 size={80} strokeWidth={1} /><span>ROTARACT / BUSINESS</span></div><div><Exposure business={business} /><p className="bp-kicker">{business.city} · <IndustryNames ids={business.industryIds} /></p><h1>{business.name}</h1><div className="bp-contacts"><ContactNames business={business} /></div></div></header>
       {business.exposure === 'trial' && business.trialEndsAt && <p className="bp-trial-note">首次自行發布的三日暫時曝光，將於 {taipeiTime(business.trialEndsAt)} 到期；期滿須符合當年度社籍免費資格或持有有效廣告，才會繼續公開。</p>}
       <div className="bp-detail-grid"><article className="bp-panel"><h2>關於商家</h2><p className="bp-description">{business.description || '商家尚未提供介紹。'}</p><h2>社友連結</h2><div className="bp-detail-clubs">{business.contacts.map((contact, index) => <p key={`${contact.clubId}-${index}`}><strong>{contact.callName}</strong><br />{clubs.some(c => c.id === contact.clubId && c.enabled && c.public) ? <a href={`#/club?id=${encodeURIComponent(contact.clubId)}`}>{contact.clubName} <ArrowRight size={14} /></a> : <span>{contact.clubName}</span>}</p>)}</div></article>
@@ -87,6 +88,7 @@ export function BusinessPublic({ page }: { page: 'map' | 'business' }) {
         <p className="bp-note"><a href={`#/demo?view=coupons&company=${encodeURIComponent(business.id)}`}>體驗此商家優惠（假資料）</a></p>
       </section>
       <CommunityConfirmation key={business.id} business={business} />
+      <BusinessReports key={`report-${business.id}`} companyId={business.id} />
       <p className="bp-demo-note">本頁為合成資料展示。曝光資格示範時間：{taipeiTime(asOf)}。會員優惠請由上方登入入口使用；展示操作可選擇假資料體驗。</p>
     </>}
   </section>;

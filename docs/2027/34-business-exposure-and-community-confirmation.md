@@ -61,3 +61,5 @@
 程式提交 `af7279d` 已由 [GitHub Actions 38706168786](https://github.com/xk2022/codex-xk-rotaract/actions/runs/38706168786) 完成105項測試、正式建置、包含三日曝光與六人確認的瀏覽器流程，以及Pages部署，結果success。
 
 [商家名錄](https://xk2022.github.io/codex-xk-rotaract/#/map) · [商家維護](https://xk2022.github.io/codex-xk-rotaract/#/demo?view=businesses)。
+
+本輪已補齊隱藏後的本人確認與撤回入口，另加入商家回報與曝光提醒，見[全站銜接交付](36-engagement-roadmap-and-ui-ux.md)。先前「無入口」描述為當時限制，已由新頁面取代。

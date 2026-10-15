@@ -292,3 +292,7 @@ BASE_URL=http://127.0.0.1:5173/ CHROMIUM_PATH=/usr/bin/chromium npm run test:bro
 ## 第四階段優惠假資料
 
 `#/demo?view=coupons` 可切會員、商家owner、內容管理員體驗優惠審核、領碼、作廢及核銷。商家公開詳情只提供登入與明確的假資料體驗入口，不顯示會員券碼。測試 `npm run test:browser:coupons`；[交付與限制](../docs/2027/35-coupon-redemption-ui-ux.md)。重新整理重設，不可用於真實交易。
+
+## 待辦、回報與本人確認
+
+`#/demo?view=tasks` 整合待辦與曝光提醒；`#/demo?view=reports` 回報追蹤；`#/demo?view=confirmations` 查看及撤回本人商家確認（即使公司已隱藏）。均為記憶體假資料，示範身分明確分開。`npm run test:browser:engagement` 驗證跨頁流程；[八項安排與交付](../docs/2027/36-engagement-roadmap-and-ui-ux.md)。
