@@ -21,7 +21,7 @@ describe("safe workspace deep links", () => {
     expect(readWorkspacePage("#/workspace?member=m1")).toBe("overview");
   });
   it("keeps public community detail links separate from the activity workspace", () => {
-    for (const route of ["calendar", "clubs", "club", "event"]) {
+    for (const route of ["calendar", "clubs", "club", "event", "business"]) {
       const parsed = readPortalRoute(`#/${route}?id=city-walk`);
       expect(parsed).toBe(route);
       expect(isPublicPortalRoute(parsed)).toBe(true);

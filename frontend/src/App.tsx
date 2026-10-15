@@ -67,6 +67,8 @@ import {
 } from "./features/HistorySupportViews";
 import { AnnualView, MembershipView } from "./features/MemberOperations";
 import { PublicHome } from "./features/PublicHome";
+import { BusinessWorkspace } from "./phase3/BusinessWorkspace";
+import { useBusinessDemo } from "./phase3/businessStore";
 import { EventWorkspace } from "./phase2/EventWorkspace";
 import type { EventActor } from "./phase2/model";
 import {
@@ -92,7 +94,8 @@ type Page =
   | "audit"
   | "support"
   | "district"
-  | "events";
+  | "events"
+  | "businesses";
 type Modal = "register" | "join" | "transfer" | null;
 const demoToday = "2026-10-15";
 const actorLabels: Record<Actor, string> = {
@@ -110,6 +113,7 @@ const nav: { page: Page; label: string; icon: typeof Users }[] = [
   { page: "transfers", label: "轉社作業", icon: ArrowDownLeft },
   { page: "membership", label: "退社與 OB", icon: FileClock },
   { page: "annual", label: "年度名冊", icon: CalendarDays },
+  { page: "businesses", label: "商家維護", icon: Building2 },
   { page: "events", label: "活動與行事曆", icon: CalendarDays },
   { page: "club", label: "社團資料", icon: Building2 },
   { page: "roles", label: "角色與交接", icon: ShieldCheck },
@@ -281,6 +285,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
       clubs: "探索社團",
       club: "社團公開頁",
       event: "活動詳情",
+      business: "商家詳情",
       login: "會員登入",
       register: "會員註冊",
       admin: "管理後台登入",
@@ -306,12 +311,13 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
     });
   };
   const organization = useOrganizationDemo(addAudit);
+  const businessDemo = useBusinessDemo();
   const cases = useCaseDemo();
   const visibleNav = nav.filter((n) =>
     actor === "visitor"
       ? ["overview"].includes(n.page)
       : actor === "platform"
-        ? ["support", "history", "audit"].includes(n.page)
+        ? ["support", "history", "audit", "businesses"].includes(n.page)
         : actor === "district"
           ? [
               "members",
@@ -321,6 +327,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
               "history",
               "audit",
               "events",
+              "businesses",
             ].includes(n.page)
           : actor === "member"
             ? !["club", "roles", "annual", "district"].includes(n.page)
@@ -579,6 +586,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
     if (!confirmDraftLeave()) return;
     setState(initialState());
     organization.reset();
+    businessDemo.reset();
     cases.reset();
     setActor("taipei");
     setSelected(null);
@@ -1096,7 +1104,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
               ],
             },
             { title: "組織與授權", pages: ["club", "roles", "district"] },
-            { title: "活動與交流", pages: ["events"] },
+            { title: "活動與交流", pages: ["events", "businesses"] },
             { title: "我的帳號", pages: ["profile", "account"] },
             { title: "紀錄與協助", pages: ["history", "audit", "support"] },
           ].map((group) => {
@@ -1310,6 +1318,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
                             support: "追蹤帳號協助案件，確認補件與處理進度。",
                             district: "在授權地區內維護社團與組織狀態。",
                             events: "從一個想法開始，讓服務與交流被更多人看見。",
+                            businesses: "維護營業資訊與公開範圍，確認商家審核與曝光狀態。",
                           }[page] ?? "讓每個操作都有清楚的下一步。")}
               </p>
             </div>
@@ -1469,6 +1478,7 @@ export default function App({ embedded = false }: { embedded?: boolean } = {}) {
                     run={run}
                   />
                 )}
+                {page === "businesses" && <BusinessWorkspace />}
                 {page === "events" && (
                   <EventWorkspace
                     key={`${actor}-${organization.district}`}

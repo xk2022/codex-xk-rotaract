@@ -1,5 +1,5 @@
 export type PublicPortalRoute =
-  "home" | "map" | "calendar" | "clubs" | "club" | "event";
+  "home" | "map" | "calendar" | "clubs" | "club" | "event" | "business";
 export type PortalRoute =
   PublicPortalRoute | "login" | "register" | "admin" | "workspace" | "demo";
 
@@ -17,6 +17,7 @@ export function readPortalRoute(hash = window.location.hash): PortalRoute {
     "clubs",
     "club",
     "event",
+    "business",
     "login",
     "register",
     "admin",
@@ -30,7 +31,7 @@ export function readPortalRoute(hash = window.location.hash): PortalRoute {
 export function isPublicPortalRoute(
   route: PortalRoute,
 ): route is PublicPortalRoute {
-  return ["home", "map", "calendar", "clubs", "club", "event"].includes(route);
+  return ["home", "map", "calendar", "clubs", "club", "event", "business"].includes(route);
 }
 
 export function goToPortal(route: PortalRoute) {
@@ -53,6 +54,7 @@ export const workspacePages = [
   "support",
   "district",
   "events",
+  "businesses",
 ] as const;
 export function readWorkspacePage(
   hash = window.location.hash,

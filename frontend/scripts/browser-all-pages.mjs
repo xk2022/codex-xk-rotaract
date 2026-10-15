@@ -104,9 +104,9 @@ try {
   await page
     .getByLabel("產業", { exact: true })
     .selectOption({ label: "專業服務" });
-  assert.equal(await page.locator(".ph-business-card").count(), 1);
+  assert.equal(await page.locator(".ph-business-card").count(), 2);
   await page.getByRole("button", { name: "清除商家篩選" }).click();
-  assert.equal(await page.locator(".ph-business-card").count(), 3);
+  assert.equal(await page.locator(".ph-business-card").count(), 4);
   await screenshot("map-desktop");
   await page
     .getByRole("navigation", { name: "公開網站導覽" })

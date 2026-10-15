@@ -282,3 +282,7 @@ BASE_URL=http://127.0.0.1:5173/ CHROMIUM_PATH=/usr/bin/chromium npm run test:bro
 ```
 
 未設定`CHROMIUM_PATH`時使用Playwright安裝的瀏覽器。`WRITE_PREVIEWS=1`可更新`docs/previews/p2-*`畫面；測試使用假資料，不呼叫活動後端。
+
+## 第三階段商家前端
+
+`#/map` 瀏覽名錄與分布示意，`#/business?id=coffee` 為獨立詳情，`#/demo?view=businesses` 體驗草稿與審核。全部是假資料，沒有Google Maps key、真實地圖、付款或核銷；曝光日期為可切換的示範情境。見[交付範圍](../docs/2027/33-phase3-business-ui-ux.md)。驗證使用 `npm run test:browser:business`，原公開檢查已改驗商家詳情路由。

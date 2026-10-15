@@ -101,6 +101,7 @@ export default function Portal() {
       clubs: "探索社團",
       club: "社團公開頁",
       event: "活動詳情",
+      business: "商家詳情",
     };
     document.title = `${titles[route]} · Rotaract 萬花筒`;
     document.getElementById("public-main")?.focus({ preventScroll: true });

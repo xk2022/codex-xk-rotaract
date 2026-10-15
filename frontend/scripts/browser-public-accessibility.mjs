@@ -20,23 +20,12 @@ try {
   await nav.getByRole('button',{name:'加入生活圈',exact:false}).scrollIntoViewIfNeeded();
   await page.keyboard.press('Escape');
   await visit('map');
-  const trigger=page.getByRole('button',{name:'查看日常之間咖啡',exact:true});
-  await trigger.click();
-  const dialog=page.getByRole('dialog');await dialog.waitFor();
-  assert.equal(await dialog.evaluate(el=>el.matches(':modal')),true);
-  await page.evaluate(()=>document.querySelector('.ph-brand')?.focus());
-  assert.equal(await page.evaluate(()=>document.querySelector('dialog')?.contains(document.activeElement)),true);
-  for(const key of ['Tab','Shift+Tab']) {
-    await page.keyboard.press(key);
-    assert.equal(await page.evaluate(()=>document.activeElement === document.body || document.querySelector('dialog')?.contains(document.activeElement)),true);
-  }
-  await page.keyboard.press('Escape');
-  await dialog.waitFor({state:'hidden'});
-  assert.equal(await page.locator(':focus').getAttribute('aria-label'),'查看日常之間咖啡');
-  assert.equal(await page.evaluate(()=>document.body.style.overflow),'');
+  await page.locator('.ph-business-card').filter({hasText:'日常之間咖啡'}).click();
+  await page.getByRole('heading',{level:1,name:'日常之間咖啡'}).waitFor();
+  assert.equal(await page.locator(':focus').getAttribute('id'),'public-main');
   for(const width of [320,640]) {
     await page.setViewportSize({width,height:900});
-    for(const route of ['', 'map', 'calendar','clubs','club?id=taipei','event?id=city-walk']) {
+    for(const route of ['', 'map', 'calendar','clubs','club?id=taipei','event?id=city-walk','business?id=coffee']) {
       await visit(route);await fits(`${route} ${width}`);
       // Double every computed font size, rather than only changing the root rem size.
       await page.evaluate(()=>{
@@ -59,5 +48,5 @@ try {
     assert.ok(box && box.height>=44 && box.width>=44, `small control: ${name}`);
   }
   assert.deepEqual(errors,[]);
-  console.log('PASS public accessibility: mobile menu Escape/short-screen scroll, native modal containment/focus return, six routes at 320/640px with doubled computed fonts; not a full WCAG audit');
+  console.log('PASS public accessibility: mobile menu Escape/short-screen scroll, business detail route focus, seven routes at 320/640px with doubled computed fonts; not a full WCAG audit');
 } finally {await browser.close();}

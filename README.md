@@ -4,7 +4,9 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
-最新：[公開頁手機與無障礙操作改善](docs/2027/32-public-mobile-accessibility.md)。
+最新：[第三階段公司名錄／商家詳情／會員維護 UI／UX](docs/2027/33-phase3-business-ui-ux.md)已完成假資料初版。
+
+[公開頁手機與無障礙操作改善](docs/2027/32-public-mobile-accessibility.md)。
 
 [社團停用／恢復與公開頁同步](docs/2027/31-organization-public-sync.md)已補齊第二階段跨模組流程。
 

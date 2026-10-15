@@ -77,28 +77,15 @@ try {
     .getByRole("button", { name: "商家地圖", exact: true })
     .click();
   await page.waitForURL("**#/map");
-  await page.getByLabel("搜尋商家").fill("Sunny");
+  await page.getByLabel("搜尋商家", { exact: true }).fill("日常之間咖啡");
   assert.equal(await page.locator(".ph-business-card").count(), 1);
-  const shop = page.getByRole("button", {
-    name: "查看日常之間咖啡",
-    exact: true,
-  });
-  await shop.click();
-  await page.getByRole("dialog").waitFor();
-  await page.keyboard.press("Tab");
-  assert.equal(await page.evaluate(() => document.activeElement === document.body || document.querySelector("dialog")?.contains(document.activeElement)), true);
-  await page.keyboard.press("Escape");
-  assert.equal(await page.getByRole("dialog").count(), 0);
-  assert.equal(
-    await page.evaluate(() =>
-      document.activeElement?.getAttribute("aria-label"),
-    ),
-    "查看日常之間咖啡",
-  );
-  await shop.click();
+  await page.locator(".ph-business-card").first().click();
+  await page.waitForURL(/#\/business\?id=coffee/);
+  await page.getByRole("heading", { level: 1, name: "日常之間咖啡" }).waitFor();
+  await page.reload();
+  await page.getByRole("heading", { level: 1, name: "日常之間咖啡" }).waitFor();
   await page.goBack();
   await page.getByRole("heading", { level: 1 }).waitFor();
-  await page.getByRole("dialog").waitFor({ state: "hidden" });
   await page.goto(`${base}#/calendar`);
   await page.getByRole("button", { name: "查看 2026 年 10 月示範", exact: true }).click();
   await page.getByRole("button", { name: "下一個月", exact: true }).click();

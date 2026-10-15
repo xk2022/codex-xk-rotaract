@@ -3,14 +3,10 @@ import {
   ArrowDown,
   ArrowRight,
   CalendarDays,
-  ChevronLeft,
-  Coffee,
   ExternalLink,
   MapPin,
   Menu,
-  Search,
   Sparkles,
-  Users,
   X,
 } from "lucide-react";
 import "./public-home.css";
@@ -18,9 +14,10 @@ import {
   PublicCommunity,
   CommunityHighlights,
 } from "../phase2/PublicCommunity";
+import { BusinessPublic } from "../phase3/BusinessPublic";
 
 export type PublicPage =
-  "home" | "map" | "calendar" | "clubs" | "club" | "event";
+  "home" | "map" | "calendar" | "clubs" | "club" | "event" | "business";
 type Props = {
   page: PublicPage;
   onNavigate: (page: PublicPage) => void;
@@ -28,45 +25,6 @@ type Props = {
   onRegister: () => void;
   onAdmin: () => void;
 };
-const businesses = [
-  {
-    id: "coffee",
-    name: "日常之間咖啡",
-    callName: "Sunny",
-    club: "台北示範扶青社",
-    category: "餐飲咖啡",
-    city: "台北",
-    phone: "02-0000-0101",
-    description:
-      "一杯咖啡的時間，讓新的交流自然發生。提供手沖咖啡、輕食與小型聚會空間。",
-    x: 69,
-    y: 25,
-  },
-  {
-    id: "studio",
-    name: "向光設計工作室",
-    callName: "Alex",
-    club: "台中示範扶青社",
-    category: "專業服務",
-    city: "台中",
-    phone: "04-0000-0202",
-    description: "從品牌識別到日常設計，陪伴在地品牌找到自己的樣貌。",
-    x: 46,
-    y: 49,
-  },
-  {
-    id: "travel",
-    name: "南方慢旅",
-    callName: "Jo",
-    club: "高雄示範扶青社",
-    category: "生活旅遊",
-    city: "高雄",
-    phone: "07-0000-0303",
-    description: "用步行認識一座城市，探索巷弄裡的故事與人情。",
-    x: 31,
-    y: 76,
-  },
-];
 function CommunityArt() {
   return (
     <svg
@@ -228,23 +186,8 @@ export function PublicHome({
   onAdmin,
 }: Props) {
   const [menu, setMenu] = useState(false);
-  const [city, setCity] = useState("全部地區");
-  const [query, setQuery] = useState("");
-  const [industry, setIndustry] = useState("全部產業");
-  const clearBusinesses = () => {
-    setQuery("");
-    setCity("全部地區");
-    setIndustry("全部產業");
-  };
-  const [businessId, setBusinessId] = useState<string | null>(null);
-  const detailTrigger = useRef<HTMLElement | null>(null);
-  const detailDialog = useRef<HTMLDialogElement>(null);
   const menuToggle = useRef<HTMLButtonElement>(null);
-  const hasDetail = businessId !== null;
-  useEffect(() => {
-    setBusinessId(null);
-    setMenu(false);
-  }, [page]);
+  useEffect(() => { setMenu(false); }, [page]);
   useEffect(() => {
     if (!menu) return;
     const escape = (event: KeyboardEvent) => {
@@ -255,38 +198,10 @@ export function PublicHome({
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
   }, [menu]);
-  useEffect(() => {
-    if (!hasDetail) return;
-    detailDialog.current?.showModal();
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const trigger = detailTrigger.current;
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      if (trigger?.isConnected) trigger.focus();
-    };
-  }, [hasDetail]);
-  const openBusiness = (id: string) => {
-    detailTrigger.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-    setBusinessId(id);
-  };
   const navigate = (value: PublicPage) => {
     onNavigate(value);
     setMenu(false);
-    setBusinessId(null);
   };
-  const filtered = businesses.filter(
-    (b) =>
-      (city === "全部地區" || b.city === city) &&
-      (industry === "全部產業" || b.category === industry) &&
-      `${b.name}${b.callName}${b.club}${b.category}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-  );
-  const selectedBusiness = businesses.find((b) => b.id === businessId);
   return (
     <div className="ph-site">
       <a
@@ -344,7 +259,7 @@ export function PublicHome({
               首頁
             </button>
             <button
-              aria-current={page === "map" ? "page" : undefined}
+              aria-current={page === "map" || page === "business" ? "page" : undefined}
               onClick={() => navigate("map")}
             >
               商家地圖
@@ -516,177 +431,10 @@ export function PublicHome({
               </button>
             </section>
           </>
-        ) : page !== "map" ? (
-          <PublicCommunity page={page} />
+        ) : page === "map" || page === "business" ? (
+          <BusinessPublic page={page} />
         ) : (
-          <section className="ph-directory ph-container">
-            <button className="ph-back" onClick={() => navigate("home")}>
-              <ChevronLeft size={16} /> 回首頁
-            </button>
-            <div className="ph-directory-heading">
-              <p className="ph-eyebrow">
-                {page === "map" ? "ROTARACT BIZMAP" : "ROTARACT KALENDAR"}
-              </p>
-              <h1>
-                {page === "map"
-                  ? "相遇，從一間好店開始。"
-                  : "讓下一場相遇，有個日期。"}
-              </h1>
-              <p>
-                {page === "map"
-                  ? "探索社友的品牌與專業，把連結帶進日常生活。"
-                  : "認識身邊的社團活動，一起參與、交流與行動。"}
-              </p>
-            </div>
-            {page === "map" ? (
-              <>
-                <div className="ph-filters">
-                  <label className="ph-search">
-                    <Search size={18} />
-                    <input
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder="搜尋商家、Call Name 或社團"
-                      aria-label="搜尋商家"
-                    />
-                  </label>
-                  <label className="ph-city-filter">
-                    地區
-                    <select
-                      aria-label="地區"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                    >
-                      {["全部地區", "台北", "台中", "高雄"].map((c) => (
-                        <option key={c}>{c}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="ph-city-filter">
-                    產業
-                    <select
-                      aria-label="產業"
-                      value={industry}
-                      onChange={(e) => setIndustry(e.target.value)}
-                    >
-                      {["全部產業", "餐飲咖啡", "專業服務", "生活旅遊"].map(
-                        (value) => (
-                          <option key={value}>{value}</option>
-                        ),
-                      )}
-                    </select>
-                  </label>
-                  <button
-                    className="ph-clear-filter"
-                    onClick={clearBusinesses}
-                    disabled={
-                      !query && city === "全部地區" && industry === "全部產業"
-                    }
-                  >
-                    清除商家篩選
-                  </button>
-                  <span role="status" aria-live="polite">
-                    找到 {filtered.length} 間示範商家
-                  </span>
-                </div>
-                <div className="ph-map-layout">
-                  <div
-                    className="ph-map-canvas"
-                    aria-label="商家分布示意圖，非真實定位"
-                  >
-                    <svg viewBox="0 0 620 490" aria-hidden="true">
-                      <rect width="620" height="490" fill="#e5eadf" />
-                      <path
-                        d="M0 116C154 29 141 260 304 198S421 360 620 278M-20 380C107 223 249 460 417 394S568 418 640 355"
-                        fill="none"
-                        stroke="#cfdbc5"
-                        strokeWidth="72"
-                      />
-                      <path
-                        d="M-20 150L650 380M144-30L299 520M-20 379L631 78M446-20L385 510"
-                        stroke="#faf8ef"
-                        strokeWidth="22"
-                      />
-                      <path
-                        d="M-20 150L650 380M144-30L299 520M-20 379L631 78M446-20L385 510"
-                        stroke="#d3c9b9"
-                        strokeWidth="1.5"
-                      />
-                      <path
-                        d="M520-10Q359 159 510 316T550 510"
-                        stroke="#b8d2da"
-                        strokeWidth="40"
-                        fill="none"
-                      />
-                    </svg>
-                    {filtered.map((b) => (
-                      <button
-                        key={b.id}
-                        className={`ph-map-pin ${businessId === b.id ? "is-selected" : ""}`}
-                        style={{ left: `${b.x}%`, top: `${b.y}%` }}
-                        onClick={() => openBusiness(b.id)}
-                        aria-label={`查看${b.name}`}
-                      >
-                        <MapPin size={23} fill="currentColor" />
-                        <span>{b.name}</span>
-                      </button>
-                    ))}
-                    <span className="ph-map-disclaimer">
-                      商家分布示意・非真實定位
-                    </span>
-                  </div>
-                  <div className="ph-business-list">
-                    {filtered.length === 0 ? (
-                      <div className="ph-empty">
-                        <Search size={30} />
-                        <h3>沒有符合的商家</h3>
-                        <p>試試其他關鍵字或地區。</p>
-                        <button
-                          className="ph-text-button"
-                          onClick={clearBusinesses}
-                        >
-                          清除篩選
-                        </button>
-                      </div>
-                    ) : (
-                      filtered.map((b) => (
-                        <button
-                          className={`ph-business-card ${businessId === b.id ? "is-selected" : ""}`}
-                          key={b.id}
-                          onClick={() => openBusiness(b.id)}
-                        >
-                          <span
-                            className={`ph-business-art ph-business-art-${b.id}`}
-                          >
-                            <Coffee size={32} strokeWidth={1.2} />
-                            <small>{b.category}</small>
-                          </span>
-                          <span className="ph-business-content">
-                            <small>
-                              {b.city} · {b.category}
-                            </small>
-                            <strong>{b.name}</strong>
-                            <span>
-                              {b.callName} ｜ {b.club}
-                            </span>
-                            <span className="ph-business-more">
-                              查看商家 <ArrowRight size={14} />
-                            </span>
-                          </span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                </div>
-                <p className="ph-member-prompt">
-                  <Users size={17} /> 想認識更多社友？
-                  <button onClick={onLogin}>
-                    登入後查詢會員資料 <ArrowRight size={14} />
-                  </button>
-                </p>
-              </>
-            ) : null}
-          </section>
+          <PublicCommunity page={page} />
         )}
       </main>
       <footer className="ph-footer">
@@ -713,51 +461,7 @@ export function PublicHome({
           <span>畫面預覽・內容為示範資料</span>
         </div>
       </footer>
-      {selectedBusiness && (
-        <dialog
-          ref={detailDialog}
-          className="ph-modal-overlay"
-          aria-labelledby="ph-detail-title"
-          onCancel={(event) => { event.preventDefault(); setBusinessId(null); }}
-          onClick={(event) => { if (event.target === event.currentTarget) setBusinessId(null); }}
-        >
-          <div className="ph-modal">
-            <button
-              className="ph-modal-close"
-              autoFocus
-              aria-label="關閉詳情"
-              onClick={() => {
-                setBusinessId(null);
-              }}
-            >
-              <X size={20} />
-            </button>
-            {selectedBusiness && (
-              <>
-                <p className="ph-eyebrow">
-                  {selectedBusiness.city} / {selectedBusiness.category}
-                </p>
-                <h2 id="ph-detail-title">{selectedBusiness.name}</h2>
-                <p>{selectedBusiness.description}</p>
-                <dl>
-                  <div>
-                    <dt>Call Name</dt>
-                    <dd>{selectedBusiness.callName}</dd>
-                  </div>
-                  <div>
-                    <dt>所屬社團</dt>
-                    <dd>{selectedBusiness.club}</dd>
-                  </div>
-                  <div>
-                    <dt>公司聯絡電話</dt>
-                    <dd>{selectedBusiness.phone}（示範）</dd>
-                  </div>
-                </dl>
-              </>
-            )}
-          </div>
-        </dialog>
-      )}
+
     </div>
   );
 }
