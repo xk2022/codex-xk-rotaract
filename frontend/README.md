@@ -12,6 +12,12 @@ React 19 + TypeScript + Vite + Tailwind。保留品牌與配色、使用自有�
 
 需 Node.js 24 LTS。執行 `npm ci`、`npm run dev`；正式輸出使用 `npm run build`，單元測試使用 `npm test`。
 
+程式檢查使用 `npm run lint`，採 ESLint 與 typescript-eslint recommended 規則，檢查 `src/` 的 TypeScript／TSX（包含測試檔），不套用縮排或格式化規則；任何錯誤或警告都會使命令失敗。
+
+`npm run test:coverage` 會執行相同的單元測試並產生 V8 覆蓋率報告；provider 與 Vitest 固定同版。報告納入 `src/` 全部 TypeScript／TSX 來源，包含尚未被測試 import 的 UI；僅排除測試與 `.d.ts`，不設固定覆蓋率百分比門檻。終端顯示摘要，HTML 位於 `coverage/index.html`，LCOV 位於 `coverage/lcov.info`；`coverage/` 已由根目錄 `.gitignore` 排除。這是 Vitest 程序的覆蓋範圍，不包含 Playwright 或後端 JVM。
+
+PR 的 `frontend-check` 依序執行 `npm ci`、Lint、含覆蓋率的測試與建置，成功後上傳 `frontend-coverage-<run_attempt>` 報告，保留 7 天。可在該次 GitHub Actions 的 Artifacts 下載；測試只執行一次，不另重跑 `npm test`。
+
 瀏覽器測試需先啟動 dev server、安裝 Playwright Chromium（`npx playwright install chromium`），再執行：
 
 ```sh

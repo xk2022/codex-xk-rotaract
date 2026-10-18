@@ -7,7 +7,9 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
+    "lint": "eslint src --max-warnings=0",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:browser": "node scripts/browser-smoke.mjs",
     "test:browser:v2": "node scripts/browser-ui-v2.mjs",
     "test:browser:public": "node scripts/browser-public.mjs",
@@ -38,11 +40,15 @@
     "tailwindcss": "^4.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/coverage-v8": "4.1.12",
+    "eslint": "10.13.0",
     "playwright": "^1.64.1",
     "typescript": "~5.9.0",
+    "typescript-eslint": "8.71.2",
     "vite": "^7.0.0",
     "vitest": "4.1.12"
   }

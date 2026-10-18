@@ -265,7 +265,9 @@ export function applyEventAction(events: CommunityEvent[], clubs: CommunityClub[
     if (action.type === 'copy') {
         if (event.organizerType === 'club' && !clubs.some(c => c.id === event.organizerId && c.enabled))
             return { ok: false, error: '停用社團不能新增活動。' };
-        const { cancellationReason: _reason, publicWithdrawnAt: _withdrawn, ...rest } = event;
+        const rest = { ...event };
+        delete rest.cancellationReason;
+        delete rest.publicWithdrawnAt;
         return { ok: true, event: { ...rest, id: newId, title: `${event.title.slice(0, 194)}（副本）`, status: 'draft', version: 0 } };
     }
     if (action.type === 'update') {
