@@ -55,6 +55,24 @@ CORE_TEST_ALLOW_RESET=true DATABASE_URL=jdbc:postgresql://127.0.0.1:55432/xk_rot
 
 整合案例涵蓋註冊登入核准至名冊、匿名 CSRF 與 Origin、Cookie 屬性、冪等重放／內容衝突、跨社／撤權、版本、隱私、唯一與密碼空白、待審上限、撤回、拒絕冷卻、停權及核准競爭。本輪在 PostgreSQL 17、JDK 21、Maven 3.9.11 執行 `mvn verify`：111 項測試通過，0 失敗、0 錯誤、0 跳過；包含原有核心回歸、所有新增模組與實際路由覆蓋。年度讀寫及7/1、8/1邊界已驗證，長期維運排程不因此視為完成。
 
+### Java 檢查與覆蓋率報告
+
+在上述獨立測試資料庫與環境變數已設定後，於 `backend/` 執行完整檢查：
+
+```sh
+CORE_TEST_ALLOW_RESET=true mvn --batch-mode clean verify
+```
+
+Maven Checkstyle Plugin 3.6.0 使用 Checkstyle 14.3.0（需要 Java 21），在 `validate` 階段檢查主程式與測試 Java 檔；規則位於 [CHECKSTYLE.xml](config/checkstyle/CHECKSTYLE.xml)，包含未使用 import、重複／多餘 import、頂層類別與檔名一致，以及每檔一個頂層類別。違規會使建置失敗；不掃描資源檔，也未設定縮排、行長或禁止 wildcard import。這些基本規則不提供完整型別或安全分析。
+
+JaCoCo 0.8.15 在 `initialize` 階段為既有 Surefire 測試 JVM 加入 agent，於 `verify` 產生 HTML／XML 報告；原有 11 個 `*IntegrationTest.java`、111 項測試維持由 Surefire 執行一次。報告納入所有已編譯主程式類別，包括未執行到的類別，不設定固定覆蓋率百分比。另行啟動的 HTTPS 瀏覽器測試應用 JVM 未加入 agent，其執行結果不計入此覆蓋率。
+
+- Checkstyle XML：`target/checkstyle-result.xml`。
+- JaCoCo HTML：`target/site/jacoco/index.html`；XML：`target/site/jacoco/jacoco.xml`。
+- GitHub Actions 的 `Verify core API` 執行 `clean verify`，逐一確認上述報告非空後，上傳 `backend-quality-<run_attempt>` artifact，保留 7 天；下載並解壓後開啟 `site/jacoco/index.html`。報告於 HTTPS 流程前上傳，後續瀏覽器流程失敗時仍可檢視已產生的報告。
+
+僅檢查上述 Java 規則可執行 `mvn --batch-mode validate`，不會啟動資料庫測試，也不會產生新的覆蓋率報告；執行完整驗證仍須遵守獨立 `*_test` 資料庫與重設許可要求。
+
 ## 本人帳號修改與重試
 
 個人姓名／call name 及隱私使用 `member.version`；識別變更使用 `account.version`。空 PATCH、額外欄位、錯誤型別與格式均拒絕；409 不覆寫。頭像支援已上傳且屬於本人的清理後 avatar 資產及 null 清除；拒絕他人、案件證據與不存在資產。圖片上限2MiB、4096×4096，PNG/JPEG/WebP解碼後重編碼為PNG；其他登入者只可讀取目前引用且符合會員投影可見性的頭像。公開社徽只由目前啟用公開社團的引用提供。

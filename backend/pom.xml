@@ -14,5 +14,25 @@
   <dependency><groupId>com.twelvemonkeys.imageio</groupId><artifactId>imageio-webp</artifactId><version>3.12.0</version></dependency>
   <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
  </dependencies>
- <build><resources><resource><directory>src/main/resources</directory></resource><resource><directory>../docs/api</directory><includes><include>openapi.json</include></includes><targetPath>api</targetPath></resource></resources><plugins><plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin></plugins></build>
+ <build><resources><resource><directory>src/main/resources</directory></resource><resource><directory>../docs/api</directory><includes><include>openapi.json</include></includes><targetPath>api</targetPath></resource></resources><plugins>
+  <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin>
+  <plugin>
+   <groupId>org.apache.maven.plugins</groupId><artifactId>maven-checkstyle-plugin</artifactId><version>3.6.0</version>
+   <dependencies><dependency><groupId>com.puppycrawl.tools</groupId><artifactId>checkstyle</artifactId><version>14.3.0</version></dependency></dependencies>
+   <configuration>
+    <configLocation>config/checkstyle/CHECKSTYLE.xml</configLocation>
+    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+    <includeResources>false</includeResources><includeTestResources>false</includeTestResources>
+    <failOnViolation>true</failOnViolation><violationSeverity>error</violationSeverity>
+   </configuration>
+   <executions><execution><id>check-java</id><phase>validate</phase><goals><goal>check</goal></goals></execution></executions>
+  </plugin>
+  <plugin>
+   <groupId>org.jacoco</groupId><artifactId>jacoco-maven-plugin</artifactId><version>0.8.15</version>
+   <executions>
+    <execution><id>prepare-coverage</id><phase>initialize</phase><goals><goal>prepare-agent</goal></goals></execution>
+    <execution><id>coverage-report</id><phase>verify</phase><goals><goal>report</goal></goals><configuration><formats><format>HTML</format><format>XML</format></formats></configuration></execution>
+   </executions>
+  </plugin>
+ </plugins></build>
 </project>

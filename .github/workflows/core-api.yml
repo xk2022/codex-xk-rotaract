@@ -64,7 +64,21 @@ jobs:
         run: python3 docs/api/validate_contract.py
       - name: Verify against PostgreSQL 17
         working-directory: backend
-        run: mvn --batch-mode verify
+        run: mvn --batch-mode clean verify
+      - name: Verify quality reports exist
+        run: |
+          test -s backend/target/checkstyle-result.xml
+          test -s backend/target/site/jacoco/index.html
+          test -s backend/target/site/jacoco/jacoco.xml
+      - name: Upload backend quality reports
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: backend-quality-${{ github.run_attempt }}
+          path: |
+            backend/target/checkstyle-result.xml
+            backend/target/site/jacoco
+          if-no-files-found: error
+          retention-days: 7
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
