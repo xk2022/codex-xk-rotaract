@@ -32,6 +32,25 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install locked dependencies
         run: npm ci
+      - name: Audit all locked frontend dependencies
+        id: dependency-audit
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/audit-dependencies.mjs
+      - name: Verify frontend dependency audit reports
+        if: ${{ !cancelled() && steps.dependency-audit.outcome == 'success' }}
+        run: |
+          test -s target/dependency-audit/audit.json
+          test -s target/dependency-audit/scan-metadata.json
+          test -s target/dependency-audit/summary.md
+      - name: Upload frontend dependency audit report or diagnostics
+        if: ${{ !cancelled() && steps.dependency-audit.outcome != 'skipped' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: frontend-dependency-audit-${{ github.run_attempt }}
+          path: frontend/target/dependency-audit
+          if-no-files-found: error
+          retention-days: 7
       - name: Lint frontend source
         run: npm run lint
       - name: Run frontend tests with coverage
