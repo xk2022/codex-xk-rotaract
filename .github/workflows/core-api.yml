@@ -26,6 +26,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  dependency-audit:
+    name: backend-dependency-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SCARF_NO_ANALYTICS: 'true'
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: Verify cold vulnerability database update
+        working-directory: backend
+        run: |
+          test ! -e target/dependency-check-data
+          mkdir -p target/dependency-audit
+          date -u +%Y-%m-%dT%H:%M:%SZ > target/dependency-audit/update-started-at.txt
+          mvn --batch-mode -Pdependency-audit org.owasp:dependency-check-maven:13.0.0:update-only
+          date -u +%Y-%m-%dT%H:%M:%SZ > target/dependency-audit/update-completed-at.txt
+      - name: Scan Maven application and test dependencies
+        working-directory: backend
+        run: mvn --batch-mode -Pdependency-audit org.owasp:dependency-check-maven:13.0.0:check
+      - name: Validate dependency audit and write summary
+        working-directory: backend
+        run: python3 scripts/verify-dependency-audit.py
+      - name: Upload backend dependency audit
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: backend-dependency-audit-${{ github.run_attempt }}
+          path: backend/target/dependency-audit
+          if-no-files-found: error
+          retention-days: 7
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 30

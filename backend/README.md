@@ -73,6 +73,32 @@ JaCoCo 0.8.15 在 `initialize` 階段為既有 Surefire 測試 JVM 加入 agent�
 
 僅檢查上述 Java 規則可執行 `mvn --batch-mode validate`，不會啟動資料庫測試，也不會產生新的覆蓋率報告；執行完整驗證仍須遵守獨立 `*_test` 資料庫與重設許可要求。
 
+### Maven 依賴安全基線
+
+`dependency-audit` profile 固定 OWASP Dependency-Check 13.0.0，掃描 Maven 應用與測試的直接／傳遞依賴，包含 test、runtime、provided scope。此 profile 不綁定一般建置階段，不改原有 `clean verify`、111 項測試與 HTTPS 流程，也不掃描 Maven build plugins、前端、原始碼、Secrets 或部署映像。
+
+從 `backend/` 執行（不需要測試資料庫）：
+
+```sh
+test ! -e target/dependency-check-data
+mkdir -p target/dependency-audit
+date -u +%Y-%m-%dT%H:%M:%SZ > target/dependency-audit/update-started-at.txt
+SCARF_NO_ANALYTICS=true mvn --batch-mode -Pdependency-audit org.owasp:dependency-check-maven:13.0.0:update-only
+date -u +%Y-%m-%dT%H:%M:%SZ > target/dependency-audit/update-completed-at.txt
+SCARF_NO_ANALYTICS=true mvn --batch-mode -Pdependency-audit org.owasp:dependency-check-maven:13.0.0:check
+python3 scripts/verify-dependency-audit.py
+```
+
+上列命令須依序執行，任一步失敗即停止；若已有先前資料庫，應另用乾淨工作副本執行冷啟動驗證。
+
+使用 NVD 官方 2.0 年度／modified 資料檔及 META 更新資訊，不需 NVD API Key；另啟用 CISA KEV。資料庫位於 `target/dependency-check-data`，每次檢查 NVD 更新（`nvdValidForHours=0`）。CI 使用獨立 `backend-dependency-audit` job 及全新 job-local 資料庫，先確認冷啟動更新成功才掃描，不快取弱點資料庫；45 分鐘為本次掃描 job 的上限，原有整合測試 job 維持 30 分鐘。
+
+保留 `autoUpdate=true`、`failOnError=true`。有效弱點發現先報告，不設定弱點等級阻擋（`failBuildOnCVSS=11` 高於 CVSS 範圍）；來源更新、下載、分析或報告無效仍使 job 失敗，不將現有或部分報告當作掃描成功。沒有專案 suppressions；工具預設的官方誤判規則仍會更新。OSS Index 本輪不啟用，因其需額外認證及使用條款評估；Node／RetireJS analyzers 不屬本輪 Java 範圍。
+
+報告為 `target/dependency-audit/dependency-check-report.html`、`dependency-check-report.json` 與 `scan-metadata.json`。驗證腳本確認引擎、NVD 更新資訊、test／runtime 依賴、分析錯誤及各份檔案，記錄 PR head、實際 checkout Commit、時間、Maven 版本、POM SHA256、掃描範圍與弱點分級摘要；CISA 更新以成功的冷啟動更新步驟及 CI log 為證，不虛構 JSON 中沒有的 CISA 時戳。GitHub Actions 上傳 `backend-dependency-audit-<run_attempt>`，保留 7 天；只有成功掃描與驗證的報告會上傳。失敗原因見失敗步驟 log。
+
+零告警只代表該次工具與資料來源的比對結果，不等於完整產品安全驗收。NVD／CPE 可能誤判，發現需逐項檢視；弱點阻擋等級與專案例外另行確認，不能用整批 suppression 隱藏發現。
+
 ## 本人帳號修改與重試
 
 個人姓名／call name 及隱私使用 `member.version`；識別變更使用 `account.version`。空 PATCH、額外欄位、錯誤型別與格式均拒絕；409 不覆寫。頭像支援已上傳且屬於本人的清理後 avatar 資產及 null 清除；拒絕他人、案件證據與不存在資產。圖片上限2MiB、4096×4096，PNG/JPEG/WebP解碼後重編碼為PNG；其他登入者只可讀取目前引用且符合會員投影可見性的頭像。公開社徽只由目前啟用公開社團的引用提供。

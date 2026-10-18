@@ -35,4 +35,25 @@
    </executions>
   </plugin>
  </plugins></build>
+ <profiles><profile>
+  <id>dependency-audit</id>
+  <build><plugins><plugin>
+   <groupId>org.owasp</groupId><artifactId>dependency-check-maven</artifactId><version>13.0.0</version>
+   <configuration>
+    <formats><format>HTML</format><format>JSON</format></formats>
+    <dataDirectory>${project.build.directory}/dependency-check-data</dataDirectory>
+    <outputDirectory>${project.build.directory}/dependency-audit</outputDirectory>
+    <autoUpdate>true</autoUpdate><failOnError>true</failOnError>
+    <failBuildOnCVSS>11</failBuildOnCVSS>
+    <skipTestScope>false</skipTestScope><skipProvidedScope>false</skipProvidedScope><skipRuntimeScope>false</skipRuntimeScope>
+    <scanDependencies>true</scanDependencies><scanPlugins>false</scanPlugins>
+    <nvdDatafeedUrl>https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz</nvdDatafeedUrl>
+    <nvdValidForHours>0</nvdValidForHours><knownExploitedEnabled>true</knownExploitedEnabled>
+    <ossIndexAnalyzerEnabled>false</ossIndexAnalyzerEnabled>
+    <nodeAnalyzerEnabled>false</nodeAnalyzerEnabled><nodeAuditAnalyzerEnabled>false</nodeAuditAnalyzerEnabled>
+    <yarnAuditAnalyzerEnabled>false</yarnAuditAnalyzerEnabled><pnpmAuditAnalyzerEnabled>false</pnpmAuditAnalyzerEnabled>
+    <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
+   </configuration>
+  </plugin></plugins></build>
+ </profile></profiles>
 </project>
