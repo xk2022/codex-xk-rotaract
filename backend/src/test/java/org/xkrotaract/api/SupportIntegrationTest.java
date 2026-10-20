@@ -7,7 +7,6 @@ import jakarta.servlet.http.Cookie;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
-import java.time.Duration;
 import java.util.*;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.*;
