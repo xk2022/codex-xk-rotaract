@@ -444,7 +444,7 @@ export function AccountView({
             className={tab === index ? "active" : ""}
             onClick={() => selectTab(index)}
             onKeyDown={(event) => {
-              let next = index;
+              let next: number;
               if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
               else if (event.key === "ArrowLeft")
                 next = (index + tabs.length - 1) % tabs.length;
