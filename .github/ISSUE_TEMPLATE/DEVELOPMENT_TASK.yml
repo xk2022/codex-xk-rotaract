@@ -1,0 +1,106 @@
+name: 開發需求與任務
+description: 彙整 Epic、Feature、Task 或 Bug 的需求、範圍、驗收與交付證據。
+title: '[工作項目] '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        工作前閱讀本 Repository 的 `AGENTS.md` 與 `docs/TEAM.md`。
+        需求狀態用於追蹤，不取代使用者授權；依既有核准範圍執行。
+        不填入 Secrets、憑證或真實個人資料。未確認的內容保留為提案或待確認事項。
+  - type: dropdown
+    id: work_type
+    attributes:
+      label: 工作類型
+      options:
+        - Epic
+        - Feature
+        - Task
+        - Bug
+    validations:
+      required: true
+  - type: dropdown
+    id: requirement_status
+    attributes:
+      label: 需求狀態
+      description: 選擇已確認時，請在下一欄提供確認來源與日期。
+      options:
+        - 提案
+        - 待確認
+        - 已確認
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    id: source_and_goal
+    attributes:
+      label: 需求來源與目標
+      description: 提供需求 ID、文件／討論／Issue 連結、使用者情境與預期結果；尚無來源時說明待補內容。
+      placeholder: |
+        需求 ID／來源連結：
+        確認者與日期（已確認時填寫）：
+        使用者情境與目前問題：
+        預期結果：
+        Bug 重現步驟與環境（適用時）：
+    validations:
+      required: true
+  - type: textarea
+    id: scope_and_ownership
+    attributes:
+      label: 任務範圍與責任
+      description: 任務 ID 可使用本 Issue 編號；開始實作前明確指定唯一負責人、可修改路徑與獨立審查者。
+      placeholder: |
+        任務 ID／上層 Epic 或關聯 Issue：
+        唯一負責人：
+        獨立審查者：
+        可修改路徑／模組：
+        本次範圍與排除項目：
+        介面、依賴及前置工作：
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: 驗收條件
+      description: 使用 AC 編號列出可觀察的結果；依風險列入錯誤、權限、資料邊界與相容性，讓 PR 能逐項對照。
+      placeholder: |
+        - [ ] AC-01：在指定情境執行操作後，得到可驗證的結果。
+        - [ ] AC-02：失敗或邊界情境得到預期處理。
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: 驗證計畫與實際結果
+      description: 開始前列必需命令與環境，交付時補實際結果及證據。區分通過、失敗、未執行與不適用；後兩者填原因。
+      placeholder: |
+        AC 對應、必需驗證命令與環境：
+        測試資料與隔離方式（適用時）：
+        實際執行命令／結果／證據連結：
+        失敗原因、未執行或不適用項目：
+    validations:
+      required: true
+  - type: textarea
+    id: risks_and_decisions
+    attributes:
+      label: 風險、回滾與待確認事項
+      description: 沒有已知風險或不適用時寫明原因。核准邊界依 AGENTS.md，引用既有授權，待核准事項保持待確認。
+      placeholder: |
+        相容性／資料／介面風險：
+        回滾方式：
+        既有授權來源與範圍：
+        待確認決策、選項與影響（無則寫無）：
+    validations:
+      required: true
+  - type: textarea
+    id: delivery_summary
+    attributes:
+      label: 交付與 Codex 任務摘要
+      description: 開始前可留空，交付時補齊；只記錄實際完成的工作。
+      placeholder: |
+        Codex 任務摘要與實際修改檔案：
+        Commit SHA／PR 連結：
+        獨立審查結果與證據：
+        文件更新與後續待辦：
+    validations:
+      required: false
