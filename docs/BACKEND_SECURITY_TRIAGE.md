@@ -711,4 +711,4 @@
 
 TASK-002首次核實清單已完成；CVE-2026-42198補證與TASK-003修補留在工程待辦，ENG-Q001未結案。01完成後進入02，不以工程修補作為前置。原需求總表v1.0範圍與優先級保留。
 
-首次核實為分析與文件工作，未修改程式、依賴、安全設定或Secrets，未新增suppression。文件收尾依使用者指示以feat/ISSUE-2-requirements-baseline分支Commit/Push交付；未建立PR、Merge或部署。
+首次核實為分析與文件工作，未修改程式、依賴、安全設定或Secrets，未新增suppression。文件以feat/ISSUE-2-requirements-baseline分支交付，使用者續授權透過[PR #6](https://github.com/xk2022/codex-xk-rotaract/pull/6)合併develop；合併狀態以PR紀錄為準，main與部署不在本次範圍。

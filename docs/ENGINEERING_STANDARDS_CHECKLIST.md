@@ -2,7 +2,7 @@
 
 規範盤點：2026-10-18；交付收尾：2026-10-20。適用於 XK SYSTEM 多 Repository 開發流程，以及 `codex-xk-rotaract` 示範專案的需求、實作、審查與交付。
 
-中央規範已核准版本為 **AGENTS v1.0.0**。本清單整理既有決策；各節分別標明共同規範、專案實作及待確認事項。文件隨需求總表以 `feat/ISSUE-2-requirements-baseline` 文件分支交付，未合併至 `develop`／`main`；後續狀態以[需求總表](REQUIREMENTS_MASTER.md)及[工程待辦](ENGINEERING_BACKLOG.md)追蹤。
+中央規範已核准版本為 **AGENTS v1.0.0**。本清單整理既有決策；各節分別標明共同規範、專案實作及待確認事項。文件由 `feat/ISSUE-2-requirements-baseline` 分支以 `develop` 為合併目標，狀態見[PR #6](https://github.com/xk2022/codex-xk-rotaract/pull/6)；`main` 與部署不在本次範圍，後續以[需求總表](REQUIREMENTS_MASTER.md)及[工程待辦](ENGINEERING_BACKLOG.md)追蹤。
 
 ## 規範來源與狀態
 

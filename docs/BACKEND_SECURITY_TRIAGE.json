@@ -4076,6 +4076,9 @@
     "program_tests_rerun": false,
     "triage_phase_commit_push_merge_deploy": false,
     "document_closeout_commit_push_authorized": true,
-    "merge_deploy": false
+    "develop_merge_authorized": true,
+    "merge_request_url": "https://github.com/xk2022/codex-xk-rotaract/pull/6",
+    "main_merge": false,
+    "deploy": false
   }
 }
