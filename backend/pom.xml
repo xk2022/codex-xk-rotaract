@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
  <modelVersion>4.0.0</modelVersion><groupId>org.xkrotaract</groupId><artifactId>core-api</artifactId><version>0.6.0-SNAPSHOT</version>
  <parent><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-parent</artifactId><version>3.5.13</version><relativePath/></parent>
- <properties><java.version>21</java.version></properties>
+ <properties><java.version>21</java.version><postgresql.version>42.7.14</postgresql.version></properties>
  <dependencies>
   <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
   <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
@@ -14,5 +14,46 @@
   <dependency><groupId>com.twelvemonkeys.imageio</groupId><artifactId>imageio-webp</artifactId><version>3.12.0</version></dependency>
   <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
  </dependencies>
- <build><resources><resource><directory>src/main/resources</directory></resource><resource><directory>../docs/api</directory><includes><include>openapi.json</include></includes><targetPath>api</targetPath></resource></resources><plugins><plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin></plugins></build>
+ <build><resources><resource><directory>src/main/resources</directory></resource><resource><directory>../docs/api</directory><includes><include>openapi.json</include></includes><targetPath>api</targetPath></resource></resources><plugins>
+  <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin>
+  <plugin>
+   <groupId>org.apache.maven.plugins</groupId><artifactId>maven-checkstyle-plugin</artifactId><version>3.6.0</version>
+   <dependencies><dependency><groupId>com.puppycrawl.tools</groupId><artifactId>checkstyle</artifactId><version>14.3.0</version></dependency></dependencies>
+   <configuration>
+    <configLocation>config/checkstyle/CHECKSTYLE.xml</configLocation>
+    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+    <includeResources>false</includeResources><includeTestResources>false</includeTestResources>
+    <failOnViolation>true</failOnViolation><violationSeverity>error</violationSeverity>
+   </configuration>
+   <executions><execution><id>check-java</id><phase>validate</phase><goals><goal>check</goal></goals></execution></executions>
+  </plugin>
+  <plugin>
+   <groupId>org.jacoco</groupId><artifactId>jacoco-maven-plugin</artifactId><version>0.8.15</version>
+   <executions>
+    <execution><id>prepare-coverage</id><phase>initialize</phase><goals><goal>prepare-agent</goal></goals></execution>
+    <execution><id>coverage-report</id><phase>verify</phase><goals><goal>report</goal></goals><configuration><formats><format>HTML</format><format>XML</format></formats></configuration></execution>
+   </executions>
+  </plugin>
+ </plugins></build>
+ <profiles><profile>
+  <id>dependency-audit</id>
+  <build><plugins><plugin>
+   <groupId>org.owasp</groupId><artifactId>dependency-check-maven</artifactId><version>13.0.0</version>
+   <configuration>
+    <formats><format>HTML</format><format>JSON</format></formats>
+    <dataDirectory>${project.build.directory}/dependency-check-data</dataDirectory>
+    <outputDirectory>${project.build.directory}/dependency-audit</outputDirectory>
+    <autoUpdate>true</autoUpdate><failOnError>true</failOnError>
+    <failBuildOnCVSS>11</failBuildOnCVSS>
+    <skipTestScope>false</skipTestScope><skipProvidedScope>false</skipProvidedScope><skipRuntimeScope>false</skipRuntimeScope>
+    <scanDependencies>true</scanDependencies><scanPlugins>false</scanPlugins>
+    <nvdDatafeedUrl>https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz</nvdDatafeedUrl>
+    <nvdValidForHours>0</nvdValidForHours><knownExploitedEnabled>true</knownExploitedEnabled>
+    <ossIndexAnalyzerEnabled>false</ossIndexAnalyzerEnabled>
+    <nodeAnalyzerEnabled>false</nodeAnalyzerEnabled><nodeAuditAnalyzerEnabled>false</nodeAuditAnalyzerEnabled>
+    <yarnAuditAnalyzerEnabled>false</yarnAuditAnalyzerEnabled><pnpmAuditAnalyzerEnabled>false</pnpmAuditAnalyzerEnabled>
+    <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
+   </configuration>
+  </plugin></plugins></build>
+ </profile></profiles>
 </project>

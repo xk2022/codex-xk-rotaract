@@ -53,7 +53,57 @@ SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
 CORE_TEST_ALLOW_RESET=true DATABASE_URL=jdbc:postgresql://127.0.0.1:55432/xk_rotaract_test mvn verify
 ```
 
-整合案例涵蓋註冊登入核准至名冊、匿名 CSRF 與 Origin、Cookie 屬性、冪等重放／內容衝突、跨社／撤權、版本、隱私、唯一與密碼空白、待審上限、撤回、拒絕冷卻、停權及核准競爭。本輪在 PostgreSQL 17、JDK 21、Maven 3.9.11 執行 `mvn verify`：111 項測試通過，0 失敗、0 錯誤、0 跳過；包含原有核心回歸、所有新增模組與實際路由覆蓋。年度讀寫及7/1、8/1邊界已驗證，長期維運排程不因此視為完成。
+整合案例涵蓋註冊登入核准至名冊、匿名 CSRF 與 Origin、Cookie 屬性、冪等重放／內容衝突、跨社／撤權、版本、隱私、唯一與密碼空白、待審上限、撤回、拒絕冷卻、停權及核准競爭。先前API交付在 PostgreSQL 17、JDK 21、Maven 3.9.11 執行 `mvn verify`：111 項測試通過，0 失敗、0 錯誤、0 跳過；包含原有核心回歸、所有新增模組與實際路由覆蓋。本次pgJDBC修補保留上述111項，加入3項安全回歸後共114項通過，詳見下方修補段落。年度讀寫及7/1、8/1邊界已驗證，長期維運排程不因此視為完成。
+
+### Java 檢查與覆蓋率報告
+
+在上述獨立測試資料庫與環境變數已設定後，於 `backend/` 執行完整檢查：
+
+```sh
+CORE_TEST_ALLOW_RESET=true mvn --batch-mode clean verify
+```
+
+Maven Checkstyle Plugin 3.6.0 使用 Checkstyle 14.3.0（需要 Java 21），在 `validate` 階段檢查主程式與測試 Java 檔；規則位於 [CHECKSTYLE.xml](config/checkstyle/CHECKSTYLE.xml)，包含未使用 import、重複／多餘 import、頂層類別與檔名一致，以及每檔一個頂層類別。違規會使建置失敗；不掃描資源檔，也未設定縮排、行長或禁止 wildcard import。這些基本規則不提供完整型別或安全分析。
+
+JaCoCo 0.8.15 在 `initialize` 階段為既有 Surefire 測試 JVM 加入 agent，於 `verify` 產生 HTML／XML 報告；原有 11 個 `*IntegrationTest.java`、111 項測試維持由 Surefire 執行一次。報告納入所有已編譯主程式類別，包括未執行到的類別，不設定固定覆蓋率百分比。另行啟動的 HTTPS 瀏覽器測試應用 JVM 未加入 agent，其執行結果不計入此覆蓋率。
+
+- Checkstyle XML：`target/checkstyle-result.xml`。
+- JaCoCo HTML：`target/site/jacoco/index.html`；XML：`target/site/jacoco/jacoco.xml`。
+- GitHub Actions 的 `Verify core API` 執行 `clean verify`，逐一確認上述報告非空後，上傳 `backend-quality-<run_attempt>` artifact，保留 7 天；下載並解壓後開啟 `site/jacoco/index.html`。報告於 HTTPS 流程前上傳，後續瀏覽器流程失敗時仍可檢視已產生的報告。
+
+僅檢查上述 Java 規則可執行 `mvn --batch-mode validate`，不會啟動資料庫測試，也不會產生新的覆蓋率報告；執行完整驗證仍須遵守獨立 `*_test` 資料庫與重設許可要求。
+
+### Maven 依賴安全基線
+
+`dependency-audit` profile 固定 OWASP Dependency-Check 13.0.0，掃描 Maven 應用與測試的直接／傳遞依賴，包含 test、runtime、provided scope。此 profile 不綁定一般建置階段，不改原有 `clean verify`、111 項測試與 HTTPS 流程，也不掃描 Maven build plugins、前端、原始碼、Secrets 或部署映像。
+
+從 `backend/` 執行（不需要測試資料庫）：
+
+```sh
+test ! -e target/dependency-check-data
+mkdir -p target/dependency-audit
+date -u +%Y-%m-%dT%H:%M:%SZ > target/dependency-audit/update-started-at.txt
+SCARF_NO_ANALYTICS=true mvn --batch-mode -Pdependency-audit org.owasp:dependency-check-maven:13.0.0:update-only
+date -u +%Y-%m-%dT%H:%M:%SZ > target/dependency-audit/update-completed-at.txt
+SCARF_NO_ANALYTICS=true mvn --batch-mode -Pdependency-audit org.owasp:dependency-check-maven:13.0.0:check
+python3 scripts/verify-dependency-audit.py
+```
+
+上列命令須依序執行，任一步失敗即停止；若已有先前資料庫，應另用乾淨工作副本執行冷啟動驗證。
+
+使用 NVD 官方 2.0 年度／modified 資料檔及 META 更新資訊，不需 NVD API Key；另啟用 CISA KEV。資料庫位於 `target/dependency-check-data`，每次檢查 NVD 更新（`nvdValidForHours=0`）。CI 使用獨立 `backend-dependency-audit` job 及全新 job-local 資料庫，先確認冷啟動更新成功才掃描，不快取弱點資料庫；45 分鐘為本次掃描 job 的上限，原有整合測試 job 維持 30 分鐘。
+
+保留 `autoUpdate=true`、`failOnError=true`。有效弱點發現先報告，不設定弱點等級阻擋（`failBuildOnCVSS=11` 高於 CVSS 範圍）；來源更新、下載、分析或報告無效仍使 job 失敗，不將現有或部分報告當作掃描成功。沒有專案 suppressions；工具預設的官方誤判規則仍會更新。OSS Index 本輪不啟用，因其需額外認證及使用條款評估；Node／RetireJS analyzers 不屬本輪 Java 範圍。
+
+報告為 `target/dependency-audit/dependency-check-report.html`、`dependency-check-report.json` 與 `scan-metadata.json`。驗證腳本確認引擎、NVD 更新資訊、test／runtime 依賴、分析錯誤及各份檔案，記錄 PR head、實際 checkout Commit、時間、Maven 版本、POM SHA256、掃描範圍與弱點分級摘要；CISA 更新以成功的冷啟動更新步驟及 CI log 為證，不虛構 JSON 中沒有的 CISA 時戳。GitHub Actions 上傳 `backend-dependency-audit-<run_attempt>`，保留 7 天；只有成功掃描與驗證的報告會上傳。失敗原因見失敗步驟 log。
+
+零告警只代表該次工具與資料來源的比對結果，不等於完整產品安全驗收。NVD／CPE 可能誤判，發現需逐項檢視；弱點阻擋等級與專案例外另行確認，不能用整批 suppression 隱藏發現。
+
+### pgJDBC SCRAM 安全修補
+
+本分支將既有pgJDBC由42.7.10升至42.7.14，透過`postgresql.version`覆寫Boot的同一依賴，不改Boot3.5.13或生產DB/TLS／認證設定。官方修補含SCRAM迭代上限及後續相關問題，詳見[補證與修補報告](../docs/BACKEND_SECURITY_REMEDIATION.md)。
+
+新增3項loopback協定安全回歸：超過預設／明確迭代上限會在client proof前拒絕，正常SCRAM仍可送proof。42.7.10負向對照有2項預期失敗，新版3項全通過；既有111項整合測試保留，本地`clean verify`共114項通過、0失敗／錯誤／跳過。上述合成資料驗證不代替正式端點或TLS驗收，最新CI與重掃結果見現有PR #4的同Head紀錄。
 
 ## 本人帳號修改與重試
 
