@@ -53,7 +53,7 @@ SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
 CORE_TEST_ALLOW_RESET=true DATABASE_URL=jdbc:postgresql://127.0.0.1:55432/xk_rotaract_test mvn verify
 ```
 
-整合案例涵蓋註冊登入核准至名冊、匿名 CSRF 與 Origin、Cookie 屬性、冪等重放／內容衝突、跨社／撤權、版本、隱私、唯一與密碼空白、待審上限、撤回、拒絕冷卻、停權及核准競爭。本輪在 PostgreSQL 17、JDK 21、Maven 3.9.11 執行 `mvn verify`：111 項測試通過，0 失敗、0 錯誤、0 跳過；包含原有核心回歸、所有新增模組與實際路由覆蓋。年度讀寫及7/1、8/1邊界已驗證，長期維運排程不因此視為完成。
+整合案例涵蓋註冊登入核准至名冊、匿名 CSRF 與 Origin、Cookie 屬性、冪等重放／內容衝突、跨社／撤權、版本、隱私、唯一與密碼空白、待審上限、撤回、拒絕冷卻、停權及核准競爭。先前API交付在 PostgreSQL 17、JDK 21、Maven 3.9.11 執行 `mvn verify`：111 項測試通過，0 失敗、0 錯誤、0 跳過；包含原有核心回歸、所有新增模組與實際路由覆蓋。本次pgJDBC修補保留上述111項，加入3項安全回歸後共114項通過，詳見下方修補段落。年度讀寫及7/1、8/1邊界已驗證，長期維運排程不因此視為完成。
 
 ### Java 檢查與覆蓋率報告
 
@@ -98,6 +98,12 @@ python3 scripts/verify-dependency-audit.py
 報告為 `target/dependency-audit/dependency-check-report.html`、`dependency-check-report.json` 與 `scan-metadata.json`。驗證腳本確認引擎、NVD 更新資訊、test／runtime 依賴、分析錯誤及各份檔案，記錄 PR head、實際 checkout Commit、時間、Maven 版本、POM SHA256、掃描範圍與弱點分級摘要；CISA 更新以成功的冷啟動更新步驟及 CI log 為證，不虛構 JSON 中沒有的 CISA 時戳。GitHub Actions 上傳 `backend-dependency-audit-<run_attempt>`，保留 7 天；只有成功掃描與驗證的報告會上傳。失敗原因見失敗步驟 log。
 
 零告警只代表該次工具與資料來源的比對結果，不等於完整產品安全驗收。NVD／CPE 可能誤判，發現需逐項檢視；弱點阻擋等級與專案例外另行確認，不能用整批 suppression 隱藏發現。
+
+### pgJDBC SCRAM 安全修補
+
+本分支將既有pgJDBC由42.7.10升至42.7.14，透過`postgresql.version`覆寫Boot的同一依賴，不改Boot3.5.13或生產DB/TLS／認證設定。官方修補含SCRAM迭代上限及後續相關問題，詳見[補證與修補報告](../docs/BACKEND_SECURITY_REMEDIATION.md)。
+
+新增3項loopback協定安全回歸：超過預設／明確迭代上限會在client proof前拒絕，正常SCRAM仍可送proof。42.7.10負向對照有2項預期失敗，新版3項全通過；既有111項整合測試保留，本地`clean verify`共114項通過、0失敗／錯誤／跳過。上述合成資料驗證不代替正式端點或TLS驗收，最新CI與重掃結果見現有PR #4的同Head紀錄。
 
 ## 本人帳號修改與重試
 
