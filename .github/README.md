@@ -6,8 +6,8 @@
 
 | 工作流程 | 觸發方式 | 檢查與輸出 |
 | --- | --- | --- |
-| [Verify frontend](workflows/verify-frontend.yml) | 所有目標分支的 PR、手動執行 | Node 24、`npm ci`、前端 Lint、單元測試與 Coverage、TypeScript 檢查及 Vite 建置；上傳覆蓋率報告，不部署 |
-| [Verify core API](workflows/core-api.yml) | main 的相關路徑 push、相關路徑 PR、手動執行 | API 靜態契約、Java 21／PostgreSQL 17 的 `mvn verify`，以及核心入社與本人帳號的兩條 live HTTPS 瀏覽器流程 |
+| [Verify frontend](workflows/verify-frontend.yml) | 所有目標分支的 PR、手動執行 | Node 24、`npm ci`、全部鎖定依賴稽核、前端 Lint、單元測試與 Coverage、TypeScript 檢查及 Vite 建置；上傳依賴與覆蓋率報告，不部署 |
+| [Verify core API](workflows/core-api.yml) | main 的相關路徑 push、相關路徑 PR、手動執行 | API 靜態契約、Java 21／PostgreSQL 17 的 `clean verify`、Checkstyle／JaCoCo、獨立 Maven 依賴稽核 job，以及核心入社與本人帳號的兩條 live HTTPS 瀏覽器流程 |
 | [Deploy frontend to GitHub Pages](workflows/deploy-frontend.yml) | main 的前端或該 workflow 變更、手動執行 | 前端測試與建置、正式輸出子路徑的展示瀏覽器檢查，通過後發布 `frontend/dist` |
 
 既有 API 與 Pages 工作流程的觸發條件保持不變。Pages 發布的是合成資料展示，不代表正式後端已部署。
@@ -20,6 +20,7 @@
 
 ```sh
 npm ci
+node scripts/audit-dependencies.mjs
 npm run lint
 npm run test:coverage
 npm run build
@@ -37,7 +38,9 @@ npm run build
 
 新增 workflow 會提供檢查結果，**不會自動設定分支保護或 required checks**。要由 GitHub 強制阻擋合併，仍須另經核准配置 ruleset／branch protection，並在實際 PR 執行後核對 `frontend-check` 的 check 名稱。必要檢查失敗、取消或沒有結果，不能視為已通過。
 
-目前涵蓋前端 Lint、單元測試、Coverage 與建置。安全／依賴掃描的 CI、後端 Lint／Coverage、unit／integration 分層及完整品質總閘門仍有後續工作；不能據此宣稱已符合 XK SYSTEM 全套 CI 規範。瀏覽器展示測試與核心 live 測試也不代表所有新增畫面已完成真實 API 整合。
+目前涵蓋前端 Lint、單元測試、Coverage、建置與依賴稽核；後端包含 Checkstyle、JUnit／PostgreSQL 測試、JaCoCo 及獨立依賴稽核。兩端依賴稽核保留有效弱點報告，尚未設定 severity gate；工具、資料來源或報告無效會使檢查失敗。前端報告位於 `frontend/target/dependency-audit`，後端報告位於 `backend/target/dependency-audit`，各 job 上傳對應 artifact。
+
+SAST、Maven build plugin／映像掃描、unit／integration 分層及完整品質總閘門仍有後續工作；不能據此宣稱已符合 XK SYSTEM 全套 CI 規範。瀏覽器展示測試與核心 live 測試也不代表所有新增畫面已完成真實 API 整合。
 
 建立 PR、Merge 與正式部署依 [AGENTS.md](../AGENTS.md) 的核准界線處理；檢查通過不等於取得操作核准。
 

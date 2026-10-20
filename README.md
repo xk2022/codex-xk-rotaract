@@ -4,6 +4,8 @@
 
 GitHub repo：[xk2022/codex-xk-rotaract](https://github.com/xk2022/codex-xk-rotaract)。
 
+分支整併：[2026-10-21 相關分支、合併後驗證與未完成項目](docs/BRANCH_INTEGRATION_2026_10_21.md)。
+
 [01｜需求彙整：需求總表 v1.0](docs/REQUIREMENTS_MASTER.md)已確認，包含[可篩選CSV](docs/REQUIREMENTS_MASTER.csv)與[工程規範清單](docs/ENGINEERING_STANDARDS_CHECKLIST.md)。下一需求階段為 **02｜規則需求確認**，沿用已確認決策，先工程規範待決方案，再產品業務規則。
 
 [後端告警核實報告](docs/BACKEND_SECURITY_TRIAGE.md)已完成55項Critical／High首次核實；補證與修補保留在[工程待辦](docs/ENGINEERING_BACKLOG.md)，P0及未結案狀態不變，不阻擋進入02。原始[產品需求盤點](docs/2027/44-requirements-consolidation.md)保留供追溯。文件合併至develop的狀態見[PR #6](https://github.com/xk2022/codex-xk-rotaract/pull/6)，main與部署不在本次範圍。
