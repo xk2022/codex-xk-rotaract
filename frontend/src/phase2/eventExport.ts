@@ -1,5 +1,13 @@
 import { eventBounds, publicProjection, type CommunityClub, type CommunityEvent } from './model';
-function text(value: string): string { return value.replace(/\r\n|\r/g,'\n').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g,'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/;/g,'\\;').replace(/,/g,'\\,'); }
+function text(value: string): string {
+ const normalized = value.replace(/\r\n|\r/g, '\n');
+ // 保留換行與 Tab，移除其餘控制字元，避免匯出欄位夾帶非法內容。
+ const clean = [...normalized].filter(character => {
+  const code = character.charCodeAt(0);
+  return code === 9 || code === 10 || (code >= 32 && code !== 127);
+ }).join('');
+ return clean.replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/;/g,'\\;').replace(/,/g,'\\,');
+}
 export function foldCalendarLine(value: string): string {
  const encoder=new TextEncoder(); let line='';let size=0;const lines:string[]=[];
  for(const character of value){const length=encoder.encode(character).length;if(size+length>75){lines.push(line);line=' ';size=1;}line+=character;size+=length;}lines.push(line);return lines.join('\r\n');

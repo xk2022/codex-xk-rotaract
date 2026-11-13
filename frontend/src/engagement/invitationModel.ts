@@ -27,7 +27,7 @@ export function applyInvitationAction(companies: BusinessCompany[], invitations:
     if (invitation && businessInstant(invitation.updatedAt) > instant) return fail('情境時間早於邀請建立時間。');
     const owned = company.ownerId === actor.memberId;
     let nextCompany = company;
-    let nextInvitations = invitations;
+    let nextInvitations: MaintainerInvitation[];
     if (action.type === 'invite') {
         if (!owned) return fail('僅公司建立者可以邀請共同維護者。');
         if (!context.members.some(m => m.id === action.inviteeId)) return fail('請選擇已註冊的會員。');

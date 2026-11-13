@@ -12,6 +12,16 @@ React 19 + TypeScript + Vite + Tailwind。保留品牌與配色、使用自有�
 
 需 Node.js 24 LTS。執行 `npm ci`、`npm run dev`；正式輸出使用 `npm run build`，單元測試使用 `npm test`。
 
+程式檢查使用 `npm run lint`，採 ESLint 與 typescript-eslint recommended 規則，檢查 `src/` 的 TypeScript／TSX（包含測試檔），不套用縮排或格式化規則；任何錯誤或警告都會使命令失敗。
+
+`npm run test:coverage` 會執行相同的單元測試並產生 V8 覆蓋率報告；provider 與 Vitest 固定同版。報告納入 `src/` 全部 TypeScript／TSX 來源，包含尚未被測試 import 的 UI；僅排除測試與 `.d.ts`，不設固定覆蓋率百分比門檻。終端顯示摘要，HTML 位於 `coverage/index.html`，LCOV 位於 `coverage/lcov.info`；`coverage/` 已由根目錄 `.gitignore` 排除。這是 Vitest 程序的覆蓋範圍，不包含 Playwright 或後端 JVM。
+
+PR 的 `frontend-check` 依序執行 `npm ci`、依賴安全掃描、Lint、含覆蓋率的測試與建置，成功後上傳 `frontend-coverage-<run_attempt>` 報告，保留 7 天。可在該次 GitHub Actions 的 Artifacts 下載；測試只執行一次，不另重跑 `npm test`。
+
+安裝依賴後，CI 會先執行 `node scripts/audit-dependencies.mjs`，也可在本目錄手動執行。使用既有 npm 的 `audit --package-lock-only --include=dev --include=optional --include=peer --audit-level=info --json` 查詢目前 registry，範圍包含 lockfile 的正式、開發、optional 與 peer 直接／傳遞依賴；不依賴目前機器安裝了哪些平台套件。`--audit-level=info` 用於一致辨認 npm 的 exit 0／1；本輪不設弱點等級阻擋，有效告警仍會成功並列入摘要，工具、網路、registry、JSON 結構或狀態不一致則使 CI 失敗。沒有告警僅代表這次已知漏洞查詢的結果，不代表原始碼、Secrets 或完整產品安全驗收。
+
+原始 `audit.json`、含時間／checkout Commit／PR head／Node／npm 版本／lockfile SHA-256／分類統計的 `scan-metadata.json`、可讀 `summary.md` 與 npm stderr 診斷存於 `target/dependency-audit/`（不提交）。每次執行會先清除此目錄，避免舊報告混入；CI 逐一確認成功報告非空，再上傳 `frontend-dependency-audit-<run_attempt>`，保留 7 天。掃描失敗仍上傳可取得的診斷，metadata 與摘要會明確標示失敗，不能當成成功掃描報告；依賴分類數可能重疊，不應加總成總套件數。本輪不自動執行 `npm audit fix`、不修改 lockfile、不建立弱點豁免。
+
 瀏覽器測試需先啟動 dev server、安裝 Playwright Chromium（`npx playwright install chromium`），再執行：
 
 ```sh
