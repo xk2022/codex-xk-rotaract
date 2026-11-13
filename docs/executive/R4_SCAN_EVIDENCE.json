@@ -1,0 +1,475 @@
+{
+  "schemaVersion": 1,
+  "task": "R4",
+  "documentDateTaipei": "2026-11-13",
+  "summaryPreparedAtUtc": "2026-11-13T01:18:19.448662+00:00",
+  "evidenceKind": "non-sensitive finite-read-only evidence summary; not a new scan at summary preparation time",
+  "mainTaskStatus": "受阻",
+  "implementationStatus": "使用者取消本輪實作；只交派工/有限核實，沒有升版或配置變更",
+  "sourceCheckoutCommit": "b3b34539edc3ddf18a813b6cd950ec4d5caa4604",
+  "hashes": {
+    "frontendPackageLockSha256AtScan": "77e068856eb4877d237e29e5e45c58b2434722cb9dbcfe5baf538c4985c6b0a4",
+    "frontendPackageLockSha256AtSummary": "77e068856eb4877d237e29e5e45c58b2434722cb9dbcfe5baf538c4985c6b0a4",
+    "backendPomSha256AtArtifactInspection": "78a23ee6abf656b7d39c8e58299aa42a2e42671efa912b07dec631fd7b7302c9",
+    "backendPomSha256AtSummary": "78a23ee6abf656b7d39c8e58299aa42a2e42671efa912b07dec631fd7b7302c9",
+    "frontendAuditScriptSha256": "5fb5ea37b0625a77b7282df2c9faa4a4f99cd4e66e8d8f2e5a6b7f1612da27dc",
+    "backendAuditValidatorSha256": "1457cc6c09ebd8e97d77b097a77d4d71b806b39408198e090e15c351d6ee67e2"
+  },
+  "frontend": {
+    "reportSource": "npm registry audit v2 via existing frontend/scripts/audit-dependencies.mjs",
+    "registryOrigin": "https://registry.npmjs.org",
+    "startedAtUtc": "2026-11-13T01:04:22.029Z",
+    "finishedAtUtc": "2026-11-13T01:05:04.776Z",
+    "checkedOutCommit": "b3b34539edc3ddf18a813b6cd950ec4d5caa4604",
+    "nodeVersion": "v24.19.0",
+    "npmVersion": "11.9.0",
+    "command": [
+      "npm",
+      "audit",
+      "--package-lock-only",
+      "--include=dev",
+      "--include=optional",
+      "--include=peer",
+      "--audit-level=info",
+      "--json"
+    ],
+    "scope": "package-lock.json: production, development, optional and peer dependencies",
+    "status": "completed",
+    "classification": "vulnerabilities-found",
+    "npmExitCodeObserved": 1,
+    "wrapperExitCodeObserved": 0,
+    "wrapperPolicy": "report-only; valid findings do not fail CI; scan errors fail CI",
+    "wrapperFailureExitCodeFromExistingScript": 2,
+    "exitInterpretation": "npm exit1 is a valid findings report; report-only wrapper exit0 does not mean zero vulnerabilities or risk acceptance. Tool/registry/validation failures must remain wrapper exit2.",
+    "lockfilePackageEntries": 283,
+    "dependencyCounts": {
+      "prod": 32,
+      "dev": 176,
+      "optional": 76,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 283
+    },
+    "vulnerablePackageCounts": {
+      "info": 0,
+      "low": 0,
+      "moderate": 10,
+      "high": 0,
+      "critical": 0,
+      "total": 10
+    },
+    "uniqueRootAdvisoryCount": 1,
+    "rootAdvisories": [
+      {
+        "id": "GHSA-g3hv-75wg-m249",
+        "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+        "title": "minimatch has potential denial of service via globparts amplification",
+        "sourceRegistryId": 1244623,
+        "severity": "moderate",
+        "affectedRootRange": ">=7.0.0 <11.0.1",
+        "cwe": [
+          "CWE-405"
+        ]
+      }
+    ],
+    "affectedPackages": [
+      {
+        "name": "@eslint/config-array",
+        "severity": "moderate",
+        "isDirect": false,
+        "affectedPackageRangeAsReported": ">=0.23.0",
+        "lockedEntries": [
+          {
+            "lockNode": "node_modules/@eslint/config-array",
+            "version": "0.23.5",
+            "devDependency": true
+          }
+        ],
+        "via": [
+          {
+            "dependency": "minimatch"
+          }
+        ],
+        "rootAdvisoryId": "GHSA-g3hv-75wg-m249",
+        "fixAvailableAsReported": true
+      },
+      {
+        "name": "@eslint/js",
+        "severity": "moderate",
+        "isDirect": true,
+        "affectedPackageRangeAsReported": ">=10.0.1",
+        "lockedEntries": [
+          {
+            "lockNode": "node_modules/@eslint/js",
+            "version": "10.0.1",
+            "devDependency": true
+          }
+        ],
+        "via": [
+          {
+            "dependency": "eslint"
+          }
+        ],
+        "rootAdvisoryId": "GHSA-g3hv-75wg-m249",
+        "fixAvailableAsReported": {
+          "name": "@eslint/js",
+          "version": "9.39.5",
+          "isSemVerMajor": true
+        }
+      },
+      {
+        "name": "@typescript-eslint/eslint-plugin",
+        "severity": "moderate",
+        "isDirect": false,
+        "affectedPackageRangeAsReported": "6.16.0 - 8.72.2",
+        "lockedEntries": [
+          {
+            "lockNode": "node_modules/@typescript-eslint/eslint-plugin",
+            "version": "8.71.2",
+            "devDependency": true
+          }
+        ],
+        "via": [
+          {
+            "dependency": "@typescript-eslint/type-utils"
+          },
+          {
+            "dependency": "@typescript-eslint/utils"
+          }
+        ],
+        "rootAdvisoryId": "GHSA-g3hv-75wg-m249",
+        "fixAvailableAsReported": true
+      },
+      {
+        "name": "@typescript-eslint/parser",
+        "severity": "moderate",
+        "isDirect": false,
+        "affectedPackageRangeAsReported": "6.16.0 - 8.72.2",
+        "lockedEntries": [
+          {
+            "lockNode": "node_modules/@typescript-eslint/parser",
+            "version": "8.71.2",
+            "devDependency": true
+          }
+        ],
+        "via": [
+          {
+            "dependency": "@typescript-eslint/typescript-estree"
+          }
+        ],
+        "rootAdvisoryId": "GHSA-g3hv-75wg-m249",
+        "fixAvailableAsReported": {
+          "name": "typescript-eslint",
+          "version": "8.36.0",
+          "isSemVerMajor": true
+        }
+      },
+      {
+        "name": "@typescript-eslint/type-utils",
+        "severity": "moderate",
+        "isDirect": false,
+        "affectedPackageRangeAsReported": "6.16.0 - 8.72.2",
+        "lockedEntries": [
+          {
+            "lockNode": "node_modules/@typescript-eslint/type-utils",
+            "version": "8.71.2",
+            "devDependency": true
+          }
+        ],
+        "via": [
+          {
+            "dependency": "@typescript-eslint/typescript-estree"
+          },
+          {
+            "dependency": "@typescript-eslint/utils"
+          }
+        ],
+        "rootAdvisoryId": "GHSA-g3hv-75wg-m249",
+        "fixAvailableAsReported": true
+      },
+      {
+        "name": "@typescript-eslint/typescript-estree",
+        "severity": "moderate",
+        "isDirect": false,
+        "affectedPackageRangeAsReported": "6.16.0 - 8.72.2",
+        "lockedEntries": [
+          {
+            "lockNode": "node_modules/@typescript-eslint/typescript-estree",
+            "version": "8.71.2",
+            "devDependency": true
+          }
+        ],
+        "via": [
+          {
+            "dependency": "minimatch"
+          }
+        ],
+        "rootAdvisoryId": "GHSA-g3hv-75wg-m249",
+        "fixAvailableAsReported": {
+          "name": "typescript-eslint",
+          "version": "8.36.0",
+          "isSemVerMajor": true
+        }
+      },
+      {
+        "name": "@typescript-eslint/utils",
+        "severity": "moderate",
+        "isDirect": false,
+        "affectedPackageRangeAsReported": "6.16.0 - 8.72.2",
+        "lockedEntries": [
+          {
+            "lockNode": "node_modules/@typescript-eslint/utils",
+            "version": "8.71.2",
+            "devDependency": true
+          }
+        ],
+        "via": [
+          {
+            "dependency": "@typescript-eslint/typescript-estree"
+          }
+        ],
+        "rootAdvisoryId": "GHSA-g3hv-75wg-m249",
+        "fixAvailableAsReported": {
+          "name": "typescript-eslint",
+          "version": "8.36.0",
+          "isSemVerMajor": true
+        }
+      },
+      {
+        "name": "eslint",
+        "severity": "moderate",
+        "isDirect": true,
+        "affectedPackageRangeAsReported": ">=10.0.0-alpha.0",
+        "lockedEntries": [
+          {
+            "lockNode": "node_modules/eslint",
+            "version": "10.13.0",
+            "devDependency": true
+          }
+        ],
+        "via": [
+          {
+            "dependency": "@eslint/config-array"
+          },
+          {
+            "dependency": "minimatch"
+          }
+        ],
+        "rootAdvisoryId": "GHSA-g3hv-75wg-m249",
+        "fixAvailableAsReported": {
+          "name": "eslint",
+          "version": "9.39.5",
+          "isSemVerMajor": true
+        }
+      },
+      {
+        "name": "minimatch",
+        "severity": "moderate",
+        "isDirect": false,
+        "affectedPackageRangeAsReported": "7.0.0 - 11.0.0",
+        "lockedEntries": [
+          {
+            "lockNode": "node_modules/minimatch",
+            "version": "10.2.6",
+            "devDependency": true
+          }
+        ],
+        "via": [
+          {
+            "rootAdvisoryId": "GHSA-g3hv-75wg-m249"
+          }
+        ],
+        "rootAdvisoryId": "GHSA-g3hv-75wg-m249",
+        "fixAvailableAsReported": {
+          "name": "eslint",
+          "version": "9.39.5",
+          "isSemVerMajor": true
+        }
+      },
+      {
+        "name": "typescript-eslint",
+        "severity": "moderate",
+        "isDirect": true,
+        "affectedPackageRangeAsReported": "<=8.72.2",
+        "lockedEntries": [
+          {
+            "lockNode": "node_modules/typescript-eslint",
+            "version": "8.71.2",
+            "devDependency": true
+          }
+        ],
+        "via": [
+          {
+            "dependency": "@typescript-eslint/eslint-plugin"
+          },
+          {
+            "dependency": "@typescript-eslint/parser"
+          },
+          {
+            "dependency": "@typescript-eslint/typescript-estree"
+          },
+          {
+            "dependency": "@typescript-eslint/utils"
+          }
+        ],
+        "rootAdvisoryId": "GHSA-g3hv-75wg-m249",
+        "fixAvailableAsReported": {
+          "name": "typescript-eslint",
+          "version": "8.36.0",
+          "isSemVerMajor": true
+        }
+      }
+    ],
+    "limitations": [
+      "Ten vulnerable package entries trace to one root advisory, not ten distinct CVEs.",
+      "All ten locked entries are dev dependencies; product remote-user exploitability was not demonstrated.",
+      "Registry fixAvailable can suggest downgrade or major changes; it is not an approved compatibility plan. No audit fix or version change was performed."
+    ]
+  },
+  "backend": {
+    "newScanPerformed": false,
+    "newScanSucceeded": false,
+    "nvdSourceProbe": {
+      "checkedAt": "2026-11-13T01:04:21.950823+00:00",
+      "completedAt": "2026-11-13T01:04:21.965256+00:00",
+      "url": "https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-modified.meta",
+      "method": "GET",
+      "attempts": 1,
+      "curlExitCode": 56,
+      "httpStatus": "000",
+      "stderr": "curl: (56) CONNECT tunnel failed, response 403",
+      "tlsVerificationDisabled": false,
+      "classification": "source-access-blocked",
+      "source": "default sandbox/inherited proxy and trust; no credentials",
+      "proxyConnectStatus": 403
+    },
+    "reasonNoNewScan": "The single official NVD modified-META request was rejected at proxy CONNECT with403; curl exit56 and direct HTTP status000. No large cold update, bypass, disabled TLS verification or substituted stale baseline.",
+    "historicalSource": {
+      "reportDateUtc": "2026-10-18T14:48:46.466221215Z",
+      "sourceCommit": "632b090fe1576a0a29e14177a2d0d47bf0f6dcde",
+      "originalReportSha256": "e8686811be01d61ee36b3714ce66ac5d31b59d050a155284ff08cbe51c33b967",
+      "originalFullReportAvailableInCurrentExecutor": false,
+      "retainedTriageFiles": [
+        "docs/BACKEND_SECURITY_TRIAGE.json",
+        "docs/BACKEND_SECURITY_TRIAGE.csv"
+      ],
+      "originalAllSeverityMatches": 99,
+      "originalSeverityCounts": {
+        "critical": 21,
+        "high": 34,
+        "medium": 40,
+        "low": 4
+      },
+      "firstPassDate": "2026-10-20",
+      "firstPassFindings": 55,
+      "firstPassStatusCounts": {
+        "適用": 0,
+        "不適用": 54,
+        "證據不足": 1
+      },
+      "untriagedMediumLowCount": 44,
+      "limitation": "Historical snapshot only. Missing full report prevents enumerating44 individual IDs here. It is not a current backend vulnerability count."
+    },
+    "existingRemediation": {
+      "postgresqlVersion": "42.7.14",
+      "driverArtifact": "postgresql-42.7.14.jar",
+      "embeddedDriverSha256": "73914527305a40cce504b0d3d90b23caf565136912d607ae8ae7c5895512332c",
+      "driverHashMatchesPublishedRemediationRecord": true,
+      "cvesCoveredByExistingRemediation": [
+        "CVE-2026-42198",
+        "CVE-2026-54291",
+        "CVE-2026-107314",
+        "CVE-2026-107315"
+      ],
+      "integrationProgramCommit": "a581bf2d43cf97c2ca7a7d9f4001da2d5efd29e4",
+      "existingVerifyLogFinishedAtUtc": "2026-10-20T16:25:05Z",
+      "existingSuites": 12,
+      "existingTestSummary": {
+        "tests": 114,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "testsRerunByR4": false,
+      "buildRerunByR4": false,
+      "note": "Preserve completed patch and114-test/SCRAM evidence; no repeated patch or further version upgrade. This does not establish productionDB/TLS verification or a fresh vulnerability rescan."
+    }
+  },
+  "remoteCi": {
+    "newRunRetrievedByR4": false,
+    "reportedAccessBlock": "Main agent reported GitHub API403; R4 did not repeat the request.",
+    "limitation": "No claim that a new same-commit GitHub Actions run succeeded."
+  },
+  "riskRegisterSummary": {
+    "totalTrackingRows": 76,
+    "classifications": {
+      "不適用有固定證據": 53,
+      "已修補": 4,
+      "實際待修": 16,
+      "待正式配置核實": 3
+    },
+    "workflowStatuses": {
+      "完成": 57,
+      "待辦": 13,
+      "受阻": 6
+    },
+    "approvedRiskExceptions": 0,
+    "limitation": "Tracking row count is not vulnerability count. Proposed dates do not authorize risk acceptance."
+  },
+  "artifactStorage": {
+    "sharedBasePath": "/workspace/shared/executive-20261113/security",
+    "rawArtifactsCarriedByGit": false,
+    "rawArtifactDigests": [
+      {
+        "relativePathInShared": "frontend-audit-20261113/audit.json",
+        "sha256": "19bb1819f94700f4a88b8ecdcd69d3a525de7b52981e2703c3fa54cf430f2e5d",
+        "sizeBytes": 5521,
+        "availability": "local_non_versioned_artifact_not_carried_by_Git"
+      },
+      {
+        "relativePathInShared": "frontend-audit-20261113/scan-metadata.json",
+        "sha256": "006409daf7e85205b59b9d0d0420fabc51dcec898debb5fa9a016fa439bb91a8",
+        "sizeBytes": 1154,
+        "availability": "local_non_versioned_artifact_not_carried_by_Git"
+      },
+      {
+        "relativePathInShared": "frontend-audit-20261113/npm-stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sizeBytes": 0,
+        "availability": "local_non_versioned_artifact_not_carried_by_Git"
+      },
+      {
+        "relativePathInShared": "frontend-audit-20261113/summary.md",
+        "sha256": "f562e3097edb308ecd537ee90c287bdf94fc67bcbcb6927dc1a3f5487bd2960e",
+        "sizeBytes": 755,
+        "availability": "local_non_versioned_artifact_not_carried_by_Git"
+      },
+      {
+        "relativePathInShared": "nvd-source-probe.json",
+        "sha256": "1d7a0432bdcb4e9d1e5f999dc3869269fc038fb187c88bd96c9d7d0264a3391e",
+        "sizeBytes": 510,
+        "availability": "local_non_versioned_artifact_not_carried_by_Git"
+      },
+      {
+        "relativePathInShared": "nvd-response-headers.txt",
+        "sha256": "38180cdf1f0e4badcd98da7c6fdc352d31b9c4f350ed446e8793df713b468620",
+        "sizeBytes": 143,
+        "availability": "local_non_versioned_artifact_not_carried_by_Git"
+      },
+      {
+        "relativePathInShared": "existing-artifact-inspection.json",
+        "sha256": "88989ab5eacd72ae6ad47f873ebd119a3374efd2df310a338ee19290c2f74e8f",
+        "sizeBytes": 6572,
+        "availability": "local_non_versioned_artifact_not_carried_by_Git"
+      },
+      {
+        "relativePathInShared": "fixed-evidence-recheck.json",
+        "sha256": "0dc1fc0b1870fae33aaea349a2f4bd16cca5e367ff3bcea4d3ec84ee439f94a1",
+        "sizeBytes": 2552,
+        "availability": "local_non_versioned_artifact_not_carried_by_Git"
+      }
+    ],
+    "summaryLimitation": "This versioned summary enables handoff with source/commit/version/range/hash evidence. Hashes do not replace missing raw reports or a new registry/NVD scan.",
+    "sensitiveDataIncluded": false
+  }
+}
